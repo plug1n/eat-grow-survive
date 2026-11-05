@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snake Game</title>
+  <!-- A white snake in the shape of an S on a red-to-yellow tile, drawn as inline SVG so it looks the same on every device and needs no extra file.
+       The same picture is the tab icon (here) and the icon in the heading (h1::before in the CSS below). -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ef4444'/%3E%3Cstop offset='1' stop-color='%23facc15'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M44 14C26 8 16 20 24 28C32 36 46 34 42 46C38 56 20 54 17 46' stroke='%237f1d1d' stroke-width='13' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 14C26 8 16 20 24 28C32 36 46 34 42 46C38 56 20 54 17 46' stroke='%23fff' stroke-width='7.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='44' cy='14' r='2.2' fill='%237f1d1d'/%3E%3C/svg%3E" />
   <style>
     * {
       box-sizing: border-box;
@@ -69,6 +72,16 @@
       color: #00ff88;
       text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
     }
+    /* the heading icon: the same pixel snake as the tab icon (it replaces the snake emoji, which every device draws differently) */
+    h1::before {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      margin-right: 0.3em;
+      vertical-align: -0.12em;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ef4444'/%3E%3Cstop offset='1' stop-color='%23facc15'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M44 14C26 8 16 20 24 28C32 36 46 34 42 46C38 56 20 54 17 46' stroke='%237f1d1d' stroke-width='13' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M44 14C26 8 16 20 24 28C32 36 46 34 42 46C38 56 20 54 17 46' stroke='%23fff' stroke-width='7.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='44' cy='14' r='2.2' fill='%237f1d1d'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
     .topbar-actions { flex: none; display: flex; align-items: center; gap: 8px; }
     .icon-btn {
       width: 40px;
@@ -87,6 +100,12 @@
     }
     .icon-btn:hover { border-color: #00ff88; color: #00ff88; }
     .icon-btn:focus-visible { outline: 2px solid #00ccff; outline-offset: 2px; }
+    /* "New" dot on the gear while there is a release the player has not looked at (#70) */
+    #settingsBtn { position: relative; }
+    #settingsBtn.has-news::after {
+      content: ''; position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%;
+      background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d;
+    }
 
     /* Status strip above the board: level, goal progress, score, record */
     #hud {
@@ -276,6 +295,27 @@
       border-radius: 8px;
     }
     #howtoPanel[hidden] { display: none; }
+
+    /* "What's new": the changelog (#70), a scrollable dialog in the colours of the "How to play" panel */
+    #news {
+      position: fixed; inset: 0; z-index: 70; padding: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+    }
+    #news[hidden] { display: none; }
+    .news-box {
+      width: min(460px, 100%); max-height: min(80vh, 560px);
+      display: flex; flex-direction: column; gap: 10px; padding: 14px 16px;
+      background: #0b1220; border: 2px solid #00ff88; border-radius: 10px;
+      color: #a0a0a0; font-size: 0.9rem;
+    }
+    .news-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .news-head h3 { flex: 1 1 0; min-width: 0; color: #00ff88; font-size: 1.15rem; }
+    .news-body { overflow-y: auto; display: grid; gap: 14px; }
+    .news-release h4 { color: #e0e0e0; font-size: 0.95rem; margin-bottom: 4px; }
+    .news-release ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; line-height: 1.35; }
+    .news-dot { display: none; width: 9px; height: 9px; margin-left: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d; }
+    .news-dot.on { display: inline-block; }
     .howto-links { display: flex; justify-content: center; gap: 24px; margin-top: 4px; }
     .howto-links a { display: block; flex: 0 1 auto; }
 
@@ -302,7 +342,9 @@
       gap: 0.8em;
       z-index: 10;
     }
-    .start-overlay { height: 270px; }
+    .start-overlay { height: 300px; }
+    /* the speed control in the first level's start box: same look and size as the one in the bottom bar */
+    .start-speed { display: flex; align-items: center; justify-content: center; gap: 6px; color: #a0a0a0; font-size: 0.8rem; }
     .game-over { display: none; height: 380px; gap: 0.35em; padding-top: 1em; padding-bottom: 1em; }
     .level-up { display: none; height: 300px; }
     .pause-overlay { display: none; cursor: pointer; height: 220px; }
@@ -602,6 +644,13 @@
       transition: background 0.2s;
     }
     .overlay button:hover { background: #44ff99; }
+    /* the small speed buttons inside the start box keep their own look (the generic dialog button style above is bigger and solid green) */
+    .overlay .start-speed .speed-btn {
+      background: #0f3460; color: #00ff88; border: 2px solid #00ff88;
+      padding: 0; font-size: 1.3rem; border-radius: 6px; transition: background 0.15s, color 0.15s, transform 0.05s;
+    }
+    .overlay .start-speed .speed-btn:hover { background: #00ff88; color: #1a1a2e; }
+    .overlay .start-speed .speed-btn:disabled:hover { background: #0f3460; color: #00ff88; }
     .hint { color: #a0a0a0; font-size: 0.85em; margin-top: 0.3em; }
 
     /* Top-10 list inside the Game Over box */
@@ -609,7 +658,7 @@
     .score-list { list-style: none; width: 100%; }
     .score-list li {
       display: grid;
-      grid-template-columns: 2.2em 1fr auto;
+      grid-template-columns: 2.2em 1fr auto 1.9em;
       gap: 0.5em;
       padding: 0 0.5em;
       font-size: 0.8em;
@@ -620,12 +669,78 @@
     .score-list .ini { color: #00ff88; font-weight: bold; }
     .score-list .pts { color: #ffdd44; text-align: right; }
     .score-list li.me { background: rgba(255, 221, 68, 0.2); outline: 1px solid #ffdd44; }
+    .overlay .score-list button.row-replay {
+      justify-self: end;
+      padding: 0 0.35em;
+      font-size: 0.9em;
+      line-height: 1.2;
+      color: #00ff88;
+      background: transparent;
+      border: 1px solid #00ff88;
+      border-radius: 3px;
+    }
+    .overlay .score-list button.row-replay:hover { background: #1a2238; }
+    .game-over .hs-buttons button { padding: 0.6em 0.9em; }
+
+    /* Replay: a banner at the top of the board and a control bar at the bottom (they scale with the board) */
+    .replay-banner {
+      display: none;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      width: 11em;
+      padding: 0.2em 0.5em;
+      font-size: calc(14px * var(--ui-scale, 1));
+      font-weight: bold;
+      letter-spacing: 0.15em;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      color: #ffdd44;
+      background: rgba(5, 8, 15, 0.85);
+      border: 1px solid #ffdd44;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+    .replay-bar {
+      display: none;
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      z-index: 12;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.4em 0.5em;
+      font-size: calc(13px * var(--ui-scale, 1));
+      background: rgba(5, 8, 15, 0.9);
+      border: 1px solid #00ff88;
+      border-radius: 8px;
+    }
+    .replay-bar button {
+      font: inherit;
+      font-weight: bold;
+      color: #00ff88;
+      background: transparent;
+      border: 1px solid #00ff88;
+      border-radius: 5px;
+      padding: 0.25em 0.5em;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .replay-bar button:hover { background: #1a2238; }
+    .replay-bar #rpPlay { width: 2.4em; }
+    .replay-bar #rpSpeed { width: 2.6em; }
+    .replay-bar #rpExit { width: 8.6em; overflow: hidden; }
+    .replay-bar input[type=range] { flex: 1 1 auto; min-width: 0; accent-color: #00ff88; }
   </style>
 </head>
 <body>
   <div id="app">
     <header id="topbar">
-      <h1 data-i18n="heading" data-fit>🐍 SNAKE</h1>
+      <h1 data-i18n="heading" data-fit>SNAKE</h1>
       <div class="topbar-actions">
         <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
           <button type="button" data-lang="en">EN</button>
@@ -663,6 +778,14 @@
         <div class="overlay start-overlay" id="startOverlay">
           <h2 id="startTitle">SNAKE</h2>
           <p id="startGoal"></p>
+          <!-- Speed for the start of a run (#14): only on the first level's start box, in step with the buttons below the board.
+               Clicks here must not start the game (see the click handler near the end of the script). -->
+          <div class="start-speed" id="startSpeed">
+            <span class="speed-label" data-i18n="speed" data-fit>Speed:</span>
+            <button type="button" class="speed-btn" id="startSpeedDown" data-i18n-aria="speedDownAria" aria-label="Decrease speed">−</button>
+            <span class="speed-display" id="startSpeedValue">5</span>
+            <button type="button" class="speed-btn" id="startSpeedUp" data-i18n-aria="speedUpAria" aria-label="Increase speed">+</button>
+          </div>
           <p data-i18n="startPress">Press any arrow key or WASD to start</p>
           <div class="hint" data-i18n="startHint">Use WASD or Arrow Keys to move</div>
         </div>
@@ -672,7 +795,10 @@
           <p id="finalRank" class="final-rank"></p>
           <h3 class="score-title" data-i18n="highScores">HIGH SCORES</h3>
           <ul id="scoreboardList" class="score-list"></ul>
-          <button onclick="restartGame()" data-i18n="playAgain">Play Again</button>
+          <div class="hs-buttons">
+            <button onclick="restartGame()" data-i18n="playAgain">Play Again</button>
+            <button type="button" id="watchReplayBtn" class="secondary" data-i18n="replayWatch">▶ Watch replay</button>
+          </div>
         </div>
         <div class="overlay hs-overlay" id="highScoreOverlay" role="dialog" aria-modal="true" aria-labelledby="hsTitle">
           <h2 id="hsTitle" data-i18n="hsTitle">NEW HIGH SCORE!</h2>
@@ -697,6 +823,13 @@
           <p data-i18n="levelDoneMsg">Next level is harder: more obstacles and a higher minimum speed.</p>
           <button id="levelNextBtn" onclick="nextLevel()">Next Level</button>
           <div class="hint" data-i18n="levelHint">or press Enter</div>
+        </div>
+        <div class="replay-banner" id="replayBanner" data-i18n="replayBanner" data-fit>REPLAY</div>
+        <div class="replay-bar" id="replayBar" role="group">
+          <button type="button" id="rpPlay"></button>
+          <button type="button" id="rpSpeed">1x</button>
+          <input type="range" id="rpSeek" min="0" max="0" value="0" step="1">
+          <button type="button" id="rpExit" data-i18n="replayExit" data-fit>✕ Exit</button>
         </div>
       </div>
     </div>
@@ -771,7 +904,21 @@
         <span class="vol-val" id="sfxVolVal">100%</span>
       </div>
     </div>
+    <div class="option-row">
+      <button type="button" class="toggle-btn" id="newsBtn" aria-haspopup="dialog"><span id="newsBtnLabel" data-i18n="newsOpen" data-fit>What's new</span><span class="news-dot" id="newsDot"></span></button>
+    </div>
   </aside>
+
+  <!-- What's new (the changelog, #70): opened from the settings drawer -->
+  <div id="news" hidden>
+    <div class="news-box" role="dialog" aria-modal="true" aria-labelledby="newsTitle">
+      <div class="news-head">
+        <h3 id="newsTitle" data-i18n="newsTitle" data-fit>What's new</h3>
+        <button type="button" class="icon-btn" id="newsClose" data-i18n-aria="closeTip" aria-label="Close">✕</button>
+      </div>
+      <div class="news-body" id="newsBody"></div>
+    </div>
+  </div>
 
 
   <!-- Intro cutscene (hidden until the script shows it) -->
@@ -805,6 +952,27 @@
     const GRID_WIDTH = BOARD_LOGICAL / GRID_SIZE;
     const GRID_HEIGHT = BOARD_LOGICAL / GRID_SIZE;
 
+    // ===== Environment: production, or the test page (a published copy under /test/) =====
+    // The test page lives at .../test/ on the same web origin as production, so it would share the browser's stored data
+    // (scores, settings, replays) with it. EVERY stored value therefore goes through `store` (never `localStorage` directly):
+    // on the test page it adds a "test_" prefix to the key. Production keys keep their names. A page opened from a file is never "test".
+    function isTestPath(protocol, pathname) {
+      return /^https?:$/.test(String(protocol)) && /\/test(\/|$)/.test(String(pathname));
+    }
+    const IS_TEST = isTestPath(window.location && window.location.protocol, window.location && window.location.pathname);
+    function makeStore(prefix) {
+      return {
+        getItem: (k) => localStorage.getItem(prefix + k),
+        setItem: (k, v) => localStorage.setItem(prefix + k, v),
+        removeItem: (k) => localStorage.removeItem(prefix + k),
+      };
+    }
+    const store = makeStore(IS_TEST ? 'test_' : '');
+    // What is running: the publish tool writes version.json next to each hosted page. Loaded by setupEnvironment() (see the end of the script).
+    let siteVersion = null;     // { env, ref, tag, sha, short, subject, published, issues } once loaded
+    let versionLineEl = null;   // the line in the debug menu that shows it
+    let testBadgeEl = null;     // the "TEST BUILD" marker (test page only)
+
     let snake, food, direction, nextDirection, score, gameRunning, gameStarted;
     let specialFood = null;
     let specialFoodTimer = 0;
@@ -812,6 +980,12 @@
     const SPECIAL_FOOD_MAX_TIME = 80;
     const SPECIAL_FOOD_WARN_TIME = 30; // start blinking with this many moves left
     let speedLevel = 5;
+    // The speed a run starts at is remembered between runs (#14): the speed in effect when the run is first started,
+    // not the speed it ended on. Changes during play and the automatic raise to a level's minimum never change it.
+    function parseSpeedPref(raw) { const v = parseInt(raw, 10); return isNaN(v) ? 5 : Math.max(1, Math.min(10, v)); }
+    let preferredSpeed = 5;
+    try { preferredSpeed = parseSpeedPref(store.getItem('snake_speed')); } catch (e) { /* ignore */ }
+    let runSpeedSaved = false; // true once this run's starting speed has been remembered
     let scoreMultiplier = 10;
 
     // ===== Language (English / Danish) =====
@@ -819,7 +993,7 @@
     const I18N = {
       en: {
         docTitle: 'Snake Game',
-        heading: '🐍 SNAKE',
+        heading: 'SNAKE',
         startTitle1: 'SNAKE',
         startTitleN: 'LEVEL {n}',
         startGoal: 'Goal: {n} points',
@@ -828,6 +1002,15 @@
         gameOver: 'GAME OVER',
         finalScore: 'Final Score:',
         playAgain: 'Play Again',
+        replayWatch: '▶ Watch replay',
+        replayBanner: 'REPLAY',
+        replayExit: '✕ Exit',
+        replayRowTip: 'Watch this run',
+        replayPlayTip: 'Play',
+        replayPauseTip: 'Pause',
+        replayAgainTip: 'Watch again',
+        replaySpeedTip: 'Playback speed',
+        replaySeekTip: 'Jump to a moment in the run',
         levelDone: 'LEVEL {n} COMPLETE!',
         levelDoneMsg: 'Next level is harder: more obstacles and a higher minimum speed.',
         levelStart: 'Start Level {n}',
@@ -866,7 +1049,7 @@
         legendFood_candy: 'Lollipop — {n} points',
         legendFood_lava: 'Ember — {n} points',
         legendFood_winter: 'Ornament — {n} points',
-        legendFood_lcd: 'Pixel apple — {n} points',
+        legendFood_lcd: 'Apple — {n} points',
         legendBonus_classic: 'Bonus gem — {n} points, time-limited',
         legendBonus_forest: 'Magic leaf — {n} points, time-limited',
         legendBonus_space: 'Bonus star — {n} points, time-limited',
@@ -875,9 +1058,12 @@
         legendBonus_candy: 'Wrapped candy — {n} points, time-limited',
         legendBonus_lava: 'Phoenix flame — {n} points, time-limited',
         legendBonus_winter: 'Ice crystal — {n} points, time-limited',
-        legendBonus_lcd: 'Pixel heart — {n} points, time-limited',
+        legendBonus_lcd: 'Heart — {n} points, time-limited',
         watchIntro: '▶ Watch intro',
         customizeTitle: 'Customize the game',
+        newsTitle: "What's new",
+        newsOpen: "What's new",
+        newsRelease: 'Version {n}',
         themeLabel: 'Theme',
         gridLabel: 'Grid',
         theme_classic: 'Classic',
@@ -919,7 +1105,7 @@
       },
       da: {
         docTitle: 'Slangespil',
-        heading: '🐍 SLANGE',
+        heading: 'SLANGE',
         startTitle1: 'SLANGE',
         startTitleN: 'NIVEAU {n}',
         startGoal: 'Mål: {n} point',
@@ -928,6 +1114,15 @@
         gameOver: 'SPIL SLUT',
         finalScore: 'Slutpoint:',
         playAgain: 'Spil igen',
+        replayWatch: '▶ Se gentagelse',
+        replayBanner: 'GENTAGELSE',
+        replayExit: '✕ Luk',
+        replayRowTip: 'Se dette forsøg',
+        replayPlayTip: 'Afspil',
+        replayPauseTip: 'Pause',
+        replayAgainTip: 'Se igen',
+        replaySpeedTip: 'Afspilningshastighed',
+        replaySeekTip: 'Spring til et øjeblik i forsøget',
         levelDone: 'NIVEAU {n} KLARET!',
         levelDoneMsg: 'Næste niveau er sværere: flere forhindringer og en højere minimumshastighed.',
         levelStart: 'Start niveau {n}',
@@ -966,7 +1161,7 @@
         legendFood_candy: 'Slikkepind — {n} point',
         legendFood_lava: 'Gløde — {n} point',
         legendFood_winter: 'Julekugle — {n} point',
-        legendFood_lcd: 'Pixel-æble — {n} point',
+        legendFood_lcd: 'Æble — {n} point',
         legendBonus_classic: 'Bonusædelsten — {n} point, tidsbegrænset',
         legendBonus_forest: 'Magisk blad — {n} point, tidsbegrænset',
         legendBonus_space: 'Bonusstjerne — {n} point, tidsbegrænset',
@@ -975,9 +1170,12 @@
         legendBonus_candy: 'Indpakket bolsje — {n} point, tidsbegrænset',
         legendBonus_lava: 'Føniksflamme — {n} point, tidsbegrænset',
         legendBonus_winter: 'Iskrystal — {n} point, tidsbegrænset',
-        legendBonus_lcd: 'Pixelhjerte — {n} point, tidsbegrænset',
+        legendBonus_lcd: 'Hjerte — {n} point, tidsbegrænset',
         watchIntro: '▶ Se intro',
         customizeTitle: 'Tilpas spillet',
+        newsTitle: 'Nyt i spillet',
+        newsOpen: 'Nyt i spillet',
+        newsRelease: 'Version {n}',
         themeLabel: 'Tema',
         gridLabel: 'Gitter',
         theme_classic: 'Klassisk',
@@ -1021,7 +1219,7 @@
 
     let lang = 'en';
     try {
-      const savedLang = localStorage.getItem('snake_lang');
+      const savedLang = store.getItem('snake_lang');
       if (savedLang === 'en' || savedLang === 'da') lang = savedLang;
       else if ((navigator.language || '').toLowerCase().startsWith('da')) lang = 'da';
     } catch (e) { /* ignore */ }
@@ -1046,6 +1244,52 @@
       return s;
     }
 
+    // ===== What's new: the changelog (#70) =====
+    // One entry per release, newest first. `id` is the release number (stable-N). Every ticket that changes what players
+    // see adds a bullet here, in English AND Danish, in player language (no tooling or chores). A bullet for something
+    // that is later parked or reverted is removed again. The player's "last release seen" is stored; the red dot shows
+    // on the gear (and in the drawer) until the panel has been opened for the newest release, for everyone.
+    const CHANGELOG = [
+      { id: 2,
+        en: [
+          'Watch a replay of your last run or your best run (on the Game Over screen and in the top-10 list).',
+          'Choose your starting speed in the start box. The game remembers it for your next run.',
+          'A new icon: a white S-shaped snake, in the browser tab and next to the title.',
+          'Retro LCD theme: the foods are now simply called apple and heart.',
+          'All sound now goes quiet when you switch to another browser tab.'
+        ],
+        da: [
+          'Se en gentagelse af dit seneste eller dit bedste forløb (på Game Over-skærmen og i top 10-listen).',
+          'Vælg din starthastighed i startboksen. Spillet husker den til dit næste forløb.',
+          'Nyt ikon: en hvid S-formet slange, i browserfanen og ved siden af titlen.',
+          'Retro LCD-temaet: maden hedder nu bare æble og hjerte.',
+          'Al lyd bliver nu stille, når du skifter til en anden browserfane.'
+        ] }
+    ];
+    const NEWS_KEY = 'snake_news_seen';
+    function newsSeenId() { try { return parseInt(store.getItem(NEWS_KEY), 10) || 0; } catch (e) { return 0; } }
+    function hasNews() { return CHANGELOG.length > 0 && newsSeenId() !== CHANGELOG[0].id; }
+    function updateNewsDot() {
+      const on = hasNews();
+      settingsBtn.classList.toggle('has-news', on);
+      newsDot.classList.toggle('on', on);
+    }
+    function newsBullets(release) {
+      if (lang === 'da') return release.da;
+      if (lang === 'pseudo') return release.en.map(s => s + ' ' + '·'.repeat(Math.ceil(s.length * 0.45))); // stress language: ~45% longer
+      return release.en;
+    }
+    function renderNews() {
+      newsBody.textContent = '';
+      for (const r of CHANGELOG) {
+        const box = document.createElement('div'); box.className = 'news-release';
+        const h = document.createElement('h4'); h.textContent = t('newsRelease', { n: r.id }); box.appendChild(h);
+        const ul = document.createElement('ul');
+        for (const s of newsBullets(r)) { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); }
+        box.appendChild(ul); newsBody.appendChild(box);
+      }
+    }
+
     // Re-apply every piece of text (static markup via data-i18n attributes, plus dynamic text)
     function applyLanguage() {
       document.documentElement.lang = lang;
@@ -1056,6 +1300,8 @@
       });
       document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
       howtoLabel.textContent = t('howtoToggle');
+      renderNews();
+      updateNewsDot();
       updatePauseButton();
       updateStartOverlay();
       updateLevelOverlay();
@@ -1072,7 +1318,7 @@
 
     function setLanguage(l) {
       lang = l;
-      if (l !== 'pseudo') { try { localStorage.setItem('snake_lang', l); } catch (e) { /* ignore */ } }
+      if (l !== 'pseudo') { try { store.setItem('snake_lang', l); } catch (e) { /* ignore */ } }
       applyLanguage();
       if (introActive) showIntroSlide(introSlide); // re-type the current intro line
     }
@@ -1084,6 +1330,10 @@
     const RUNS_KEY = 'snake_runs';
     const LEGACY_BOARD_KEY = 'snake_scoreboard'; // older versions stored only the top 10 here
     let runs = [];
+    // Replays (see "Replays" below): the recording being made, and the two saved replays (the last run and the best run)
+    let recRun = null, recLevel = null, recTick = 0;
+    let replayLast = null, replayBest = null;
+    let replayActive = false; // true while a replay is open on the board
 
     function cleanInitials(v) {
       return typeof v === 'string' ? v.toUpperCase().replace(/[^A-Z0-9ÆØÅ]/g, '').slice(0, 3) : '';
@@ -1091,7 +1341,7 @@
 
     (function loadRuns() {
       try {
-        const raw = localStorage.getItem(RUNS_KEY) || localStorage.getItem(LEGACY_BOARD_KEY);
+        const raw = store.getItem(RUNS_KEY) || store.getItem(LEGACY_BOARD_KEY);
         const data = raw ? JSON.parse(raw) : [];
         if (Array.isArray(data)) {
           runs = data.filter(r => r && Number.isFinite(r.score)).map(r => {
@@ -1108,7 +1358,7 @@
 
     function saveRuns() {
       try {
-        localStorage.setItem(RUNS_KEY, JSON.stringify(runs));
+        store.setItem(RUNS_KEY, JSON.stringify(runs));
       } catch (e) {
         // ignore storage full / quota exceeded
       }
@@ -1131,7 +1381,18 @@
       top.forEach((entry, idx) => {
         const li = document.createElement('li');
         if (entry === lastRun) li.classList.add('me');
+        // The best run keeps a replay: a small button at the end of its row
+        const hasReplay = replayBest && entry.score === replayBest.score && entry.date === replayBest.date;
         li.innerHTML = `<span class="rk">${idx + 1}.</span><span class="ini">${entry.initials || '???'}</span><span class="pts">${entry.score}</span>`;
+        if (hasReplay) { // becomes the 4th grid cell of the row
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'row-replay';
+          b.textContent = '▶';
+          b.title = t('replayRowTip');
+          b.addEventListener('click', () => { b.blur(); startReplay(replayBest); });
+          li.appendChild(b);
+        }
         list.appendChild(li);
       });
       for (let i = top.length; i < 10; i++) { // empty slots
@@ -1157,6 +1418,10 @@
     const speedValue = document.getElementById('speedValue');
     const speedUpBtn = document.getElementById('speedUp');
     const speedDownBtn = document.getElementById('speedDown');
+    const startSpeedEl = document.getElementById('startSpeed');
+    const startSpeedValue = document.getElementById('startSpeedValue');
+    const startSpeedUpBtn = document.getElementById('startSpeedUp');
+    const startSpeedDownBtn = document.getElementById('startSpeedDown');
     const startTitle = document.getElementById('startTitle');
     const startGoal = document.getElementById('startGoal');
     const levelOverlay = document.getElementById('levelOverlay');
@@ -1176,6 +1441,11 @@
     const howtoToggle = document.getElementById('howtoToggle');
     const howtoPanel = document.getElementById('howtoPanel');
     const howtoLabel = document.getElementById('howtoLabel');
+    const newsEl = document.getElementById('news');
+    const newsBody = document.getElementById('newsBody');
+    const newsClose = document.getElementById('newsClose');
+    const newsBtn = document.getElementById('newsBtn');
+    const newsDot = document.getElementById('newsDot');
     const soundBtn = document.getElementById('soundBtn');
     const introSoundBtn = document.getElementById('introSound');
     const pauseSoundBtn = document.getElementById('pauseSound');
@@ -1192,27 +1462,49 @@
     const pauseOverlay = document.getElementById('pauseOverlay');
     const countdownOverlay = document.getElementById('countdownOverlay');
     const countdownNum = document.getElementById('countdownNum');
+    const watchReplayBtn = document.getElementById('watchReplayBtn');
+    const replayBanner = document.getElementById('replayBanner');
+    const replayBar = document.getElementById('replayBar');
+    const rpPlayBtn = document.getElementById('rpPlay');
+    const rpSpeedBtn = document.getElementById('rpSpeed');
+    const rpSeekEl = document.getElementById('rpSeek');
+    const rpExitBtn = document.getElementById('rpExit');
 
     // ===== Retro sound effects (Web Audio, synthesized — no audio files) =====
     let audioCtx = null;
     let soundOn = true;
-    try { soundOn = localStorage.getItem('snake_sound') !== 'off'; } catch (e) { /* ignore */ }
+    try { soundOn = store.getItem('snake_sound') !== 'off'; } catch (e) { /* ignore */ }
 
     function getAudio() {
       if (!audioCtx) {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
       }
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx.state === 'suspended' && !document.hidden) audioCtx.resume(); // a hidden tab stays silent (see audioHeldByHide)
       return audioCtx;
     }
+
+    // A tab the player is not looking at is silent: suspending the audio context stops every sound and also
+    // freezes the music clock. It comes back when the tab is visible again. Only a context that was really
+    // running is held and resumed, so this never fights the "no sound before a click" rule; the general mute
+    // (soundOn) is untouched because muted music is simply not playing.
+    let audioHeldByHide = false;
+    function onVisibilityAudio() {
+      if (document.hidden) {
+        if (audioCtx && audioCtx.state === 'running') { audioHeldByHide = true; audioCtx.suspend(); }
+      } else if (audioHeldByHide) {
+        audioHeldByHide = false;
+        if (audioCtx) audioCtx.resume();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityAudio);
 
     // ===== Volume: effects and music each have their own volume stage (sliders in the settings drawer) =====
     // 100% is exactly how loud things were before the sliders existed. The general mute (soundOn) sits above both.
     let sfxVolume = 1;
     let musicVolume = 1;
     try {
-      const sv = parseFloat(localStorage.getItem('snake_vol_sfx'));
-      const mv = parseFloat(localStorage.getItem('snake_vol_music'));
+      const sv = parseFloat(store.getItem('snake_vol_sfx'));
+      const mv = parseFloat(store.getItem('snake_vol_music'));
       if (sv >= 0 && sv <= 1) sfxVolume = sv;
       if (mv >= 0 && mv <= 1) musicVolume = mv;
     } catch (e) { /* ignore */ }
@@ -1460,7 +1752,7 @@
 
     function toggleSound() {
       soundOn = !soundOn;
-      try { localStorage.setItem('snake_sound', soundOn ? 'on' : 'off'); } catch (e) { /* ignore */ }
+      try { store.setItem('snake_sound', soundOn ? 'on' : 'off'); } catch (e) { /* ignore */ }
       updateSoundButton();
       if (!soundOn) stopMusic(0.15);
       else if (introActive) armIntroMusic();
@@ -1485,8 +1777,8 @@
     }
     function saveVolumes() {
       try {
-        localStorage.setItem('snake_vol_music', String(musicVolume));
-        localStorage.setItem('snake_vol_sfx', String(sfxVolume));
+        store.setItem('snake_vol_music', String(musicVolume));
+        store.setItem('snake_vol_sfx', String(sfxVolume));
       } catch (e) { /* ignore */ }
     }
     // When no music is playing (e.g. the game hasn't started), let the music slider be heard for a moment
@@ -1777,6 +2069,7 @@
     function updateStartOverlay() {
       startTitle.textContent = level === 1 ? t('startTitle1') : t('startTitleN', { n: level });
       startGoal.textContent = t('startGoal', { n: levelTarget });
+      startSpeedEl.style.display = level === 1 ? 'flex' : 'none'; // only the box that starts a run has the speed control
     }
 
     function updateLevelOverlay() {
@@ -1788,7 +2081,9 @@
     function initGame() {
       score = 0;
       recordBeaten = false;
-      speedLevel = 5;
+      recRun = null; recLevel = null; recTick = 0; // a new run starts a new recording
+      speedLevel = preferredSpeed; // a run starts at the speed chosen at the start of the previous run
+      runSpeedSaved = false;
       setupLevel(1);
       renderScoreboard();
     }
@@ -1798,6 +2093,7 @@
     }
 
     function levelComplete() {
+      if (recLevel && !recLevel.end) recLevel.end = 'c'; // replay recording: this level was completed
       gameRunning = false;
       if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
       sfx.levelUp();
@@ -2008,6 +2304,7 @@
       if (!pos) return; // nowhere it could be reached in time: skip this bonus
       specialFood = { x: pos.x, y: pos.y, timer: life, warn: Math.round(life * FOOD_CONFIG.bonusWarnShare) };
       specialFoodTimer = life;
+      recEvent('b', pos.x, pos.y, life); // replay recording: the bonus food appeared
       sfx.bonusSpawn();
     }
 
@@ -2021,7 +2318,9 @@
       speedValue.title = t('minSpeedTip', { m: minSpeed });
       speedDownBtn.disabled = speedLevel <= minSpeed; // can't go below this level's minimum speed
       speedDownBtn.title = speedDownBtn.disabled ? t('minSpeedTip', { m: minSpeed }) : '';
-      // keep the legend's point values in step with the current speed
+      startSpeedValue.textContent = speedLevel; // the start box shows the same value
+      startSpeedDownBtn.disabled = speedDownBtn.disabled;
+      startSpeedDownBtn.title = speedDownBtn.title;      // keep the legend's point values in step with the current speed
       document.getElementById('legendFood').innerHTML =
         t('legendFood_' + look.theme, { n: '<b>' + (scoreMultiplier * speedLevel) + '</b>' });
       document.getElementById('legendBonus').innerHTML =
@@ -2033,6 +2332,12 @@
       gameStarted = true;
       gameRunning = true;
       startOverlay.style.display = 'none';
+      if (!runSpeedSaved) { // the speed this run starts at becomes the suggestion for the next run
+        runSpeedSaved = true;
+        preferredSpeed = speedLevel;
+        try { store.setItem('snake_speed', String(preferredSpeed)); } catch (e) { /* ignore */ }
+      }
+      recBeginLevel(); // the replay recording starts with this level's starting position
       sfx.start();
       startMusic(); // background music for the game (the same tune as the intro)
       if (rafId !== null) cancelAnimationFrame(rafId);
@@ -2089,6 +2394,7 @@
 
     // Auto-pause when the player switches to another tab or window
     function autoPause() {
+      if (replayActive) { rpPause(); return; } // a replay also stops when the player leaves the tab or window
       if (!gameRunning) return;
       if (countdownTimer !== null) { // switched away mid-countdown: back to the pause screen
         cancelCountdown();
@@ -2157,6 +2463,7 @@
         nextDirection = direction; // ignore reverse
       }
       direction = nextDirection;
+      if (recLevel) recLevel.moves += dirChar(direction); // replay recording: the direction taken this tick
 
       // Move head
       const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
@@ -2193,6 +2500,7 @@
         sfx.eat();
         burstAt(head, false);
         placeFood();
+        recEvent('f', food.x, food.y); // replay recording: where the new food appeared
 
         // After eating regular food, maybe spawn special food with small chance
         if (Math.random() < 0.1) { // 10% chance
@@ -2214,6 +2522,7 @@
       if (!ate) {
         snake.pop();
       }
+      recTick++; // replay recording: this tick is complete
 
       // ---- Draw everything ----
       draw();
@@ -3108,7 +3417,7 @@
     const GRID_STYLES = ['checker', 'lines', 'dots', 'none'];
     let gameTheme = { theme: 'classic', grid: 'checker' };
     try {
-      const saved = JSON.parse(localStorage.getItem(THEME_KEY) || 'null');
+      const saved = JSON.parse(store.getItem(THEME_KEY) || 'null');
       if (saved && (THEMES[saved.theme] || saved.theme === 'random')) gameTheme.theme = saved.theme;
       if (saved && (GRID_STYLES.includes(saved.grid) || saved.grid === 'random')) gameTheme.grid = saved.grid;
     } catch (e) { /* ignore corrupt / unavailable storage */ }
@@ -3219,7 +3528,7 @@
     const STYLE_KEY = 'snake_style';
     let snakeStyle = { color: 'green', pattern: 'fade' };
     try {
-      const saved = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null');
+      const saved = JSON.parse(store.getItem(STYLE_KEY) || 'null');
       if (saved && (SNAKE_COLORS[saved.color] || saved.color === 'random')) snakeStyle.color = saved.color;
       if (saved && (SNAKE_PATTERNS[saved.pattern] || saved.pattern === 'random')) snakeStyle.pattern = saved.pattern;
     } catch (e) { /* ignore corrupt / unavailable storage */ }
@@ -3344,7 +3653,7 @@
 
     function setSnakeStyle(changes) {
       Object.assign(snakeStyle, changes);
-      try { localStorage.setItem(STYLE_KEY, JSON.stringify(snakeStyle)); } catch (e) { /* ignore */ }
+      try { store.setItem(STYLE_KEY, JSON.stringify(snakeStyle)); } catch (e) { /* ignore */ }
       resolveLook(Object.keys(changes));
       refreshCustomizer();
       renderSnakePreview();
@@ -3357,7 +3666,7 @@
 
     function setGameTheme(changes) {
       Object.assign(gameTheme, changes);
-      try { localStorage.setItem(THEME_KEY, JSON.stringify(gameTheme)); } catch (e) { /* ignore */ }
+      try { store.setItem(THEME_KEY, JSON.stringify(gameTheme)); } catch (e) { /* ignore */ }
       resolveLook(Object.keys(changes));
       updateSpeedDisplay(); // refreshes the legend text for this theme's foods
       renderLegendIcons();
@@ -3747,6 +4056,8 @@
       runs.push(run);
       lastRun = run;
       saveRuns();
+      recFinish(run); // keep the replay of this run (and of the best run)
+      watchReplayBtn.style.display = replayLast ? '' : 'none'; // no recording, no "Watch replay" button
       renderScoreboard();
       lastRank = rank;
       lastRunTotal = runs.length;
@@ -3782,7 +4093,7 @@
       pendingRank = rank;
       pendingRun = run;
       updateHighScoreText();
-      try { initialsInput.value = localStorage.getItem('snake_initials') || ''; } catch (e) { initialsInput.value = ''; }
+      try { initialsInput.value = store.getItem('snake_initials') || ''; } catch (e) { initialsInput.value = ''; }
       highScoreOverlay.style.display = 'flex';
       // short delay so keys still being held from the final moves don't land in the field
       setTimeout(() => { initialsInput.focus(); initialsInput.select(); }, 500);
@@ -3798,7 +4109,7 @@
       if (!initials) { initialsInput.focus(); return; } // need at least one character (or press Skip)
       if (pendingRun) pendingRun.initials = initials; // attach to the run already recorded
       saveRuns();
-      try { localStorage.setItem('snake_initials', initials); } catch (e) { /* ignore */ }
+      try { store.setItem('snake_initials', initials); } catch (e) { /* ignore */ }
       renderScoreboard();
       closeHighScoreDialog();
     }
@@ -3812,6 +4123,294 @@
     });
     hsSaveBtn.addEventListener('click', submitHighScore);
     hsSkipBtn.addEventListener('click', closeHighScoreDialog);
+
+    // ===== Replays =====
+    // A run is recorded as events, not as video: per level its starting position (obstacles, look, speed, first food) and then,
+    // tick by tick, the direction taken ('U' 'D' 'L' 'R'), plus the few things that were random or came from the player:
+    // where new food and bonus food appeared and speed changes. Movement, growth, score and bonus expiry follow from that, so
+    // the player below re-plays it with the same rules, on its own copy of the state (it never touches a live game).
+    // The recording is deliberately simple (one direction per tick, positions on a grid) so that a "ghost" of a run could reuse it.
+    //   level = { lv, obs:[cell ids], look:{...}, speed, score0, food:{x,y}, moves:'RRUL...', ev:[[tick,kind,...]], end:'c'|'d', fatal, death }
+    //   events: [tick,'s',speed]  [tick,'f',x,y]  [tick,'b',x,y,lifetime]
+    const REC_VERSION = 1;
+    const REPLAY_KEYS = { last: 'snake_replay_last', best: 'snake_replay_best' };
+    const DIR_VECTORS = { U: { x: 0, y: -1 }, D: { x: 0, y: 1 }, L: { x: -1, y: 0 }, R: { x: 1, y: 0 } };
+    function dirChar(d) { return d.y < 0 ? 'U' : d.y > 0 ? 'D' : d.x < 0 ? 'L' : 'R'; }
+
+    function replayIsValid(d) {
+      return !!d && d.v === REC_VERSION && Array.isArray(d.levels) && d.levels.length > 0 &&
+        d.levels.every(L => L && typeof L.moves === 'string' && /^[UDLR]*$/.test(L.moves) && Array.isArray(L.obs) && Array.isArray(L.ev) &&
+          L.food && L.look && THEMES[L.look.theme] && SNAKE_COLORS[L.look.color] && SNAKE_PATTERNS[L.look.pattern] && GRID_STYLES.includes(L.look.grid));
+    }
+    function storeReplay(key, data) {
+      try { store.setItem(key, JSON.stringify(data)); } catch (e) { /* storage full or blocked: it stays in memory for this visit */ }
+    }
+    (function loadReplays() {
+      const load = (key) => { try { const d = JSON.parse(store.getItem(key)); return replayIsValid(d) ? d : null; } catch (e) { return null; } };
+      replayLast = load(REPLAY_KEYS.last);
+      replayBest = load(REPLAY_KEYS.best);
+    })();
+
+    // --- recording (called from startGame, gameLoop, levelComplete and endGame) ---
+    function recBeginLevel() {
+      if (replayActive) return;
+      if (!recRun) recRun = { levels: [] };
+      recLevel = {
+        lv: level, obs: [...obstacleSet],
+        look: { color: look.color, pattern: look.pattern, theme: look.theme, grid: look.grid },
+        speed: speedLevel, score0: score, food: { x: food.x, y: food.y },
+        moves: '', ev: [], end: '', fatal: false, death: null,
+      };
+      recRun.levels.push(recLevel);
+      recTick = 0;
+    }
+    function recEvent(kind, a, b, c) {
+      if (!recLevel) return;
+      recLevel.ev.push(c === undefined ? (b === undefined ? [recTick, kind, a] : [recTick, kind, a, b]) : [recTick, kind, a, b, c]);
+    }
+    // The run is over: close the last level and keep the replay (always as "last run"; as "best run" when it beats the best one)
+    function recFinish(run) {
+      replayLast = null;
+      if (recRun && recLevel && !recLevel.end) {
+        recLevel.end = 'd';
+        recLevel.fatal = recLevel.moves.length > recTick; // died during a tick (the fatal move is the last recorded direction)
+        recLevel.death = deathInfo ? { x: deathInfo.x, y: deathInfo.y } : null;
+      }
+      if (recRun && recRun.levels.length) {
+        const data = { v: REC_VERSION, score: run.score, date: run.date, levels: recRun.levels };
+        replayLast = data;
+        storeReplay(REPLAY_KEYS.last, data);
+        if (run.score > 0 && (!replayBest || run.score > replayBest.score)) {
+          replayBest = data;
+          storeReplay(REPLAY_KEYS.best, data);
+        }
+      }
+      recRun = null; recLevel = null; recTick = 0;
+    }
+
+    // --- the simulated state of a replay: its own copy, advanced tick by tick with the same rules as the game ---
+    function rpTicks(L) { return L.moves.length - (L.fatal ? 1 : 0); } // ticks that actually moved the snake
+    function rpInitLevel(w, li) {
+      const L = replay.data.levels[li];
+      w.li = li; w.L = L; w.t = 0; w.ei = 0; w.ticks = rpTicks(L);
+      w.snake = [{ x: START_X, y: START_Y }, { x: START_X - 1, y: START_Y }, { x: START_X - 2, y: START_Y }];
+      w.food = { x: L.food.x, y: L.food.y };
+      w.bonus = null;
+      w.speed = L.speed; w.score = L.score0; w.levelScore = 0;
+    }
+    function rpApplyLevel(L) { // the level's obstacles and look go onto the board
+      level = L.lv;
+      levelTarget = targetFor(L.lv);
+      obstacleSet = new Set(L.obs);
+      Object.assign(look, L.look);
+      document.body.dataset.theme = look.theme;
+    }
+    // One tick. `fx` = play the sounds and particles (off when jumping to a moment silently).
+    function rpStepTick(w, fx) {
+      const L = w.L, T = w.t;
+      while (w.ei < L.ev.length && L.ev[w.ei][0] === T && L.ev[w.ei][1] === 's') w.speed = L.ev[w.ei++][2]; // speed changes between ticks
+      if (w.bonus) {
+        w.bonus.timer--;
+        if (w.bonus.timer <= 0) { w.bonus = null; if (fx) sfx.expire(); }
+      }
+      const v = DIR_VECTORS[L.moves[T]];
+      const head = { x: w.snake[0].x + v.x, y: w.snake[0].y + v.y };
+      w.snake.unshift(head);
+      let ate = false;
+      if (head.x === w.food.x && head.y === w.food.y) {
+        ate = true;
+        const pts = BASE_POINTS_PER_FOOD * w.speed;
+        w.score += pts; w.levelScore += pts;
+        if (fx) { sfx.eat(); burstAt(head, false); }
+      }
+      while (w.ei < L.ev.length && L.ev[w.ei][0] === T) { // food and bonus food that appeared during this tick
+        const e = L.ev[w.ei++];
+        if (e[1] === 'f') w.food = { x: e[2], y: e[3] };
+        else if (e[1] === 'b') {
+          w.bonus = { x: e[2], y: e[3], timer: e[4], warn: Math.round(e[4] * FOOD_CONFIG.bonusWarnShare) };
+          if (fx) sfx.bonusSpawn();
+        }
+      }
+      if (w.bonus && head.x === w.bonus.x && head.y === w.bonus.y) {
+        ate = true;
+        const pts = 30 * w.speed;
+        w.score += pts; w.levelScore += pts;
+        w.bonus = null;
+        if (fx) { sfx.bonus(); burstAt(head, true); }
+      }
+      if (!ate) w.snake.pop();
+      w.t++;
+    }
+    function rpRender(w) { // copy the simulated state into the game's variables and draw it with the normal drawing code
+      snake = w.snake; food = w.food; specialFood = w.bonus; specialFoodTimer = w.bonus ? w.bonus.timer : 0;
+      score = w.score; levelScore = w.levelScore; speedLevel = w.speed;
+      direction = DIR_VECTORS[w.t > 0 ? w.L.moves[w.t - 1] : 'R'];
+      draw();
+      updateScore();
+    }
+
+    // --- the player ---
+    let replay = null; // while a replay is open: { data, starts, total, w, playing, mult, timer, token, saved, finished }
+
+    function startReplay(data) {
+      if (replayActive || dying || !replayIsValid(data)) return;
+      const starts = []; let total = 0;
+      data.levels.forEach(L => { starts.push(total); total += rpTicks(L); });
+      replay = {
+        data, starts, total, w: null, playing: false, mult: 1, timer: null, token: 0, finished: false,
+        saved: { // the screen as it is now, so Exit can put everything back
+          snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelScore, levelTarget, score, speedLevel,
+          direction, nextDirection, look: Object.assign({}, look),
+        },
+      };
+      replayActive = true;
+      gameOverEl.style.display = 'none';
+      clearParticles();
+      replayBanner.style.display = 'block';
+      replayBar.style.display = 'flex';
+      rpSeekEl.max = String(total);
+      refitAll();
+      rpGoTo(0);
+      rpPlay();
+    }
+
+    function exitReplay() {
+      const R = replay;
+      if (!R) return;
+      clearTimeout(R.timer);
+      R.token++;
+      const s = R.saved;
+      snake = s.snake; food = s.food; specialFood = s.specialFood; specialFoodTimer = s.specialFoodTimer;
+      obstacleSet = s.obstacleSet; level = s.level; levelScore = s.levelScore; levelTarget = s.levelTarget;
+      score = s.score; speedLevel = s.speedLevel; direction = s.direction; nextDirection = s.nextDirection;
+      Object.assign(look, s.look);
+      document.body.dataset.theme = look.theme;
+      replay = null;
+      replayActive = false;
+      replayBanner.style.display = 'none';
+      replayBar.style.display = 'none';
+      clearParticles();
+      draw();
+      updateScore();
+      renderSnakePreview();
+      gameOverEl.style.display = 'flex';
+      refitAll();
+    }
+
+    // Jump to a moment (a tick counted over the whole run) without sound: rebuild the level and fast-forward to it
+    function rpGoTo(g) {
+      const R = replay;
+      g = Math.max(0, Math.min(R.total, Math.floor(g) || 0));
+      clearTimeout(R.timer);
+      R.timer = null;
+      R.token++;
+      let li = R.starts.length - 1;
+      for (let i = 0; i < R.starts.length; i++) {
+        if (g < R.starts[i] + rpTicks(R.data.levels[i])) { li = i; break; }
+      }
+      const w = {};
+      rpInitLevel(w, li);
+      rpApplyLevel(w.L);
+      const upTo = Math.min(g - R.starts[li], w.ticks);
+      for (let k = 0; k < upTo; k++) rpStepTick(w, false);
+      R.w = w;
+      R.finished = false;
+      rpRender(w);
+      rpUpdateBar();
+    }
+
+    function rpSchedule() {
+      const R = replay;
+      if (!R || !R.playing) return;
+      clearTimeout(R.timer);
+      const token = R.token;
+      const delay = (300 - (R.w.speed - 1) * (240 / 9)) / R.mult; // the same pace the run was played at, scaled by the replay speed
+      R.timer = setTimeout(() => { if (replay === R && R.token === token && R.playing) rpTick(); }, delay);
+    }
+
+    function rpTick() {
+      const R = replay, w = R.w, L = w.L;
+      if (w.t < w.ticks) {
+        rpStepTick(w, true);
+        rpRender(w);
+        rpUpdateBar();
+        rpSchedule();
+        return;
+      }
+      const last = w.li === R.data.levels.length - 1;
+      if (!last) { // level finished: a short pause, then the next level's start
+        if (L.end === 'c') sfx.levelUp();
+        const token = R.token;
+        R.timer = setTimeout(() => {
+          if (replay !== R || R.token !== token || !R.playing) return;
+          const nw = {};
+          rpInitLevel(nw, w.li + 1);
+          rpApplyLevel(nw.L);
+          R.w = nw;
+          rpRender(nw);
+          rpUpdateBar();
+          rpSchedule();
+        }, 800 / R.mult);
+        return;
+      }
+      if (L.end === 'd') { // the end of the run: the same death animation as in the game
+        R.playing = false;
+        deathInfo = L.death;
+        sfx.gameOver();
+        const token = ++R.token;
+        playDeathAnimation(() => { if (replay === R && R.token === token) { R.finished = true; rpUpdateBar(); } });
+        rpUpdateBar();
+        return;
+      }
+      R.playing = false;
+      R.finished = true;
+      rpUpdateBar();
+    }
+
+    function rpPlay() {
+      const R = replay;
+      if (!R || dying) return;
+      if (R.finished) rpGoTo(0);
+      R.playing = true;
+      rpUpdateBar();
+      rpSchedule();
+    }
+    function rpPause() {
+      const R = replay;
+      if (!R) return;
+      R.playing = false;
+      clearTimeout(R.timer);
+      R.timer = null;
+      rpUpdateBar();
+    }
+    function rpToggle() { if (replay && replay.playing) rpPause(); else rpPlay(); }
+
+    function rpUpdateBar() {
+      const R = replay;
+      if (!R) return;
+      rpPlayBtn.textContent = R.playing ? '⏸' : (R.finished ? '↻' : '▶');
+      rpPlayBtn.title = t(R.playing ? 'replayPauseTip' : (R.finished ? 'replayAgainTip' : 'replayPlayTip'));
+      rpSpeedBtn.textContent = R.mult + 'x';
+      rpSpeedBtn.title = t('replaySpeedTip');
+      rpSeekEl.title = t('replaySeekTip');
+      rpSeekEl.value = String(R.finished ? R.total : R.starts[R.w.li] + R.w.t);
+    }
+
+    rpPlayBtn.addEventListener('click', () => { rpToggle(); rpPlayBtn.blur(); });
+    rpSpeedBtn.addEventListener('click', () => {
+      if (replay) { replay.mult = replay.mult === 1 ? 2 : replay.mult === 2 ? 4 : 1; rpUpdateBar(); rpSchedule(); }
+      rpSpeedBtn.blur();
+    });
+    rpSeekEl.addEventListener('input', () => {
+      const R = replay;
+      if (!R || dying) { rpUpdateBar(); return; }
+      const was = R.playing;
+      rpGoTo(Number(rpSeekEl.value));
+      if (was) { R.playing = true; rpSchedule(); }
+      rpUpdateBar();
+    });
+    rpExitBtn.addEventListener('click', () => { exitReplay(); rpExitBtn.blur(); });
+    watchReplayBtn.addEventListener('click', () => { watchReplayBtn.blur(); if (replayLast) startReplay(replayLast); });
 
     function restartGame() {
       initGame();
@@ -3835,9 +4434,11 @@
     }
 
     function changeSpeed(delta) {
+      if (replayActive) return; // the speed belongs to the recording while a replay is open
       const newLevel = Math.max(minSpeedFor(level), Math.min(10, speedLevel + delta));
       if (newLevel !== speedLevel) {
         speedLevel = newLevel;
+        if (gameRunning) recEvent('s', speedLevel); // replay recording: speed changed during play
         updateSpeedDisplay();
         sfx.speed();
       }
@@ -3856,11 +4457,21 @@
       // Debug only (?debug in the URL): B copies / prints the current board
       if (DEBUG && (key === 'b' || key === 'B')) { debugDump('manual, pressed B', true); return; }
 
+      // "What's new" open: Esc closes it, and the game ignores every other key
+      if (newsOpen) { if (key === 'Escape') setNews(false); return; }
+
       // Settings drawer open: Esc closes it, and the game ignores every other key
       if (drawerOpen) { if (key === 'Escape') setDrawer(false); return; }
 
       if (key === 'm' || key === 'M') { toggleSound(); return; }
       if (key === 'f' || key === 'F') { toggleFullscreen(); return; }
+
+      // While a replay is open: Space pauses / plays it, Esc closes it, nothing else reaches the game
+      if (replayActive) {
+        if (key === 'Escape') { exitReplay(); }
+        else if (key === ' ') { e.preventDefault(); rpToggle(); }
+        return;
+      }
 
       // While the intro is showing, keys only control the intro
       if (introActive) { handleIntroKey(e); return; }
@@ -3895,6 +4506,11 @@
     // blur after clicking so a later Space press pauses instead of re-clicking the button
     speedUpBtn.addEventListener('click', () => { changeSpeed(1); speedUpBtn.blur(); });
     speedDownBtn.addEventListener('click', () => { changeSpeed(-1); speedDownBtn.blur(); });
+    // The speed control in the first level's start box. The whole start box starts the game when clicked, so clicks
+    // inside this row must stop here.
+    startSpeedUpBtn.addEventListener('click', () => { changeSpeed(1); startSpeedUpBtn.blur(); });
+    startSpeedDownBtn.addEventListener('click', () => { changeSpeed(-1); startSpeedDownBtn.blur(); });
+    startSpeedEl.addEventListener('click', (e) => e.stopPropagation());
     pauseOverlay.addEventListener('click', togglePause);
 
     // ===== Intro cutscene (retro pixel scenes, English / Danish) =====
@@ -4524,7 +5140,7 @@
       runs = [];
       lastRun = null;
       saveRuns();
-      try { localStorage.removeItem(LEGACY_BOARD_KEY); } catch (e) { /* ignore */ }
+      try { store.removeItem(LEGACY_BOARD_KEY); } catch (e) { /* ignore */ }
       renderScoreboard();
     }
     function debugAddScore(points, initials) {
@@ -4565,6 +5181,41 @@
       return 'Snake killed';
     }
 
+    // ===== The environment: test marker, noindex, and the version that is running =====
+    function versionText() {
+      if (siteVersion) {
+        const v = siteVersion, issues = Array.isArray(v.issues) && v.issues.length ? ' · issues ' + v.issues.map(n => '#' + n).join(' ') : '';
+        return [v.env || '?', v.tag || v.ref || '?', v.short || '', (v.published || '').slice(0, 10)].filter(Boolean).join(' · ') + issues;
+      }
+      return /^https?:$/.test(String(window.location && window.location.protocol)) ? 'unknown (no version.json found)' : 'local file';
+    }
+    function showVersion() {
+      if (versionLineEl) versionLineEl.textContent = versionText();
+      if (testBadgeEl) testBadgeEl.textContent = 'TEST BUILD' + (siteVersion && siteVersion.short ? ' · ' + siteVersion.short : '');
+    }
+    function setupEnvironment() {
+      if (IS_TEST) {
+        document.title = 'TEST · ' + document.title;
+        try { // keep search engines away from the test page; done here (not in the HTML) so the promoted file is identical in production
+          const m = document.createElement('meta');
+          m.name = 'robots'; m.content = 'noindex';
+          document.head.appendChild(m);
+        } catch (e) { /* ignore */ }
+        testBadgeEl = document.createElement('div');
+        testBadgeEl.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:70;padding:2px 10px;' +
+          'font:bold 11px "Courier New",monospace;letter-spacing:0.12em;color:#1a1a2e;background:#ffaa00;' +
+          'border-radius:0 0 6px 6px;pointer-events:none;';
+        document.body.appendChild(testBadgeEl);
+        showVersion();
+      }
+      if (/^https?:$/.test(String(window.location && window.location.protocol)) && typeof fetch === 'function') {
+        fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+          .then(r => (r.ok ? r.json() : null))
+          .then(v => { if (v && typeof v === 'object') { siteVersion = v; } showVersion(); })
+          .catch(() => showVersion());
+      }
+    }
+
     function buildDebugMenu() {
       const wrap = document.createElement('div');
       wrap.id = 'debugMenu';
@@ -4584,6 +5235,11 @@
 
       const status = mk('div', 'margin-top:6px;min-height:1.2em;color:#9f9;');
       const say = (msg) => { status.textContent = msg || ''; };
+
+      row('Version (what is running)');
+      versionLineEl = mk('div', 'color:#cfc;word-break:break-word;');
+      panel.lastChild.appendChild(versionLineEl);
+      showVersion();
 
       row('Game');
       const g1 = panel.lastChild;
@@ -4763,7 +5419,7 @@
     const ZOOM_CHOICES = ['auto', '100', '125', '150'];
     let zoomSetting = 'auto';
     try {
-      const z = localStorage.getItem(ZOOM_KEY);
+      const z = store.getItem(ZOOM_KEY);
       if (ZOOM_CHOICES.includes(z)) zoomSetting = z;
     } catch (e) { /* ignore */ }
     let boardPx = 400;
@@ -4807,7 +5463,7 @@
 
     function setZoom(choice) {
       zoomSetting = choice;
-      try { localStorage.setItem(ZOOM_KEY, choice); } catch (e) { /* ignore */ }
+      try { store.setItem(ZOOM_KEY, choice); } catch (e) { /* ignore */ }
       refreshCustomizer();
       fitBoard();
     }
@@ -4841,15 +5497,36 @@
     drawerClose.addEventListener('click', () => setDrawer(false));
     drawerBackdrop.addEventListener('click', () => setDrawer(false));
 
+    // "What's new": opened from the drawer (the drawer closes first). Opening it counts as seeing the newest release.
+    let newsOpen = false;
+    function setNews(open) {
+      newsOpen = open;
+      newsEl.hidden = !open;
+      if (open) {
+        if (drawerOpen) setDrawer(false);
+        autoPause(); // like the drawer: a running game pauses while the player reads
+        renderNews();
+        try { if (CHANGELOG.length) store.setItem(NEWS_KEY, String(CHANGELOG[0].id)); } catch (e) { /* ignore */ }
+        updateNewsDot();
+        refitAll();
+        newsClose.focus();
+      } else {
+        newsBtn.blur();
+      }
+    }
+    newsBtn.addEventListener('click', () => setNews(true));
+    newsClose.addEventListener('click', () => setNews(false));
+    newsEl.addEventListener('click', (e) => { if (e.target === newsEl) setNews(false); }); // a click on the dark area closes it
+
     function setHowto(open) {
       howtoPanel.hidden = !open;
       howtoToggle.setAttribute('aria-expanded', String(open));
-      try { localStorage.setItem('snake_howto', open ? '1' : '0'); } catch (e) { /* ignore */ }
+      try { store.setItem('snake_howto', open ? '1' : '0'); } catch (e) { /* ignore */ }
       refitAll();
       fitBoard(); // the board gives up (or takes back) the room straight away
     }
     howtoToggle.addEventListener('click', () => { setHowto(howtoPanel.hidden); howtoToggle.blur(); });
-    try { if (localStorage.getItem('snake_howto') === '1') { howtoPanel.hidden = false; howtoToggle.setAttribute('aria-expanded', 'true'); } } catch (e) { /* ignore */ }
+    try { if (store.getItem('snake_howto') === '1') { howtoPanel.hidden = false; howtoToggle.setAttribute('aria-expanded', 'true'); } } catch (e) { /* ignore */ }
 
     function updatePauseButton() {
       pauseBtn.textContent = paused ? '▶' : '⏸';
@@ -4865,6 +5542,8 @@
 
     applyLanguage();
     fitBoard(); // size the board to the window (and make it sharp) before anything is shown
+
+    setupEnvironment(); // test marker (test page only) and the version that is running
 
     // Show the intro on load (with ?debug, the debug menu's "Jump to level" skips it)
     startIntro();

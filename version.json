@@ -1,0 +1,13 @@
+{
+    "env":  "prod",
+    "ref":  "stable-2",
+    "tag":  "stable-2",
+    "sha":  "c7bcd5d63781d0d85b81f69d31257ab17554993f",
+    "short":  "c7bcd5d",
+    "subject":  "Add a \"What\u0027s new\" changelog to the game",
+    "published":  "2026-11-05T17:14:09Z",
+    "issues":  [
+
+               ],
+    "promotedFrom":  "test"
+}
