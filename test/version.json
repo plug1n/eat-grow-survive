@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "65bf8f07b16d5dab3e6800615dd1171dd86eb9db",
-    "short":  "65bf8f0",
-    "subject":  "Silence all sound when the browser tab is hidden",
-    "published":  "2026-11-05T16:06:41Z",
+    "sha":  "e67de80ff296debeea208667410de615f303ec4b",
+    "short":  "e67de80",
+    "subject":  "Use a white S-shaped snake on a red-to-yellow tile as the game icon",
+    "published":  "2026-11-05T16:23:29Z",
     "issues":  [
 
                ]
