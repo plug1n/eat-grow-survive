@@ -654,7 +654,7 @@
       -webkit-background-clip: text; background-clip: text;
       color: transparent; -webkit-text-fill-color: transparent;
     }
-    .pattern-btn .rq { display: inline-block; font-size: 1.25em; margin-right: 0.3em; vertical-align: -0.08em; }
+    .pattern-btn .rq { display: inline-block; font-size: 1.6em; vertical-align: -0.1em; }
     .swatch:hover { transform: scale(1.1); }
     .swatch.active { border-color: #ffffff; box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
     .pattern-btn {
@@ -3871,15 +3871,14 @@
       draw(); // update the board straight away
     }
 
-    // The text of an option button. The Random choice shows the multi-coloured question mark (the same look as the random colour
-    // swatch, see `.rq` in the CSS) followed by the word; every other choice is plain text. The tooltip and aria-label say "Random".
+    // The text of an option button. The Random choice shows only the multi-coloured question mark (the same look as the random
+    // colour swatch, see `.rq` in the CSS); every other choice is plain text. The tooltip and aria-label say "Random".
     function setOptionLabel(b, prefix) {
       if (b.dataset.value !== 'random') { b.textContent = t(prefix + b.dataset.value); return; }
       b.textContent = '';
       const q = document.createElement('span');
       q.className = 'rq'; q.textContent = '?'; q.setAttribute('aria-hidden', 'true');
       b.appendChild(q);
-      b.appendChild(document.createTextNode(t('random')));
       b.title = t('random');
       b.setAttribute('aria-label', t('random'));
     }
