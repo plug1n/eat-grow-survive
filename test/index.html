@@ -641,11 +641,17 @@
       cursor: pointer;
       padding: 0;
     }
+    /* "Random colour": a plain dark button with a multi-coloured question mark (a rainbow BACKGROUND read as "multi colour") */
     .swatch.random {
-      background: conic-gradient(#ff5a5a, #ffd23f, #3ddc84, #44d7ff, #8a6cff, #ff5cc8, #ff5a5a);
-      color: #fff;
-      font: bold 0.95rem "Courier New", monospace;
-      text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+      background: #0f1b33;
+      border-color: #3a4f73;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .swatch.random .q {
+      font: bold 1.3rem/1 "Courier New", monospace;
+      background: conic-gradient(from 20deg at 50% 55%, #ff5a5a, #ffd23f, #3ddc84, #44d7ff, #8a6cff, #ff5cc8, #ff5a5a);
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent; -webkit-text-fill-color: transparent;
     }
     .swatch:hover { transform: scale(1.1); }
     .swatch.active { border-color: #ffffff; box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
@@ -3979,7 +3985,9 @@
       randomSwatch.type = 'button';
       randomSwatch.className = 'swatch random';
       randomSwatch.dataset.value = 'random';
-      randomSwatch.textContent = '?';
+      const q = document.createElement('span'); // the multi-coloured question mark (see .swatch.random .q)
+      q.className = 'q'; q.textContent = '?';
+      randomSwatch.appendChild(q);
       randomSwatch.addEventListener('click', () => { setSnakeStyle({ color: 'random' }); randomSwatch.blur(); });
       colorBox.appendChild(randomSwatch);
       [[patternBox, 'pattern', setSnakeStyle], [themeBox, 'theme', setGameTheme], [gridBox, 'grid', setGameTheme]]

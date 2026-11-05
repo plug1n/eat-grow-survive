@@ -2,16 +2,17 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "886e262a4e2e9c90797885784fff6059b36ae5eb",
-    "short":  "886e262",
-    "subject":  "Show the D-pad side choices as Left, Right (left button on the left)",
-    "published":  "2026-11-05T19:40:27Z",
+    "sha":  "f1efa1605c43a20d26e40236800c529fc837cf50",
+    "short":  "f1efa16",
+    "subject":  "Random snake colour: a multi-coloured question mark on a neutral button",
+    "published":  "2026-11-05T19:43:22Z",
     "issues":  [
                    19,
                    46,
                    72,
                    73,
                    74,
-                   83
+                   83,
+                   84
                ]
 }
