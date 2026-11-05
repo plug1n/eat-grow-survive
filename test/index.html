@@ -315,7 +315,9 @@
       gap: 0.8em;
       z-index: 10;
     }
-    .start-overlay { height: 270px; }
+    .start-overlay { height: 300px; }
+    /* the speed control in the first level's start box: same look and size as the one in the bottom bar */
+    .start-speed { display: flex; align-items: center; justify-content: center; gap: 6px; color: #a0a0a0; font-size: 0.8rem; }
     .game-over { display: none; height: 380px; gap: 0.35em; padding-top: 1em; padding-bottom: 1em; }
     .level-up { display: none; height: 300px; }
     .pause-overlay { display: none; cursor: pointer; height: 220px; }
@@ -615,6 +617,13 @@
       transition: background 0.2s;
     }
     .overlay button:hover { background: #44ff99; }
+    /* the small speed buttons inside the start box keep their own look (the generic dialog button style above is bigger and solid green) */
+    .overlay .start-speed .speed-btn {
+      background: #0f3460; color: #00ff88; border: 2px solid #00ff88;
+      padding: 0; font-size: 1.3rem; border-radius: 6px; transition: background 0.15s, color 0.15s, transform 0.05s;
+    }
+    .overlay .start-speed .speed-btn:hover { background: #00ff88; color: #1a1a2e; }
+    .overlay .start-speed .speed-btn:disabled:hover { background: #0f3460; color: #00ff88; }
     .hint { color: #a0a0a0; font-size: 0.85em; margin-top: 0.3em; }
 
     /* Top-10 list inside the Game Over box */
@@ -742,6 +751,14 @@
         <div class="overlay start-overlay" id="startOverlay">
           <h2 id="startTitle">SNAKE</h2>
           <p id="startGoal"></p>
+          <!-- Speed for the start of a run (#14): only on the first level's start box, in step with the buttons below the board.
+               Clicks here must not start the game (see the click handler near the end of the script). -->
+          <div class="start-speed" id="startSpeed">
+            <span class="speed-label" data-i18n="speed" data-fit>Speed:</span>
+            <button type="button" class="speed-btn" id="startSpeedDown" data-i18n-aria="speedDownAria" aria-label="Decrease speed">−</button>
+            <span class="speed-display" id="startSpeedValue">5</span>
+            <button type="button" class="speed-btn" id="startSpeedUp" data-i18n-aria="speedUpAria" aria-label="Increase speed">+</button>
+          </div>
           <p data-i18n="startPress">Press any arrow key or WASD to start</p>
           <div class="hint" data-i18n="startHint">Use WASD or Arrow Keys to move</div>
         </div>
@@ -922,6 +939,12 @@
     const SPECIAL_FOOD_MAX_TIME = 80;
     const SPECIAL_FOOD_WARN_TIME = 30; // start blinking with this many moves left
     let speedLevel = 5;
+    // The speed a run starts at is remembered between runs (#14): the speed in effect when the run is first started,
+    // not the speed it ended on. Changes during play and the automatic raise to a level's minimum never change it.
+    function parseSpeedPref(raw) { const v = parseInt(raw, 10); return isNaN(v) ? 5 : Math.max(1, Math.min(10, v)); }
+    let preferredSpeed = 5;
+    try { preferredSpeed = parseSpeedPref(store.getItem('snake_speed')); } catch (e) { /* ignore */ }
+    let runSpeedSaved = false; // true once this run's starting speed has been remembered
     let scoreMultiplier = 10;
 
     // ===== Language (English / Danish) =====
@@ -1300,6 +1323,10 @@
     const speedValue = document.getElementById('speedValue');
     const speedUpBtn = document.getElementById('speedUp');
     const speedDownBtn = document.getElementById('speedDown');
+    const startSpeedEl = document.getElementById('startSpeed');
+    const startSpeedValue = document.getElementById('startSpeedValue');
+    const startSpeedUpBtn = document.getElementById('startSpeedUp');
+    const startSpeedDownBtn = document.getElementById('startSpeedDown');
     const startTitle = document.getElementById('startTitle');
     const startGoal = document.getElementById('startGoal');
     const levelOverlay = document.getElementById('levelOverlay');
@@ -1942,6 +1969,7 @@
     function updateStartOverlay() {
       startTitle.textContent = level === 1 ? t('startTitle1') : t('startTitleN', { n: level });
       startGoal.textContent = t('startGoal', { n: levelTarget });
+      startSpeedEl.style.display = level === 1 ? 'flex' : 'none'; // only the box that starts a run has the speed control
     }
 
     function updateLevelOverlay() {
@@ -1954,7 +1982,8 @@
       score = 0;
       recordBeaten = false;
       recRun = null; recLevel = null; recTick = 0; // a new run starts a new recording
-      speedLevel = 5;
+      speedLevel = preferredSpeed; // a run starts at the speed chosen at the start of the previous run
+      runSpeedSaved = false;
       setupLevel(1);
       renderScoreboard();
     }
@@ -2189,7 +2218,9 @@
       speedValue.title = t('minSpeedTip', { m: minSpeed });
       speedDownBtn.disabled = speedLevel <= minSpeed; // can't go below this level's minimum speed
       speedDownBtn.title = speedDownBtn.disabled ? t('minSpeedTip', { m: minSpeed }) : '';
-      // keep the legend's point values in step with the current speed
+      startSpeedValue.textContent = speedLevel; // the start box shows the same value
+      startSpeedDownBtn.disabled = speedDownBtn.disabled;
+      startSpeedDownBtn.title = speedDownBtn.title;      // keep the legend's point values in step with the current speed
       document.getElementById('legendFood').innerHTML =
         t('legendFood_' + look.theme, { n: '<b>' + (scoreMultiplier * speedLevel) + '</b>' });
       document.getElementById('legendBonus').innerHTML =
@@ -2201,6 +2232,11 @@
       gameStarted = true;
       gameRunning = true;
       startOverlay.style.display = 'none';
+      if (!runSpeedSaved) { // the speed this run starts at becomes the suggestion for the next run
+        runSpeedSaved = true;
+        preferredSpeed = speedLevel;
+        try { store.setItem('snake_speed', String(preferredSpeed)); } catch (e) { /* ignore */ }
+      }
       recBeginLevel(); // the replay recording starts with this level's starting position
       sfx.start();
       startMusic(); // background music for the game (the same tune as the intro)
@@ -4367,6 +4403,11 @@
     // blur after clicking so a later Space press pauses instead of re-clicking the button
     speedUpBtn.addEventListener('click', () => { changeSpeed(1); speedUpBtn.blur(); });
     speedDownBtn.addEventListener('click', () => { changeSpeed(-1); speedDownBtn.blur(); });
+    // The speed control in the first level's start box. The whole start box starts the game when clicked, so clicks
+    // inside this row must stop here.
+    startSpeedUpBtn.addEventListener('click', () => { changeSpeed(1); startSpeedUpBtn.blur(); });
+    startSpeedDownBtn.addEventListener('click', () => { changeSpeed(-1); startSpeedDownBtn.blur(); });
+    startSpeedEl.addEventListener('click', (e) => e.stopPropagation());
     pauseOverlay.addEventListener('click', togglePause);
 
     // ===== Intro cutscene (retro pixel scenes, English / Danish) =====

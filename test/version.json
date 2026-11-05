@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "e67de80ff296debeea208667410de615f303ec4b",
-    "short":  "e67de80",
-    "subject":  "Use a white S-shaped snake on a red-to-yellow tile as the game icon",
-    "published":  "2026-11-05T16:23:29Z",
+    "sha":  "1c775f31d2dde7ad5927459e226750bd7078ba76",
+    "short":  "1c775f3",
+    "subject":  "Put a speed control in the start box and remember the starting speed",
+    "published":  "2026-11-05T16:56:13Z",
     "issues":  [
 
                ]
