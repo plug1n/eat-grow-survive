@@ -681,6 +681,8 @@
     .vol-val { flex: none; width: 3.6em; text-align: right; font-size: 0.8rem; color: #a0a0a0; font-variant-numeric: tabular-nums; }
     .pattern-btn:hover { border-color: #00ff88; color: #00ff88; }
     .pattern-btn.active { background: #00ff88; border-color: #00ff88; color: #1a1a2e; font-weight: bold; }
+    /* the selected Random option: a white ring like the colour circles (the green fill of the others would hide the green of the "?") */
+    .pattern-btn[data-value="random"].active { background: transparent; border: 2px solid #ffffff; box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
     .swatch:focus-visible, .pattern-btn:focus-visible { outline: 2px solid #00ccff; outline-offset: 2px; }
 
     /* Legend (inside "How to play") */
