@@ -405,7 +405,8 @@
       display: none; flex: none; justify-content: center;
       grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 54px); gap: 6px;
     }
-    .touch .dpad { display: grid; }
+    .touch .dpad { display: grid; align-self: flex-end; margin: 0 18px 0 0; }  /* to the side for a thumb: right by default */
+    body[data-dpad="left"] .dpad { align-self: flex-start; margin: 0 0 0 18px; } /* the Touch controls setting: D-pad side */
     body[data-touch="swipe"] .dpad { display: none; }
     .dpad-btn {
       display: flex; align-items: center; justify-content: center; padding: 0;
@@ -452,8 +453,10 @@
       .speed-ctl { flex: 1 1 100%; }
       .speed-label { width: 3.6em; }
       .toggle-btn { width: 100%; }
-      .dpad { grid-area: dpad; align-self: end; justify-self: center; }
+      .touch .dpad, body[data-dpad] .dpad { grid-area: dpad; align-self: end; justify-self: center; margin: 0 0 26px; } /* room under it for the thumb and the screen edge */
+      body[data-dpad="left"] #app { grid-template-areas: "dpad board top" "dpad board hud" "dpad board bar"; } /* D-pad on the left: the menu moves to the right */
       #howtoPanel { position: fixed; left: 8px; bottom: 8px; width: 190px; z-index: 20; }
+      body[data-dpad="left"] #howtoPanel { left: auto; right: 8px; }
     }
 
     /* ---- Intro cutscene ---- */
@@ -628,6 +631,7 @@
     #zoomOptions    { grid-template-columns: repeat(4, 1fr); }
     #fogOptions     { grid-template-columns: repeat(4, 1fr); }
     #touchOptions   { grid-template-columns: repeat(3, 1fr); }
+    #dpadSideOptions { grid-template-columns: repeat(2, 1fr); }
     .option-note { font-size: 0.72rem; color: #6f84a3; line-height: 1.3; }
     .swatch {
       width: 30px;
@@ -968,6 +972,8 @@
     <div class="option-row touch-only">
       <span class="option-label" data-i18n="touchLabel" data-fit>Touch controls</span>
       <div class="option-group" id="touchOptions"></div>
+      <span class="option-label" data-i18n="dpadSideLabel" data-fit>Buttons on the</span>
+      <div class="option-group" id="dpadSideOptions"></div>
     </div>
     <div class="option-row">
       <span class="option-label" data-i18n="fogLabel" data-fit>Fog of war</span>
@@ -1151,6 +1157,7 @@
         pauseHintTouch: 'Tap here to resume',
         startPressTouch: 'Swipe on the board or tap an arrow to start',
         startHintTouch: 'Swipe or use the arrows to steer',
+        dpadSideLabel: 'Buttons on the', dpadSide_right: 'Right', dpadSide_left: 'Left',
         touchLabel: 'Touch controls',
         touch_both: 'Swipe + buttons', touch_swipe: 'Swipe', touch_buttons: 'Buttons',
         dpadLabel: 'Direction buttons', dpadUp: 'Up', dpadDown: 'Down', dpadLeft: 'Left', dpadRight: 'Right',
@@ -1277,6 +1284,7 @@
         pauseHintTouch: 'Tryk her for at fortsætte',
         startPressTouch: 'Stryg på banen eller tryk på en pil for at starte',
         startHintTouch: 'Stryg eller brug pilene for at styre',
+        dpadSideLabel: 'Knapper på', dpadSide_right: 'Højre side', dpadSide_left: 'Venstre side',
         touchLabel: 'Touch-styring',
         touch_both: 'Stryg + knapper', touch_swipe: 'Stryg', touch_buttons: 'Knapper',
         dpadLabel: 'Retningsknapper', dpadUp: 'Op', dpadDown: 'Ned', dpadLeft: 'Venstre', dpadRight: 'Højre',
@@ -3877,6 +3885,12 @@
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', on);
       });
+      document.querySelectorAll('#dpadSideOptions button').forEach(b => {
+        b.textContent = t('dpadSide_' + b.dataset.value);
+        const on = b.dataset.value === dpadSide;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on);
+      });
       document.querySelectorAll('#fogOptions button').forEach(b => {
         b.textContent = t('fog_' + b.dataset.value);
         b.title = t('fogTip_' + b.dataset.value);
@@ -3996,6 +4010,15 @@
         b.dataset.value = id;
         b.addEventListener('click', () => { setTouchMode(id); b.blur(); });
         touchBox.appendChild(b);
+      }
+      const dpadSideBox = document.getElementById('dpadSideOptions');
+      for (const id of DPAD_SIDES) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pattern-btn';
+        b.dataset.value = id;
+        b.addEventListener('click', () => { setDpadSide(id); b.blur(); });
+        dpadSideBox.appendChild(b);
       }
       // Fog of war (#83): Off / Fog / Fog hard / Fog brutal; applies from the next run
       const fogBox = document.getElementById('fogOptions');
@@ -4881,6 +4904,19 @@
     if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) markTouchDevice();
     document.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') markTouchDevice(); }, true);
     document.body.dataset.touch = touchMode; // CSS hides the D-pad for "Swipe" only
+    // Which side the D-pad is on (a thumb): right by default; "left" also swaps the landscape columns
+    const DPAD_KEY = 'snake_dpad';
+    const DPAD_SIDES = ['right', 'left'];
+    let dpadSide = 'right';
+    try { const v = store.getItem(DPAD_KEY); if (DPAD_SIDES.includes(v)) dpadSide = v; } catch (e) { /* ignore */ }
+    document.body.dataset.dpad = dpadSide;
+    function setDpadSide(s) {
+      dpadSide = DPAD_SIDES.includes(s) ? s : 'right';
+      document.body.dataset.dpad = dpadSide;
+      try { store.setItem(DPAD_KEY, dpadSide); } catch (e) { /* ignore */ }
+      refreshCustomizer();
+      queueFit();
+    }
     function setTouchMode(m) {
       touchMode = TOUCH_MODES.includes(m) ? m : 'both';
       document.body.dataset.touch = touchMode;
