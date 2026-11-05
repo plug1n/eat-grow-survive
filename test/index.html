@@ -425,9 +425,35 @@
       .icon-btn { width: 44px; height: 44px; }
       .toggle-btn { height: 44px; }
     }
-    @media (max-height: 520px) and (orientation: landscape) { /* a phone on its side: no room to stack, so the D-pad floats at the right */
-      #app { min-height: 0; }
-      .dpad { position: fixed; right: 14px; bottom: 14px; z-index: 5; }
+    /* Play mode (see updatePlayMode in the script): while the snake moves, only the status strip and the pause button stay
+       usable on a touch screen; the rest is hidden (not removed, so nothing moves) and returns when the game is not running. */
+    .touch.playing .topbar-actions, .touch.playing .speed-ctl, .touch.playing #soundBtn,
+    .touch.playing #howtoToggle, .touch.playing #howtoPanel { visibility: hidden; }
+    .touch.playing #pauseBtn { border-color: #00ff88; }
+    /* A phone upright: the board runs nearly edge to edge (the width is what limits it) */
+    @media (pointer: coarse) and (max-width: 560px) {
+      #app { padding: 6px 4px 8px; }
+    }
+    /* A phone on its side: three columns. Status strip, menu and bottom bar stack in the left column, the board takes the whole
+       height in the middle, the D-pad sits at the bottom of the right column. */
+    @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
+      #app {
+        min-height: 0; padding: 6px 8px;
+        display: grid; grid-template-columns: 190px 1fr 190px; grid-template-rows: auto auto 1fr;
+        grid-template-areas: "top board dpad" "hud board dpad" "bar board dpad";
+        column-gap: 8px; row-gap: 6px; align-content: stretch; align-items: start;
+      }
+      #topbar { grid-area: top; width: 100%; height: auto; flex-wrap: wrap; gap: 4px; justify-content: flex-start; }
+      #topbar h1 { flex: 1 1 100%; font-size: 1.15rem; }
+      .topbar-actions { gap: 4px; flex-wrap: wrap; }
+      #hud { grid-area: hud; width: 100%; grid-template-columns: 1fr 1fr; gap: 4px; }
+      #boardArea { grid-area: board; width: 100%; height: 100%; align-self: stretch; }
+      #bottombar { grid-area: bar; width: 100%; height: auto; flex-wrap: wrap; justify-content: flex-start; gap: 4px; align-content: flex-start; }
+      .speed-ctl { flex: 1 1 100%; }
+      .speed-label { width: 3.6em; }
+      .toggle-btn { width: 100%; }
+      .dpad { grid-area: dpad; align-self: end; justify-self: center; }
+      #howtoPanel { position: fixed; left: 8px; bottom: 8px; width: 190px; z-index: 20; }
     }
 
     /* ---- Intro cutscene ---- */
@@ -852,7 +878,7 @@
         </div>
         <div class="overlay pause-overlay" id="pauseOverlay" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
           <h2 id="pauseTitle" data-i18n="pauseTitle">PAUSED</h2>
-          <p data-i18n="pauseHint">Press Space to resume</p>
+          <p id="pauseHintEl" data-i18n="pauseHint">Press Space to resume</p>
           <button type="button" class="secondary" id="pauseSound"></button>
         </div>
         <div class="overlay countdown-overlay" id="countdownOverlay" aria-live="assertive">
@@ -1122,6 +1148,7 @@
         newsTitle: "What's new",
         newsOpen: "What's new",
         newsRelease: 'Version {n}',
+        pauseHintTouch: 'Tap here to resume',
         startPressTouch: 'Swipe on the board or tap an arrow to start',
         startHintTouch: 'Swipe or use the arrows to steer',
         touchLabel: 'Touch controls',
@@ -1247,6 +1274,7 @@
         newsTitle: 'Nyt i spillet',
         newsOpen: 'Nyt i spillet',
         newsRelease: 'Version {n}',
+        pauseHintTouch: 'Tryk her for at fortsætte',
         startPressTouch: 'Stryg på banen eller tryk på en pil for at starte',
         startHintTouch: 'Stryg eller brug pilene for at styre',
         touchLabel: 'Touch-styring',
@@ -1339,13 +1367,15 @@
           'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.',
           'On the Game Over screen, press Enter to play again.',
           'New in settings: Fog of war. Stones hide until you are close. Fog, Fog hard and Fog brutal each have their own leaderboard.',
-          'On phones and tablets: swipe on the board or use the on-screen arrows to steer. Settings has a Touch controls choice.'
+          'On phones and tablets: swipe on the board or use the on-screen arrows to steer. Settings has a Touch controls choice.',
+          'On phones the menus hide while you play and return when you pause. The board is bigger, also with the phone on its side.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
           'På Game Over-skærmen kan du trykke Enter for at spille igen.',
           'Nyt i indstillinger: Tåge. Sten skjules, til du er tæt på. Tåge, Hård tåge og Brutal tåge har hver sin highscoreliste.',
-          'På telefon og tablet: stryg på banen eller brug pilene på skærmen til at styre. I indstillinger kan du vælge touch-styring.'
+          'På telefon og tablet: stryg på banen eller brug pilene på skærmen til at styre. I indstillinger kan du vælge touch-styring.',
+          'På telefon skjules menuerne, mens du spiller, og kommer tilbage, når du pauser. Banen er større, også med telefonen på siden.'
         ] },
       { id: 2,
         en: [
@@ -1557,6 +1587,7 @@
     const startSpeedValue = document.getElementById('startSpeedValue');
     const startSpeedUpBtn = document.getElementById('startSpeedUp');
     const startSpeedDownBtn = document.getElementById('startSpeedDown');
+    const pauseHintEl = document.getElementById('pauseHintEl');
     const startPressEl = document.getElementById('startPressEl');
     const startHintEl = document.getElementById('startHintEl');
     const hudBestLabel = document.getElementById('hudBestLabel');
@@ -2214,6 +2245,7 @@
       const touch = !!(document.body.classList && document.body.classList.contains('touch'));
       startPressEl.textContent = t(touch ? 'startPressTouch' : 'startPress');
       startHintEl.textContent = t(touch ? 'startHintTouch' : 'startHint');
+      pauseHintEl.textContent = t(touch ? 'pauseHintTouch' : 'pauseHint'); // the pause box too: tapping it resumes
     }
 
     function updateLevelOverlay() {
@@ -2242,6 +2274,7 @@
     function levelComplete() {
       if (recLevel && !recLevel.end) recLevel.end = 'c'; // replay recording: this level was completed
       gameRunning = false;
+      updatePlayMode();
       if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
       sfx.levelUp();
       updateLevelOverlay();
@@ -2487,6 +2520,7 @@
       recBeginLevel(); // the replay recording starts with this level's starting position
       sfx.start();
       startMusic(); // background music for the game (the same tune as the intro)
+      updatePlayMode();
       if (rafId !== null) cancelAnimationFrame(rafId);
       lastTime = performance.now();
       loop();
@@ -2517,6 +2551,18 @@
       if (countdownTimer !== null) { clearInterval(countdownTimer); countdownTimer = null; }
       countdownAnim = null;
       countdownOverlay.style.display = 'none';
+      updatePlayMode(); // (a cancelled countdown: back to the paused state)
+    }
+
+    // "Play mode" (#19, touch screens only through the CSS): while the snake is moving, everything except the status strip and
+    // the pause button is hidden, so a thumb cannot hit language, fullscreen, settings, speed, sound or "How to play" by mistake.
+    // They come back whenever the game is not running (start box, pause, level complete, Game Over, replay). The 3-2-1
+    // countdown after a pause counts as playing, so the menus do not flash back during it. Hidden = visibility:hidden, so
+    // nothing in the layout moves when this changes (the D-pad stays under the thumb).
+    function updatePlayMode() {
+      if (!document.body.classList) return;
+      const playing = !replayActive && gameRunning && (!paused || countdownTimer !== null);
+      document.body.classList.toggle('playing', !!playing);
     }
 
     function togglePause() {
@@ -2536,6 +2582,7 @@
           lastTime = performance.now(); // don't count the paused time as elapsed
           loop();
         });
+        updatePlayMode(); // the countdown counts as playing: the menus stay hidden during the 3-2-1
       }
     }
 
@@ -4323,6 +4370,7 @@
 
     function endGame() {
       gameRunning = false;
+      updatePlayMode();
       if (rafId !== null) cancelAnimationFrame(rafId);
       rafId = null;
       if (DEBUG) debugDump('game over');
@@ -4558,6 +4606,7 @@
         },
       };
       replayActive = true;
+      updatePlayMode();
       gameOverEl.style.display = 'none';
       clearParticles();
       replayBanner.style.display = 'block';
@@ -4582,6 +4631,7 @@
       replay = null;
       replayActive = false;
       replayFog = null;
+      updatePlayMode();
       replayBanner.style.display = 'none';
       replayBar.style.display = 'none';
       clearParticles();
@@ -5962,7 +6012,8 @@
       root.setProperty('--ui-scale', (px / BOARD_LOGICAL).toFixed(3)); // dialogs scale with the board
       // the strip and bottom bar: at least 480 px wide, but never wider than the real screen (phones: screen width - 24)
       const screenW = Math.min(document.documentElement.clientWidth || window.innerWidth, window.innerWidth);
-      root.setProperty('--hud-w', Math.min(Math.max(px + 6, 480), Math.max(280, screenW - 24)) + 'px');
+      const sideMargin = document.body.classList && document.body.classList.contains('touch') ? 8 : 24; // phones: nearly edge to edge
+      root.setProperty('--hud-w', Math.min(Math.max(px + 6, 480), Math.max(280, screenW - sideMargin)) + 'px');
       canvas.width = canvas.height = backing;      // resizing a canvas resets its state...
       fxCanvas.width = fxCanvas.height = backing;
       canvas.getContext('2d').setTransform(k, 0, 0, k, 0, 0); // ...so scale the logical space onto it again
@@ -5974,7 +6025,8 @@
     // Auto: as big as the room left by the status strip and bottom bar allows. A fixed zoom is capped by that room.
     function fitBoard() {
       const r = boardArea.getBoundingClientRect();
-      const room = Math.floor(Math.min(r.width, r.height)) - 6 - 8; // 6px border + a little air
+      const air = document.body.classList && document.body.classList.contains('touch') ? 2 : 8; // phones need every pixel
+      const room = Math.floor(Math.min(r.width, r.height)) - 6 - air; // 6px border + a little air
       const px = zoomSetting === 'auto' ? room : Math.min(room, Math.round((BOARD_LOGICAL * Number(zoomSetting)) / 100));
       const smallest = window.innerHeight < 520 ? 140 : 240; // a phone on its side has very little height
       applyBoardSize(Math.max(smallest, Math.min(px, 1400)));
@@ -6058,6 +6110,7 @@
     try { if (store.getItem('snake_howto') === '1') { howtoPanel.hidden = false; howtoToggle.setAttribute('aria-expanded', 'true'); } } catch (e) { /* ignore */ }
 
     function updatePauseButton() {
+      updatePlayMode(); // (called whenever the pause state changes, and when a level is set up)
       pauseBtn.textContent = paused ? '▶' : '⏸';
       pauseBtn.title = t(paused ? 'resumeTip' : 'pauseTip');
       pauseBtn.setAttribute('aria-label', pauseBtn.title);
