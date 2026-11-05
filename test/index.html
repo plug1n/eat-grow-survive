@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- minimum-scale=1: on a phone the page must never zoom out to fit something wider than the screen (the layout is
+       computed from the real screen width; see applyBoardSize). Pinching to zoom in stays possible outside the board. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover"/>
   <title>Snake Game</title>
   <!-- A white snake in the shape of an S on a red-to-yellow tile, drawn as inline SVG so it looks the same on every device and needs no extra file.
        The same picture is the tab icon (here) and the icon in the heading (h1::before in the CSS below). -->
@@ -109,7 +111,7 @@
 
     /* Status strip above the board: level, goal progress, score, record */
     #hud {
-      width: var(--hud-w, 520px);
+      width: var(--hud-w, min(520px, calc(100vw - 24px)));
       flex: none;
       display: grid;
       grid-template-columns: 0.9fr 2.2fr 1.2fr 1.5fr;
@@ -221,7 +223,7 @@
 
     /* Bottom bar: speed, sound, pause and the "How to play" toggle */
     #bottombar {
-      width: var(--hud-w, 520px);
+      width: var(--hud-w, min(520px, calc(100vw - 24px)));
       height: 44px;
       flex: none;
       display: flex;
@@ -285,7 +287,7 @@
 
     /* Collapsible "How to play" (legend + links) */
     #howtoPanel {
-      width: var(--hud-w, 520px);
+      width: var(--hud-w, min(520px, calc(100vw - 24px)));
       flex: none;
       padding: 8px 12px;
       font-size: 0.85rem;
@@ -392,6 +394,41 @@
     }
     .overlay button.secondary:hover { background: #1a2238; color: #e0e0e0; }
 
+
+    /* ---- Touch screens (#19) ----
+       body.touch is set on a touch device (a coarse pointer, or the first touch). The touch code itself is one section of the
+       script ("Touch input"); here are only its looks: the D-pad, bigger tap targets, no scrolling or zooming on the board. */
+    html, body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+    button { touch-action: manipulation; }  /* no double-tap zoom or tap delay on buttons */
+    #game-container { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; } /* swipes steer, they never scroll or zoom the page */
+    .dpad {
+      display: none; flex: none; justify-content: center;
+      grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 54px); gap: 6px;
+    }
+    .touch .dpad { display: grid; }
+    body[data-touch="swipe"] .dpad { display: none; }
+    .dpad-btn {
+      display: flex; align-items: center; justify-content: center; padding: 0;
+      background: rgba(15, 52, 96, 0.75); border: 2px solid #00ff88; border-radius: 12px;
+      color: #00ff88; font-family: inherit; font-size: 1.3rem; user-select: none; -webkit-user-select: none; cursor: pointer;
+    }
+    .dpad-btn:active { background: #00ff88; color: #1a1a2e; }
+    #dpadUp { grid-column: 2; grid-row: 1; }
+    #dpadLeft { grid-column: 1; grid-row: 2; }
+    #dpadRight { grid-column: 3; grid-row: 2; }
+    #dpadDown { grid-column: 2; grid-row: 3; }
+    .touch-only { display: none !important; }       /* settings that only make sense with a touch screen */
+    .touch .touch-only { display: grid !important; }
+    @media (pointer: coarse) { /* fingers need bigger targets than mouse pointers */
+      .speed-label { width: 4.6em; }
+      .speed-btn { width: 44px; height: 44px; }
+      .icon-btn { width: 44px; height: 44px; }
+      .toggle-btn { height: 44px; }
+    }
+    @media (max-height: 520px) and (orientation: landscape) { /* a phone on its side: no room to stack, so the D-pad floats at the right */
+      #app { min-height: 0; }
+      .dpad { position: fixed; right: 14px; bottom: 14px; z-index: 5; }
+    }
 
     /* ---- Intro cutscene ---- */
     .intro {
@@ -564,6 +601,7 @@
     #gridOptions    { grid-template-columns: repeat(5, 1fr); }
     #zoomOptions    { grid-template-columns: repeat(4, 1fr); }
     #fogOptions     { grid-template-columns: repeat(4, 1fr); }
+    #touchOptions   { grid-template-columns: repeat(3, 1fr); }
     .option-note { font-size: 0.72rem; color: #6f84a3; line-height: 1.3; }
     .swatch {
       width: 30px;
@@ -788,8 +826,8 @@
             <span class="speed-display" id="startSpeedValue">5</span>
             <button type="button" class="speed-btn" id="startSpeedUp" data-i18n-aria="speedUpAria" aria-label="Increase speed">+</button>
           </div>
-          <p data-i18n="startPress">Press any arrow key or WASD to start</p>
-          <div class="hint" data-i18n="startHint">Use WASD or Arrow Keys to move</div>
+          <p id="startPressEl" data-i18n="startPress">Press any arrow key or WASD to start</p>
+          <div class="hint" id="startHintEl" data-i18n="startHint">Use WASD or Arrow Keys to move</div>
         </div>
         <div class="overlay game-over" id="gameOver">
           <h2 data-i18n="gameOver">GAME OVER</h2>
@@ -834,6 +872,15 @@
           <button type="button" id="rpExit" data-i18n="replayExit" data-fit>✕ Exit</button>
         </div>
       </div>
+    </div>
+
+    <!-- On-screen direction buttons for touch screens (#19). Shown on touch devices (body.touch) unless the touch setting is
+         "Swipe" only. They call steerFromTouch(), the same entry point the swipe uses. -->
+    <div class="dpad" id="dpad" role="group" data-i18n-aria="dpadLabel" aria-label="Direction buttons">
+      <button type="button" class="dpad-btn" id="dpadUp" data-dir="U" data-i18n-aria="dpadUp" aria-label="Up">▲</button>
+      <button type="button" class="dpad-btn" id="dpadLeft" data-dir="L" data-i18n-aria="dpadLeft" aria-label="Left">◀</button>
+      <button type="button" class="dpad-btn" id="dpadRight" data-dir="R" data-i18n-aria="dpadRight" aria-label="Right">▶</button>
+      <button type="button" class="dpad-btn" id="dpadDown" data-dir="D" data-i18n-aria="dpadDown" aria-label="Down">▼</button>
     </div>
 
     <section id="howtoPanel" hidden>
@@ -891,6 +938,10 @@
     <div class="option-row">
       <span class="option-label" data-i18n="zoomLabel" data-fit>Board size</span>
       <div class="option-group" id="zoomOptions"></div>
+    </div>
+    <div class="option-row touch-only">
+      <span class="option-label" data-i18n="touchLabel" data-fit>Touch controls</span>
+      <div class="option-group" id="touchOptions"></div>
     </div>
     <div class="option-row">
       <span class="option-label" data-i18n="fogLabel" data-fit>Fog of war</span>
@@ -1071,6 +1122,11 @@
         newsTitle: "What's new",
         newsOpen: "What's new",
         newsRelease: 'Version {n}',
+        startPressTouch: 'Swipe on the board or tap an arrow to start',
+        startHintTouch: 'Swipe or use the arrows to steer',
+        touchLabel: 'Touch controls',
+        touch_both: 'Swipe + buttons', touch_swipe: 'Swipe', touch_buttons: 'Buttons',
+        dpadLabel: 'Direction buttons', dpadUp: 'Up', dpadDown: 'Down', dpadLeft: 'Left', dpadRight: 'Right',
         fogLabel: 'Fog of war',
         fogNote: 'Applies from your next run. Every setting has its own leaderboard.',
         fog_off: 'Off', fog_fog: 'Fog', fog_hard: 'Fog hard', fog_brutal: 'Fog brutal',
@@ -1191,6 +1247,11 @@
         newsTitle: 'Nyt i spillet',
         newsOpen: 'Nyt i spillet',
         newsRelease: 'Version {n}',
+        startPressTouch: 'Stryg på banen eller tryk på en pil for at starte',
+        startHintTouch: 'Stryg eller brug pilene for at styre',
+        touchLabel: 'Touch-styring',
+        touch_both: 'Stryg + knapper', touch_swipe: 'Stryg', touch_buttons: 'Knapper',
+        dpadLabel: 'Retningsknapper', dpadUp: 'Op', dpadDown: 'Ned', dpadLeft: 'Venstre', dpadRight: 'Højre',
         fogLabel: 'Tåge',
         fogNote: 'Gælder fra dit næste forløb. Hver indstilling har sin egen highscoreliste.',
         fog_off: 'Fra', fog_fog: 'Tåge', fog_hard: 'Hård tåge', fog_brutal: 'Brutal tåge',
@@ -1277,12 +1338,14 @@
         en: [
           'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.',
           'On the Game Over screen, press Enter to play again.',
-          'New in settings: Fog of war. Stones hide until you are close. Fog, Fog hard and Fog brutal each have their own leaderboard.'
+          'New in settings: Fog of war. Stones hide until you are close. Fog, Fog hard and Fog brutal each have their own leaderboard.',
+          'On phones and tablets: swipe on the board or use the on-screen arrows to steer. Settings has a Touch controls choice.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
           'På Game Over-skærmen kan du trykke Enter for at spille igen.',
-          'Nyt i indstillinger: Tåge. Sten skjules, til du er tæt på. Tåge, Hård tåge og Brutal tåge har hver sin highscoreliste.'
+          'Nyt i indstillinger: Tåge. Sten skjules, til du er tæt på. Tåge, Hård tåge og Brutal tåge har hver sin highscoreliste.',
+          'På telefon og tablet: stryg på banen eller brug pilene på skærmen til at styre. I indstillinger kan du vælge touch-styring.'
         ] },
       { id: 2,
         en: [
@@ -1494,6 +1557,8 @@
     const startSpeedValue = document.getElementById('startSpeedValue');
     const startSpeedUpBtn = document.getElementById('startSpeedUp');
     const startSpeedDownBtn = document.getElementById('startSpeedDown');
+    const startPressEl = document.getElementById('startPressEl');
+    const startHintEl = document.getElementById('startHintEl');
     const hudBestLabel = document.getElementById('hudBestLabel');
     const scoreTitleEl = document.getElementById('scoreTitle');
     const startTitle = document.getElementById('startTitle');
@@ -2145,6 +2210,10 @@
       startTitle.textContent = level === 1 ? t('startTitle1') : t('startTitleN', { n: level });
       startGoal.textContent = t('startGoal', { n: levelTarget });
       startSpeedEl.style.display = level === 1 ? 'flex' : 'none'; // only the box that starts a run has the speed control
+      // a touch screen has no arrow keys: the start box talks about swiping and the on-screen arrows instead
+      const touch = !!(document.body.classList && document.body.classList.contains('touch'));
+      startPressEl.textContent = t(touch ? 'startPressTouch' : 'startPress');
+      startHintEl.textContent = t(touch ? 'startHintTouch' : 'startHint');
     }
 
     function updateLevelOverlay() {
@@ -3755,6 +3824,12 @@
     }
 
     function refreshCustomizer() {
+      document.querySelectorAll('#touchOptions button').forEach(b => {
+        b.textContent = t('touch_' + b.dataset.value);
+        const on = b.dataset.value === touchMode;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on);
+      });
       document.querySelectorAll('#fogOptions button').forEach(b => {
         b.textContent = t('fog_' + b.dataset.value);
         b.title = t('fogTip_' + b.dataset.value);
@@ -3864,6 +3939,16 @@
         b.dataset.value = id;
         b.addEventListener('click', () => { setZoom(id); b.blur(); });
         zoomBox.appendChild(b);
+      }
+      // Touch controls (#19): Swipe + buttons / Swipe / Buttons (the row is only visible on touch devices)
+      const touchBox = document.getElementById('touchOptions');
+      for (const id of TOUCH_MODES) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pattern-btn';
+        b.dataset.value = id;
+        b.addEventListener('click', () => { setTouchMode(id); b.blur(); });
+        touchBox.appendChild(b);
       }
       // Fog of war (#83): Off / Fog / Fog hard / Fog brutal; applies from the next run
       const fogBox = document.getElementById('fogOptions');
@@ -4724,6 +4809,74 @@
         else if (isSpeedUp) changeSpeed(1);
         else if (isSpeedDown) changeSpeed(-1);
       }
+    });
+
+    // ===== Touch input (#19): swipe on the board and an on-screen D-pad =====
+    // Everything touch-specific lives in this section. Both inputs only call steerFromTouch(), which applies the same rules as
+    // the arrow keys, so the game logic itself has no "is this a touch device" special cases. The looks are the CSS block
+    // "Touch screens". Tapping the start box, the pause box and the buttons already worked (they are clicks).
+    const TOUCH_KEY = 'snake_touch';
+    const TOUCH_MODES = ['both', 'swipe', 'buttons']; // swipe + buttons (default), swipe only, buttons only
+    let touchMode = 'both';
+    try { const v = store.getItem(TOUCH_KEY); if (TOUCH_MODES.includes(v)) touchMode = v; } catch (e) { /* ignore */ }
+    const TOUCH_DIR_KEYS = { U: 'ArrowUp', D: 'ArrowDown', L: 'ArrowLeft', R: 'ArrowRight' };
+    const boardTouchEl = document.getElementById('game-container');
+
+    // body.touch turns on the touch looks: a coarse pointer (a phone or tablet), or the first time a finger touches the page
+    function markTouchDevice() {
+      if (!document.body.classList || document.body.classList.contains('touch')) return;
+      document.body.classList.add('touch');
+      updateStartOverlay(); // the start box now talks about swiping instead of arrow keys
+    }
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches) markTouchDevice();
+    document.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') markTouchDevice(); }, true);
+    document.body.dataset.touch = touchMode; // CSS hides the D-pad for "Swipe" only
+    function setTouchMode(m) {
+      touchMode = TOUCH_MODES.includes(m) ? m : 'both';
+      document.body.dataset.touch = touchMode;
+      try { store.setItem(TOUCH_KEY, touchMode); } catch (e) { /* ignore */ }
+      refreshCustomizer();
+      queueFit(); // the D-pad takes room from the board (or gives it back)
+    }
+
+    // Steer like an arrow key would: starts the game from the start box, steers a running game, does nothing while a
+    // dialog, the pause box, a replay, the intro or a panel has the screen. Returns true when it did something.
+    function steerFromTouch(dirChar) {
+      const key = TOUCH_DIR_KEYS[dirChar];
+      if (!key || replayActive || introActive || newsOpen || drawerOpen || dying || paused) return false;
+      if (levelOverlay.style.display === 'flex' || gameOverEl.style.display === 'flex' || highScoreOverlay.style.display === 'flex') return false;
+      if (!gameStarted) { startGame(); handleDirection(key); return true; }
+      if (gameRunning) { handleDirection(key); return true; }
+      return false;
+    }
+
+    // Swipe: the direction of a finger movement (the longer axis), or '' when it moved less than `min` pixels
+    function swipeDirection(dx, dy, min) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < min) return '';
+      return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U');
+    }
+    const swipeMin = () => Math.max(14, Math.min(26, boardPx / 12)); // pixels a finger must travel: smaller on a small board
+    let swipeTouch = null; // the finger being followed: { id, x, y }
+    boardTouchEl.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'touch' || touchMode === 'buttons') return;
+      swipeTouch = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    });
+    boardTouchEl.addEventListener('pointermove', (e) => {
+      if (!swipeTouch || e.pointerId !== swipeTouch.id) return;
+      const d = swipeDirection(e.clientX - swipeTouch.x, e.clientY - swipeTouch.y, swipeMin());
+      if (!d) return;
+      steerFromTouch(d);
+      swipeTouch.x = e.clientX; swipeTouch.y = e.clientY; // keep going from here: one long drag can make several turns
+    });
+    const endSwipe = (e) => { if (swipeTouch && e.pointerId === swipeTouch.id) swipeTouch = null; };
+    boardTouchEl.addEventListener('pointerup', endSwipe);
+    boardTouchEl.addEventListener('pointercancel', endSwipe);
+
+    // The D-pad: reacts the moment a finger lands (a click would wait for the finger to lift). A keyboard press on a focused
+    // button arrives as a click with detail 0.
+    document.querySelectorAll('.dpad-btn').forEach(b => {
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); steerFromTouch(b.dataset.dir); });
+      b.addEventListener('click', (e) => { if (e.detail === 0) steerFromTouch(b.dataset.dir); });
     });
 
     // Click the start overlay to begin (snake heads right)
@@ -5807,7 +5960,9 @@
       const root = document.documentElement.style;
       root.setProperty('--board-px', px + 'px');
       root.setProperty('--ui-scale', (px / BOARD_LOGICAL).toFixed(3)); // dialogs scale with the board
-      root.setProperty('--hud-w', Math.min(Math.max(px + 6, 480), Math.max(280, window.innerWidth - 24)) + 'px');
+      // the strip and bottom bar: at least 480 px wide, but never wider than the real screen (phones: screen width - 24)
+      const screenW = Math.min(document.documentElement.clientWidth || window.innerWidth, window.innerWidth);
+      root.setProperty('--hud-w', Math.min(Math.max(px + 6, 480), Math.max(280, screenW - 24)) + 'px');
       canvas.width = canvas.height = backing;      // resizing a canvas resets its state...
       fxCanvas.width = fxCanvas.height = backing;
       canvas.getContext('2d').setTransform(k, 0, 0, k, 0, 0); // ...so scale the logical space onto it again
@@ -5821,7 +5976,8 @@
       const r = boardArea.getBoundingClientRect();
       const room = Math.floor(Math.min(r.width, r.height)) - 6 - 8; // 6px border + a little air
       const px = zoomSetting === 'auto' ? room : Math.min(room, Math.round((BOARD_LOGICAL * Number(zoomSetting)) / 100));
-      applyBoardSize(Math.max(240, Math.min(px, 1400)));
+      const smallest = window.innerHeight < 520 ? 140 : 240; // a phone on its side has very little height
+      applyBoardSize(Math.max(smallest, Math.min(px, 1400)));
     }
 
     let fitQueued = false;
