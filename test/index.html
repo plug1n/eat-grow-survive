@@ -4906,7 +4906,7 @@
     document.body.dataset.touch = touchMode; // CSS hides the D-pad for "Swipe" only
     // Which side the D-pad is on (a thumb): right by default; "left" also swaps the landscape columns
     const DPAD_KEY = 'snake_dpad';
-    const DPAD_SIDES = ['right', 'left'];
+    const DPAD_SIDES = ['left', 'right']; // in the order the buttons are shown in the drawer (left button on the left)
     let dpadSide = 'right';
     try { const v = store.getItem(DPAD_KEY); if (DPAD_SIDES.includes(v)) dpadSide = v; } catch (e) { /* ignore */ }
     document.body.dataset.dpad = dpadSide;
