@@ -2,14 +2,15 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "38409f2966b5576c07d9ee09dcdd4b9f0937ef1a",
-    "short":  "38409f2",
-    "subject":  "Make Enter play again on the Game Over screen",
-    "published":  "2026-11-05T17:39:31Z",
+    "sha":  "f452fee624fe6fd31298b2e51c03c435cdf23cb4",
+    "short":  "f452fee",
+    "subject":  "Add fog of war: three presets, each with its own leaderboard",
+    "published":  "2026-11-05T18:39:04Z",
     "issues":  [
                    46,
                    72,
                    73,
-                   74
+                   74,
+                   83
                ]
 }

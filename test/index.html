@@ -563,6 +563,8 @@
     #themeOptions   { grid-template-columns: repeat(5, 1fr); }
     #gridOptions    { grid-template-columns: repeat(5, 1fr); }
     #zoomOptions    { grid-template-columns: repeat(4, 1fr); }
+    #fogOptions     { grid-template-columns: repeat(4, 1fr); }
+    .option-note { font-size: 0.72rem; color: #6f84a3; line-height: 1.3; }
     .swatch {
       width: 30px;
       height: 30px;
@@ -765,7 +767,7 @@
         <span class="hud-value" id="score" data-fit>0</span>
       </div>
       <div class="hud-slot hud-best">
-        <span class="hud-label" data-i18n="hudBest" data-fit>🏆 RECORD</span>
+        <span class="hud-label" id="hudBestLabel" data-i18n="hudBest" data-fit>🏆 RECORD</span>
         <span class="hud-value" id="bestValue" data-fit>—</span>
       </div>
     </div>
@@ -793,7 +795,7 @@
           <h2 data-i18n="gameOver">GAME OVER</h2>
           <p><span data-i18n="finalScore">Final Score:</span> <span id="finalScore" style="color: #00ff88;">0</span></p>
           <p id="finalRank" class="final-rank"></p>
-          <h3 class="score-title" data-i18n="highScores">HIGH SCORES</h3>
+          <h3 class="score-title" id="scoreTitle" data-i18n="highScores" data-fit>HIGH SCORES</h3>
           <ul id="scoreboardList" class="score-list"></ul>
           <div class="hs-buttons">
             <button onclick="restartGame()" data-i18n="playAgain">Play Again</button>
@@ -889,6 +891,11 @@
     <div class="option-row">
       <span class="option-label" data-i18n="zoomLabel" data-fit>Board size</span>
       <div class="option-group" id="zoomOptions"></div>
+    </div>
+    <div class="option-row">
+      <span class="option-label" data-i18n="fogLabel" data-fit>Fog of war</span>
+      <div class="option-group" id="fogOptions"></div>
+      <span class="option-note" data-i18n="fogNote">Applies from your next run. Every setting has its own leaderboard.</span>
     </div>
     <div class="option-row">
       <span class="option-label" data-i18n="musicVolLabel" data-fit>Music volume</span>
@@ -1064,6 +1071,14 @@
         newsTitle: "What's new",
         newsOpen: "What's new",
         newsRelease: 'Version {n}',
+        fogLabel: 'Fog of war',
+        fogNote: 'Applies from your next run. Every setting has its own leaderboard.',
+        fog_off: 'Off', fog_fog: 'Fog', fog_hard: 'Fog hard', fog_brutal: 'Fog brutal',
+        fogShort_fog: 'FOG', fogShort_hard: 'HARD', fogShort_brutal: 'BRUTAL',
+        fogTip_off: 'No fog: the whole board is visible.',
+        fogTip_fog: 'Stones are hidden until you are close. Places you have seen stay dimly visible. The view shrinks with every level.',
+        fogTip_hard: 'Stones are hidden until you are close, and what you have passed goes dark again. The view shrinks with every level.',
+        fogTip_brutal: 'Like hard, and the view also closes in as you move. Eating gives some of it back.',
         themeLabel: 'Theme',
         gridLabel: 'Grid',
         theme_classic: 'Classic',
@@ -1176,6 +1191,14 @@
         newsTitle: 'Nyt i spillet',
         newsOpen: 'Nyt i spillet',
         newsRelease: 'Version {n}',
+        fogLabel: 'Tåge',
+        fogNote: 'Gælder fra dit næste forløb. Hver indstilling har sin egen highscoreliste.',
+        fog_off: 'Fra', fog_fog: 'Tåge', fog_hard: 'Hård tåge', fog_brutal: 'Brutal tåge',
+        fogShort_fog: 'TÅGE', fogShort_hard: 'HÅRD', fogShort_brutal: 'BRUTAL',
+        fogTip_off: 'Ingen tåge: hele banen er synlig.',
+        fogTip_fog: 'Sten er skjult, til du er tæt på. Steder, du har set, forbliver svagt synlige. Synsfeltet bliver mindre for hvert niveau.',
+        fogTip_hard: 'Sten er skjult, til du er tæt på, og det, du har passeret, bliver mørkt igen. Synsfeltet bliver mindre for hvert niveau.',
+        fogTip_brutal: 'Som hård, og synsfeltet lukker sig også, mens du bevæger dig. At spise giver noget af det tilbage.',
         themeLabel: 'Tema',
         gridLabel: 'Gitter',
         theme_classic: 'Klassisk',
@@ -1253,11 +1276,13 @@
       { id: 3,
         en: [
           'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.',
-          'On the Game Over screen, press Enter to play again.'
+          'On the Game Over screen, press Enter to play again.',
+          'New in settings: Fog of war. Stones hide until you are close. Fog, Fog hard and Fog brutal each have their own leaderboard.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
-          'På Game Over-skærmen kan du trykke Enter for at spille igen.'
+          'På Game Over-skærmen kan du trykke Enter for at spille igen.',
+          'Nyt i indstillinger: Tåge. Sten skjules, til du er tæt på. Tåge, Hård tåge og Brutal tåge har hver sin highscoreliste.'
         ] },
       { id: 2,
         en: [
@@ -1311,6 +1336,7 @@
       howtoLabel.textContent = t('howtoToggle');
       renderNews();
       updateNewsDot();
+      updateFogLabels(); // the board's name after the status strip's record label and the high-scores title
       updatePauseButton();
       updateStartOverlay();
       updateLevelOverlay();
@@ -1348,18 +1374,55 @@
       return typeof v === 'string' ? v.toUpperCase().replace(/[^A-Z0-9ÆØÅ]/g, '').slice(0, 3) : '';
     }
 
+    // ===== Fog of war: settings and state (#83) =====
+    // An opt-in difficulty: obstacles are hidden until the snake is close (food, bonus food and the snake itself are always
+    // visible). It only changes how the board is DRAWN; the rules, the level generator and the recording are untouched.
+    // Three presets, each with its own leaderboard. EVERY number lives in FOG_CONFIG so balancing is editing numbers (or using
+    // the "Fog of war" section of the debug menu, which edits this table live and can copy it out).
+    //   base           view radius in cells at level 1        shrinkPerLevel  radius lost per level      min  never smaller than this
+    //   memory         places already seen stay dimly visible  timeEvery       moves between time-shrinks (0 = never)
+    //   timeStep       radius lost per time-shrink             restore         radius given back per food eaten
+    const FOG_PRESETS = ['off', 'fog', 'hard', 'brutal'];
+    const FOG_CONFIG = {
+      maxDim: 0.62,    // how dark a hidden cell gets (0..1)
+      edge: 1.5,       // width of the soft edge of the view, in cells
+      memoryDim: 0.4,  // how visible a remembered cell is (0..1)
+      presets: {
+        fog:    { memory: true,  base: 8, shrinkPerLevel: 0.3, min: 3, timeEvery: 0,  timeStep: 0, restore: 0 },
+        hard:   { memory: false, base: 8, shrinkPerLevel: 0.3, min: 3, timeEvery: 0,  timeStep: 0, restore: 0 },
+        brutal: { memory: false, base: 8, shrinkPerLevel: 0.3, min: 3, timeEvery: 40, timeStep: 1, restore: 1 },
+      },
+      colors: { // the fog's colour per theme (light for the misty / hazy ones)
+        default: '#03060d', classic: '#02050b', forest: '#031208', space: '#000008', ocean: '#021a2e',
+        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f',
+      },
+    };
+    const FOG_KEY = 'snake_fog';
+    function parseFogPreset(v) { return FOG_PRESETS.includes(v) ? v : 'off'; }
+    let fogPreset = 'off'; // the setting (drawer). It applies from the NEXT run (see latchFog)
+    try { fogPreset = parseFogPreset(store.getItem(FOG_KEY)); } catch (e) { /* ignore */ }
+    let runFog = fogPreset; // the preset of the current (or next) run: what is drawn and which leaderboard counts
+    function fogNew() { return { seen: new Uint8Array(GRID_WIDTH * GRID_HEIGHT), moves: 0, loss: 0 }; }
+    const fogLive = fogNew(); // the live game's fog state (a replay has its own)
+    let replayFog = null;     // set by the replay player while a replay is open: { fs, preset }
+
+    // The leaderboard of one preset: runs saved before fog existed (no `fog` field) count as "off"
+    function normalizeRuns(data) {
+      if (!Array.isArray(data)) return [];
+      return data.filter(r => r && Number.isFinite(r.score)).map(r => {
+        const run = { score: r.score, date: typeof r.date === 'string' ? r.date : '' };
+        const ini = cleanInitials(r.initials);
+        if (ini) run.initials = ini;
+        if (FOG_PRESETS.includes(r.fog) && r.fog !== 'off') run.fog = r.fog;
+        return run;
+      });
+    }
+    const runBoard = (r) => r.fog || 'off';
+
     (function loadRuns() {
       try {
         const raw = store.getItem(RUNS_KEY) || store.getItem(LEGACY_BOARD_KEY);
-        const data = raw ? JSON.parse(raw) : [];
-        if (Array.isArray(data)) {
-          runs = data.filter(r => r && Number.isFinite(r.score)).map(r => {
-            const run = { score: r.score, date: typeof r.date === 'string' ? r.date : '' };
-            const ini = cleanInitials(r.initials);
-            if (ini) run.initials = ini;
-            return run;
-          });
-        }
+        runs = normalizeRuns(raw ? JSON.parse(raw) : []);
       } catch (e) {
         runs = [];
       }
@@ -1373,10 +1436,10 @@
       }
     }
 
-    // Top 10 runs with at least 1 point; ties keep the earlier run first
-    function topScores() {
+    // Top 10 runs with at least 1 point on the current board (the preset of the current run); ties keep the earlier run first
+    function topScores(board = runFog) {
       return runs
-        .filter(r => r.score > 0)
+        .filter(r => r.score > 0 && runBoard(r) === board)
         .sort((a, b) => b.score - a.score || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
         .slice(0, 10);
     }
@@ -1431,6 +1494,8 @@
     const startSpeedValue = document.getElementById('startSpeedValue');
     const startSpeedUpBtn = document.getElementById('startSpeedUp');
     const startSpeedDownBtn = document.getElementById('startSpeedDown');
+    const hudBestLabel = document.getElementById('hudBestLabel');
+    const scoreTitleEl = document.getElementById('scoreTitle');
     const startTitle = document.getElementById('startTitle');
     const startGoal = document.getElementById('startGoal');
     const levelOverlay = document.getElementById('levelOverlay');
@@ -2053,6 +2118,7 @@
       ];
       direction = { x: 1, y: 0 };
       nextDirection = { x: 1, y: 0 };
+      fogResetLevel(); // fog of war: a new level starts with nothing seen and nothing lost
       gameRunning = false;
       gameStarted = false;
       if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
@@ -2093,8 +2159,11 @@
       recRun = null; recLevel = null; recTick = 0; // a new run starts a new recording
       speedLevel = preferredSpeed; // a run starts at the speed chosen at the start of the previous run
       runSpeedSaved = false;
+      runFog = fogPreset; // the fog setting applies from this run on (and with it the leaderboard of that setting)
+      replayBest = loadBestReplay(runFog);
       setupLevel(1);
       renderScoreboard();
+      updateFogLabels();
     }
 
     function nextLevel() {
@@ -2532,6 +2601,7 @@
         snake.pop();
       }
       recTick++; // replay recording: this tick is complete
+      fogStep(fogLive, runFog, level, head, ate); // fog of war: count the move, look around from the new position
 
       // ---- Draw everything ----
       draw();
@@ -3685,6 +3755,13 @@
     }
 
     function refreshCustomizer() {
+      document.querySelectorAll('#fogOptions button').forEach(b => {
+        b.textContent = t('fog_' + b.dataset.value);
+        b.title = t('fogTip_' + b.dataset.value);
+        const on = b.dataset.value === fogPreset;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on);
+      });
       document.querySelectorAll('#zoomOptions button').forEach(b => {
         b.textContent = t('zoom_' + b.dataset.value);
         const on = b.dataset.value === zoomSetting;
@@ -3788,6 +3865,16 @@
         b.addEventListener('click', () => { setZoom(id); b.blur(); });
         zoomBox.appendChild(b);
       }
+      // Fog of war (#83): Off / Fog / Fog hard / Fog brutal; applies from the next run
+      const fogBox = document.getElementById('fogOptions');
+      for (const id of FOG_PRESETS) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pattern-btn';
+        b.dataset.value = id;
+        b.addEventListener('click', () => { setFogPreset(id); b.blur(); });
+        fogBox.appendChild(b);
+      }
       // option buttons are fixed-size slots: their text shrinks to fit (theme names may use two lines)
       document.querySelectorAll('.pattern-btn').forEach(b => {
         b.dataset.fit = b.closest('#themeOptions') ? 'wrap' : '';
@@ -3796,12 +3883,112 @@
       renderSnakePreview();
     }
 
+    // ===== Fog of war: the rules of the view (#83; settings and state are near the top, next to the run history) =====
+    const fogCfg = (p) => FOG_CONFIG.presets[p] || null;
+    // View radius in cells: shrinks with the level, never below `min`, and (Fog brutal) by what has been lost over time
+    function fogRadiusFor(p, lv, loss) {
+      const c = fogCfg(p);
+      if (!c) return Infinity;
+      return Math.max(c.min, c.base - c.shrinkPerLevel * (lv - 1) - loss);
+    }
+    // Remember every cell inside the view from the head's position (only presets with memory use it when drawing)
+    function fogReveal(fs, p, lv, head) {
+      if (!fogCfg(p)) return;
+      const r = fogRadiusFor(p, lv, fs.loss);
+      const hi = Math.ceil(r);
+      for (let y = Math.max(0, head.y - hi); y <= Math.min(GRID_HEIGHT - 1, head.y + hi); y++) {
+        for (let x = Math.max(0, head.x - hi); x <= Math.min(GRID_WIDTH - 1, head.x + hi); x++) {
+          if (Math.hypot(x - head.x, y - head.y) <= r) fs.seen[y * GRID_WIDTH + x] = 1;
+        }
+      }
+    }
+    // One move: count it, apply the time shrink, give back what a meal gives, then look around from the new position
+    function fogStep(fs, p, lv, head, ate) {
+      const c = fogCfg(p);
+      if (!c) return;
+      fs.moves++;
+      if (c.timeEvery > 0 && fs.moves % c.timeEvery === 0) fs.loss += c.timeStep;
+      if (ate && c.restore > 0) fs.loss = Math.max(0, fs.loss - c.restore);
+      fogReveal(fs, p, lv, head);
+    }
+    // A new level: nothing seen yet, nothing lost, then look around from the start position
+    function fogResetLevel() {
+      fogLive.seen.fill(0); fogLive.moves = 0; fogLive.loss = 0;
+      if (snake && snake.length) fogReveal(fogLive, runFog, level, snake[0]);
+    }
+    // How visible a cell is: 1 inside the view, fading to 0 over `edge` cells outside it; remembered cells keep `memoryDim`
+    function fogVisibility(F, x, y, head) {
+      const c = fogCfg(F.preset);
+      const r = fogRadiusFor(F.preset, level, F.fs.loss);
+      const d = Math.hypot(x - head.x, y - head.y);
+      let v = Math.max(0, Math.min(1, (r - d) / FOG_CONFIG.edge + 1));
+      if (c.memory && F.fs.seen[y * GRID_WIDTH + x]) v = Math.max(v, FOG_CONFIG.memoryDim);
+      return v;
+    }
+    function fogView() { // the fog to draw right now, or null: a replay shows the fog it was played with, a live game its own
+      if (replayActive) return replayFog && replayFog.preset !== 'off' ? replayFog : null;
+      return runFog !== 'off' ? { fs: fogLive, preset: runFog } : null;
+    }
+    function drawFogTint(F, head) { // darken the hidden cells (the obstacles there were not drawn at all)
+      ctx.fillStyle = FOG_CONFIG.colors[look.theme] || FOG_CONFIG.colors.default;
+      for (let y = 0; y < GRID_HEIGHT; y++) {
+        for (let x = 0; x < GRID_WIDTH; x++) {
+          const v = fogVisibility(F, x, y, head);
+          if (v >= 1) continue;
+          const a = (1 - v) * FOG_CONFIG.maxDim;
+          if (look.theme === 'lcd') { // Retro LCD: a dither of small blocks instead of a smooth tint
+            ctx.globalAlpha = Math.min(1, a * 1.6);
+            for (let sy = 0; sy < 2; sy++) for (let sx = 0; sx < 2; sx++) {
+              if ((sx + sy) % 2 === 0) ctx.fillRect(x * GRID_SIZE + sx * 10, y * GRID_SIZE + sy * 10, 10, 10);
+            }
+          } else {
+            ctx.globalAlpha = a;
+            ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // The fog setting applies from the NEXT run: `latchFog` copies it into `runFog` (called by initGame, and at once while the
+    // first level's start box is showing, so choosing it before the run starts works immediately).
+    function latchFog(redraw) {
+      runFog = fogPreset;
+      replayBest = loadBestReplay(runFog);
+      fogResetLevel();
+      renderScoreboard();
+      updateFogLabels();
+      if (redraw) draw();
+    }
+    function setFogPreset(p) {
+      fogPreset = parseFogPreset(p);
+      try { store.setItem(FOG_KEY, fogPreset); } catch (e) { /* ignore */ }
+      refreshCustomizer();
+      if (!replayActive && !gameStarted && level === 1) latchFog(true);
+    }
+    // The preset names the board: "🏆 FOG" instead of "🏆 RECORD" in the status strip (the record cell is narrow: the trophy
+    // already says "record", and the value is that board's record) and "HIGH SCORES · FOG" on the Game Over screen
+    function updateFogLabels() {
+      const short = runFog === 'off' ? '' : t('fogShort_' + runFog);
+      hudBestLabel.textContent = short ? '🏆 ' + short : t('hudBest');
+      scoreTitleEl.textContent = t('highScores') + (short ? ' · ' + short : '');
+      fitText(hudBestLabel); fitText(scoreTitleEl);
+    }
+
     function draw(cells = snake) { // `cells` lets the death animation draw a partly-crumbled snake
       drawBackground();
 
+      const F = fogView();
+      const head = snake.length ? snake[0] : null;
       for (const id of obstacleSet) {
-        drawObstacle((id % GRID_WIDTH) * GRID_SIZE, Math.floor(id / GRID_WIDTH) * GRID_SIZE, id);
+        const gx = id % GRID_WIDTH, gy = Math.floor(id / GRID_WIDTH);
+        const v = F && head ? fogVisibility(F, gx, gy, head) : 1; // hidden obstacles are simply not drawn
+        if (v <= 0.04) continue;
+        if (v < 1) ctx.globalAlpha = v;
+        drawObstacle(gx * GRID_SIZE, gy * GRID_SIZE, id);
+        if (v < 1) ctx.globalAlpha = 1;
       }
+      if (F && head) drawFogTint(F, head);
 
       if (food) drawFood(food.x, food.y);
       if (specialFood) drawSpecialFood(specialFood);
@@ -4060,8 +4247,11 @@
 
       // Every run is recorded. The rank is worked out before adding it, so a tie ranks
       // below earlier runs with the same score (matching how the board is sorted).
-      const rank = runs.filter(r => r.score >= score).length + 1;
+      // The rank counts only runs of the same fog setting (each setting has its own leaderboard).
+      const board = runs.filter(r => runBoard(r) === runFog);
+      const rank = board.filter(r => r.score >= score).length + 1;
       const run = { score: score, date: new Date().toISOString() };
+      if (runFog !== 'off') run.fog = runFog;
       runs.push(run);
       lastRun = run;
       saveRuns();
@@ -4069,7 +4259,7 @@
       watchReplayBtn.style.display = replayLast ? '' : 'none'; // no recording, no "Watch replay" button
       renderScoreboard();
       lastRank = rank;
-      lastRunTotal = runs.length;
+      lastRunTotal = board.length + 1;
       updateFinalRank();
 
       // Only top-10 runs are asked for initials; everything else is saved anonymously.
@@ -4143,11 +4333,16 @@
     //   events: [tick,'s',speed]  [tick,'f',x,y]  [tick,'b',x,y,lifetime]
     const REC_VERSION = 1;
     const REPLAY_KEYS = { last: 'snake_replay_last', best: 'snake_replay_best' };
+    // Each fog setting has its own best run (and so its own best replay); "off" keeps the original key
+    const bestKey = (p) => p === 'off' ? REPLAY_KEYS.best : REPLAY_KEYS.best + '_' + p;
+    function loadBestReplay(p) {
+      try { const d = JSON.parse(store.getItem(bestKey(p))); return replayIsValid(d) ? d : null; } catch (e) { return null; }
+    }
     const DIR_VECTORS = { U: { x: 0, y: -1 }, D: { x: 0, y: 1 }, L: { x: -1, y: 0 }, R: { x: 1, y: 0 } };
     function dirChar(d) { return d.y < 0 ? 'U' : d.y > 0 ? 'D' : d.x < 0 ? 'L' : 'R'; }
 
     function replayIsValid(d) {
-      return !!d && d.v === REC_VERSION && Array.isArray(d.levels) && d.levels.length > 0 &&
+      return !!d && d.v === REC_VERSION && (d.fog === undefined || FOG_PRESETS.includes(d.fog)) && Array.isArray(d.levels) && d.levels.length > 0 &&
         d.levels.every(L => L && typeof L.moves === 'string' && /^[UDLR]*$/.test(L.moves) && Array.isArray(L.obs) && Array.isArray(L.ev) &&
           L.food && L.look && THEMES[L.look.theme] && SNAKE_COLORS[L.look.color] && SNAKE_PATTERNS[L.look.pattern] && GRID_STYLES.includes(L.look.grid));
     }
@@ -4157,13 +4352,13 @@
     (function loadReplays() {
       const load = (key) => { try { const d = JSON.parse(store.getItem(key)); return replayIsValid(d) ? d : null; } catch (e) { return null; } };
       replayLast = load(REPLAY_KEYS.last);
-      replayBest = load(REPLAY_KEYS.best);
+      replayBest = loadBestReplay(runFog); // the best run of the current fog setting
     })();
 
     // --- recording (called from startGame, gameLoop, levelComplete and endGame) ---
     function recBeginLevel() {
       if (replayActive) return;
-      if (!recRun) recRun = { levels: [] };
+      if (!recRun) recRun = { levels: [], fog: runFog };
       recLevel = {
         lv: level, obs: [...obstacleSet],
         look: { color: look.color, pattern: look.pattern, theme: look.theme, grid: look.grid },
@@ -4187,11 +4382,12 @@
       }
       if (recRun && recRun.levels.length) {
         const data = { v: REC_VERSION, score: run.score, date: run.date, levels: recRun.levels };
+        if (recRun.fog && recRun.fog !== 'off') data.fog = recRun.fog; // the fog setting it was played with (the player draws it)
         replayLast = data;
         storeReplay(REPLAY_KEYS.last, data);
-        if (run.score > 0 && (!replayBest || run.score > replayBest.score)) {
+        if (run.score > 0 && (!replayBest || run.score > replayBest.score)) { // replayBest = the best run of this fog setting
           replayBest = data;
-          storeReplay(REPLAY_KEYS.best, data);
+          storeReplay(bestKey(runFog), data);
         }
       }
       recRun = null; recLevel = null; recTick = 0;
@@ -4206,6 +4402,8 @@
       w.food = { x: L.food.x, y: L.food.y };
       w.bonus = null;
       w.speed = L.speed; w.score = L.score0; w.levelScore = 0;
+      w.fog = fogNew(); // fog of war: the replay keeps its own view, the same one the run had
+      fogReveal(w.fog, replay.data.fog || 'off', L.lv, w.snake[0]);
     }
     function rpApplyLevel(L) { // the level's obstacles and look go onto the board
       level = L.lv;
@@ -4248,12 +4446,14 @@
         if (fx) { sfx.bonus(); burstAt(head, true); }
       }
       if (!ate) w.snake.pop();
+      fogStep(w.fog, replay.data.fog || 'off', L.lv, head, ate); // mirrors gameLoop (fog only changes how the board is drawn)
       w.t++;
     }
     function rpRender(w) { // copy the simulated state into the game's variables and draw it with the normal drawing code
       snake = w.snake; food = w.food; specialFood = w.bonus; specialFoodTimer = w.bonus ? w.bonus.timer : 0;
       score = w.score; levelScore = w.levelScore; speedLevel = w.speed;
       direction = DIR_VECTORS[w.t > 0 ? w.L.moves[w.t - 1] : 'R'];
+      replayFog = { fs: w.fog, preset: replay.data.fog || 'off' };
       draw();
       updateScore();
     }
@@ -4296,6 +4496,7 @@
       document.body.dataset.theme = look.theme;
       replay = null;
       replayActive = false;
+      replayFog = null;
       replayBanner.style.display = 'none';
       replayBar.style.display = 'none';
       clearParticles();
@@ -5277,6 +5478,7 @@
     }
     function debugAddScore(points, initials) {
       const run = { score: points, date: new Date().toISOString() };
+      if (runFog !== 'off') run.fog = runFog; // goes on the leaderboard of the current fog setting
       const ini = cleanInitials(initials);
       if (ini) run.initials = ini;
       runs.push(run);
@@ -5401,6 +5603,45 @@
       const addBtn = mk('button', btnCss + 'margin-left:4px;', 'Add entry'); addBtn.type = 'button';
       act(addBtn, () => { const v = parseInt(scoreIn.value, 10); if (Number.isFinite(v) && v >= 0) debugAddScore(v, iniIn.value); });
       r2.append(scoreIn, iniIn, addBtn);
+
+      // Fog of war tuning (#83): edits FOG_CONFIG live, so balancing is playing and adjusting. "Copy config" puts the whole table
+      // on the clipboard (and in the console) to paste into the code once the numbers feel right.
+      row('Fog of war (live tuning)');
+      const fogRow = panel.lastChild;
+      const fogSel = mk('select', inCss + 'width:110px;');
+      FOG_PRESETS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = k; fogSel.appendChild(o); });
+      fogSel.value = fogPreset === 'off' ? 'fog' : fogPreset;
+      fogRow.appendChild(fogSel);
+      const fogInputs = {};
+      const fogField = (label, key, get, set) => {
+        const r = row();
+        const inp = mk('input', inCss + 'width:56px;'); inp.type = 'number'; inp.step = '0.1';
+        inp.addEventListener('input', () => { const v = parseFloat(inp.value); if (Number.isFinite(v)) { set(v); fogResetLevel(); draw(); } });
+        r.append(mk('span', 'display:inline-block;width:132px;opacity:0.75;', label), inp);
+        fogInputs[key] = { inp, get };
+      };
+      const fogCur = () => FOG_CONFIG.presets[fogSel.value] || FOG_CONFIG.presets.fog;
+      fogField('memory (1 = yes)', 'memory', () => (fogCur().memory ? 1 : 0), v => { fogCur().memory = !!v; });
+      fogField('radius at level 1', 'base', () => fogCur().base, v => { fogCur().base = v; });
+      fogField('shrink per level', 'shrinkPerLevel', () => fogCur().shrinkPerLevel, v => { fogCur().shrinkPerLevel = v; });
+      fogField('smallest radius', 'min', () => fogCur().min, v => { fogCur().min = v; });
+      fogField('time-shrink: every N moves', 'timeEvery', () => fogCur().timeEvery, v => { fogCur().timeEvery = v; });
+      fogField('time-shrink: step', 'timeStep', () => fogCur().timeStep, v => { fogCur().timeStep = v; });
+      fogField('restore per food', 'restore', () => fogCur().restore, v => { fogCur().restore = v; });
+      fogField('darkness (0-1)', 'maxDim', () => FOG_CONFIG.maxDim, v => { FOG_CONFIG.maxDim = v; });
+      fogField('edge width (cells)', 'edge', () => FOG_CONFIG.edge, v => { FOG_CONFIG.edge = v; });
+      fogField('memory dimness (0-1)', 'memoryDim', () => FOG_CONFIG.memoryDim, v => { FOG_CONFIG.memoryDim = v; });
+      const loadFogInputs = () => Object.values(fogInputs).forEach(f => { f.inp.value = f.get(); });
+      fogSel.addEventListener('change', () => { setFogPreset(fogSel.value); loadFogInputs(); fogSel.blur(); say('Fog setting: ' + fogSel.value); });
+      loadFogInputs();
+      const fogCopyRow = row();
+      const fogCopyBtn = mk('button', btnCss, 'Copy fog config'); fogCopyBtn.type = 'button';
+      act(fogCopyBtn, () => {
+        const text = JSON.stringify(FOG_CONFIG, null, 2);
+        console.log(text);
+        copyText(text).then(ok => say(ok ? 'Fog config copied (and in the console)' : 'Clipboard blocked: copy it from the console'));
+      });
+      fogCopyRow.appendChild(fogCopyBtn);
 
       row('Sound effect (plays on select)');
       const r3 = panel.lastChild;
