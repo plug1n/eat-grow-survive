@@ -2,19 +2,28 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "79d2eaec9e65bc0ac19521c3f91d4785acccb81b",
-    "short":  "79d2eae",
-    "subject":  "Mark a selected Random option with a white outline",
-    "published":  "2026-11-05T20:07:21Z",
+    "sha":  "38e9d6f7d24c52c2f09999c8b48e0bf7fbdb3d54",
+    "short":  "38e9d6f",
+    "subject":  "Unlocks: one every second level, a bigger announcement and a Game Over summary",
+    "published":  "2026-11-05T22:39:37Z",
     "issues":  [
                    19,
                    46,
+                   60,
+                   61,
+                   62,
+                   63,
                    72,
                    73,
                    74,
                    83,
                    84,
                    85,
-                   86
+                   86,
+                   87,
+                   88,
+                   89,
+                   90,
+                   91
                ]
 }

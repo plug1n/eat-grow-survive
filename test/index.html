@@ -623,6 +623,38 @@
     }
     .option-row { display: grid; gap: 6px; }
     .option-label { font-size: 0.8rem; color: #8aa0c0; }
+    /* locked items in the settings pickers (#60): dimmed, a padlock in the corner, a click does nothing (the tooltip says how to unlock) */
+    .swatch.locked, .pattern-btn.locked { position: relative; opacity: 0.45; filter: grayscale(0.8); cursor: not-allowed; }
+    .swatch.locked:hover { transform: none; }
+    .swatch.locked::after, .pattern-btn.locked::after { content: "🔒"; position: absolute; right: 1px; top: 0; font-size: 0.7rem; line-height: 1; filter: none; }
+    /* the unlock announcement on the level-complete screen: a gold card that pops in, with a shimmering rainbow headline */
+    .unlock-cards { display: grid; gap: 0.5em; margin: 0.4em 0; width: 100%; }
+    .unlock-card { border: 2px solid #ffd23f; border-radius: 0.6em; padding: 0.4em 0.6em; background: rgba(255, 210, 63, 0.1);
+      box-shadow: 0 0 14px rgba(255, 210, 63, 0.55);
+      animation: unlock-pop 0.7s cubic-bezier(0.2, 1.6, 0.4, 1) both, unlock-glow 1.6s ease-in-out 0.7s infinite; }
+    .unlock-head { font-weight: bold; letter-spacing: 0.06em; font-size: 1.05em;
+      background: linear-gradient(90deg, #ff5a5a, #ffd23f, #3ddc84, #44d7ff, #8a6cff, #ff5cc8, #ff5a5a); background-size: 200% 100%;
+      -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+      animation: unlock-shimmer 2s linear infinite; }
+    .unlock-name { font-size: 1.25em; font-weight: bold; color: #ffffff; margin: 0.15em 0; display: flex; align-items: center; justify-content: center; gap: 0.4em; }
+    .unlock-icon { width: 1.1em; height: 1.1em; border-radius: 50%; border: 2px solid #ffffff; flex: none; }
+    .unlock-star { color: #ffd23f; }
+    .unlock-msg { font-size: 0.85em; font-style: italic; color: #cfe0ff; }
+    .run-unlocks { color: #ffd23f; font-weight: bold; font-size: 0.8em; line-height: 1.25; margin: 0.2em 0; }
+    .unlock-more { color: #ffd23f; font-size: 0.9em; font-weight: bold; }
+    @keyframes unlock-pop { 0% { transform: scale(0.4) rotate(-4deg); opacity: 0; } 60% { transform: scale(1.12) rotate(1deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+    @keyframes unlock-glow { 50% { box-shadow: 0 0 26px rgba(255, 210, 63, 0.95); } }
+    @keyframes unlock-shimmer { to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .unlock-card, .unlock-head { animation: none; } }
+    /* the "All random" switch (#87): label left, pill right; on = the multi-coloured Random gradient */
+    .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .switch { position: relative; flex: none; width: 46px; height: 26px; padding: 0; border-radius: 13px; cursor: pointer;
+      background: #0f1b33; border: 2px solid #3a4f73; transition: background 0.15s, border-color 0.15s; }
+    .switch .knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #8aa0c0; transition: transform 0.15s, background 0.15s; }
+    .switch[aria-checked="true"] { border-color: #ffffff; background: linear-gradient(90deg, #ff5a5a, #ffd23f, #3ddc84, #44d7ff, #8a6cff, #ff5cc8); }
+    .switch[aria-checked="true"] .knob { transform: translateX(20px); background: #ffffff; }
+    .switch:focus-visible { outline: 2px solid #00ccff; outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { .switch, .switch .knob { transition: none; } }
     .option-group { display: grid; gap: 6px; }
     #colorOptions { display: flex; flex-wrap: wrap; gap: 8px; }
     #patternOptions { grid-template-columns: repeat(4, 1fr); }
@@ -709,6 +741,7 @@
 
     /* Dialog typography (em, so a dialog's font can shrink as one unit) */
     .overlay h2 { color: #00ff88; font-size: 2em; margin-bottom: 0; }
+    .game-over > * { flex-shrink: 0; } /* nothing is squeezed: if it does not fit, fitBox scales the whole dialog (a squeezed title was hiding behind the unlock summary) */
     .game-over h2 { color: #ff4444; font-size: 1.7em; }
     .overlay p { color: #e0e0e0; margin: 0; }
     .overlay button {
@@ -873,6 +906,7 @@
           <h2 data-i18n="gameOver">GAME OVER</h2>
           <p><span data-i18n="finalScore">Final Score:</span> <span id="finalScore" style="color: #00ff88;">0</span></p>
           <p id="finalRank" class="final-rank"></p>
+          <p id="runUnlocks" class="run-unlocks" style="display:none"></p>
           <h3 class="score-title" id="scoreTitle" data-i18n="highScores" data-fit>HIGH SCORES</h3>
           <ul id="scoreboardList" class="score-list"></ul>
           <div class="hs-buttons">
@@ -900,7 +934,8 @@
         </div>
         <div class="overlay level-up" id="levelOverlay">
           <h2 id="levelDoneTitle">LEVEL COMPLETE!</h2>
-          <p data-i18n="levelDoneMsg">Next level is harder: more obstacles and a higher minimum speed.</p>
+          <p id="levelDoneMsg" data-i18n="levelDoneMsg">Next level is harder: more obstacles and a higher minimum speed.</p>
+          <div class="unlock-cards" id="levelUnlocks" style="display:none"></div>
           <button id="levelNextBtn" onclick="nextLevel()">Next Level</button>
           <div class="hint" data-i18n="levelHint">or press Enter</div>
         </div>
@@ -959,6 +994,10 @@
       <button type="button" class="icon-btn" id="drawerClose" data-i18n-aria="closeTip" aria-label="Close">✕</button>
     </div>
     <canvas id="snakePreview" width="160" height="60" data-i18n-aria="previewAria" aria-label="Snake preview"></canvas>
+    <div class="option-row switch-row">
+      <span class="option-label" id="allRandomLabel" data-i18n="allRandomLabel" data-fit>All random</span>
+      <button type="button" class="switch" id="allRandomSwitch" role="switch" aria-checked="false" aria-labelledby="allRandomLabel" data-i18n-title="allRandomTip"><span class="knob"></span></button>
+    </div>
     <div class="option-row">
       <span class="option-label" data-i18n="colorLabel" data-fit>Color</span>
       <div class="option-group" id="colorOptions"></div>
@@ -1211,6 +1250,37 @@
         pauseTitle: 'PAUSED',
         pauseHint: 'Press Space to resume',
         random: 'Random',
+        unlockLevel: 'Reach level {n} to unlock',
+        unlockHead_color: 'NEW SNAKE SKIN UNLOCKED!',
+        unlockHead_theme: 'NEW THEME UNLOCKED!',
+        unlockHead_pattern: 'NEW PATTERN UNLOCKED!',
+        unlockHead_grid: 'NEW GRID UNLOCKED!',
+        unlockItem_color: '{name} snake skin',
+        unlockItem_theme: '{name} theme',
+        unlockItem_pattern: '{name} pattern',
+        unlockItem_grid: '{name} grid',
+        unlockMore: '+{n} more unlocked',
+        runUnlocks: 'Unlocked this run: {names}',
+        unlockMsg_color_blue: 'Your snake turns blue when it holds its breath.',
+        unlockMsg_color_orange: 'Now it looks like a very large, very hungry carrot.',
+        unlockMsg_color_purple: 'Royal purple. The apples bow as you pass.',
+        unlockMsg_color_pink: 'Pink and dangerous. Mostly to apples.',
+        unlockMsg_color_yellow: 'Yellow. Not a banana. Probably.',
+        unlockMsg_theme_forest: 'Magical leaves for lunch. Very healthy.',
+        unlockMsg_theme_ocean: 'Snakes can swim. Nobody asked them if they wanted to.',
+        unlockMsg_theme_desert: 'Hot sand, no shade. The snake feels right at home.',
+        unlockMsg_theme_space: 'In space, nobody can hear you slither.',
+        unlockMsg_theme_candy: 'Sugar rush! The dentist is on speed dial.',
+        unlockMsg_theme_winter: 'Cold scales, warm heart. Mind the ice.',
+        unlockMsg_theme_lava: 'The floor is lava. Literally.',
+        unlockMsg_theme_lcd: 'Pixels from the old days. Press start on your memories.',
+        unlockMsg_pattern_solid: 'Plain and proud. No stripes, no fuss.',
+        unlockMsg_pattern_striped: 'Stripes make you look faster. Science says so.',
+        unlockMsg_grid_lines: 'Straight lines for straight thinking.',
+        unlockMsg_grid_dots: 'Connect the dots. Or just eat them.',
+        unlockMsg_grid_none: 'No grid. Just you and the void.',
+        allRandomLabel: 'All random',
+        allRandomTip: 'Snake colour, pattern, theme and grid all Random. Switch off to get your own choices back.',
         hsTitle: 'NEW HIGH SCORE!',
         hsRank: 'You placed #{r} with {s} points!',
         hsPrompt: 'Enter your initials',
@@ -1338,6 +1408,37 @@
         pauseTitle: 'PAUSET',
         pauseHint: 'Tryk mellemrum for at fortsætte',
         random: 'Tilfældig',
+        unlockLevel: 'Nå bane {n} for at låse op',
+        unlockHead_color: 'NY SLANGEHUD LÅST OP!',
+        unlockHead_theme: 'NYT TEMA LÅST OP!',
+        unlockHead_pattern: 'NYT MØNSTER LÅST OP!',
+        unlockHead_grid: 'NYT GITTER LÅST OP!',
+        unlockItem_color: 'Slangehud: {name}',
+        unlockItem_theme: 'Tema: {name}',
+        unlockItem_pattern: 'Mønster: {name}',
+        unlockItem_grid: 'Gitter: {name}',
+        unlockMore: '+{n} mere låst op',
+        runUnlocks: 'Låst op i dette forløb: {names}',
+        unlockMsg_color_blue: 'Din slange bliver blå, når den holder vejret.',
+        unlockMsg_color_orange: 'Nu ligner den en meget stor, meget sulten gulerod.',
+        unlockMsg_color_purple: 'Kongelig lilla. Æblerne nejer, når du kommer forbi.',
+        unlockMsg_color_pink: 'Lyserød og farlig. Mest for æbler.',
+        unlockMsg_color_yellow: 'Gul. Ikke en banan. Sikkert ikke.',
+        unlockMsg_theme_forest: 'Magiske blade til frokost. Meget sundt.',
+        unlockMsg_theme_ocean: 'Slanger kan svømme. Ingen spurgte, om de havde lyst.',
+        unlockMsg_theme_desert: 'Varm sand og ingen skygge. Slangen føler sig hjemme.',
+        unlockMsg_theme_space: 'I rummet kan ingen høre dig slange dig frem.',
+        unlockMsg_theme_candy: 'Sukkerchok! Tandlægen er på hurtigopkald.',
+        unlockMsg_theme_winter: 'Kolde skæl, varmt hjerte. Pas på isen.',
+        unlockMsg_theme_lava: 'Gulvet er lava. Helt bogstaveligt.',
+        unlockMsg_theme_lcd: 'Pixels fra gamle dage. Tryk start på dine minder.',
+        unlockMsg_pattern_solid: 'Enkel og stolt. Ingen striber, ingen postyr.',
+        unlockMsg_pattern_striped: 'Striber gør dig hurtigere. Det siger videnskaben.',
+        unlockMsg_grid_lines: 'Lige linjer til lige tanker.',
+        unlockMsg_grid_dots: 'Forbind prikkerne. Eller spis dem bare.',
+        unlockMsg_grid_none: 'Intet gitter. Kun dig og tomrummet.',
+        allRandomLabel: 'Alt tilfældigt',
+        allRandomTip: 'Slangens farve, mønster, tema og gitter er alle tilfældige. Slå fra for at få dine egne valg tilbage.',
         hsTitle: 'NY HIGHSCORE!',
         hsRank: 'Du er nr. {r} med {s} point!',
         hsPrompt: 'Indtast dine initialer',
@@ -1386,14 +1487,20 @@
           'On the Game Over screen, press Enter to play again.',
           'New in settings: Fog of war. Stones hide until you are close. Fog, Fog hard and Fog brutal each have their own leaderboard.',
           'On phones and tablets: swipe on the board or use the on-screen arrows to steer. Settings has a Touch controls choice.',
-          'On phones the menus hide while you play and return when you pause. The board is bigger, also with the phone on its side.'
+          'On phones the menus hide while you play and return when you pause. The board is bigger, also with the phone on its side.',
+          'New in settings: an All random switch. Colour, pattern, theme and grid change every level. Switch it off to get your choices back.',
+          'Starting a level now plays the 3-2-1 first, just like after a pause. Your first key press decides the direction.',
+          'Unlockables: themes, colours, patterns and grids unlock as you reach higher levels. Locked ones show a padlock in settings.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
           'På Game Over-skærmen kan du trykke Enter for at spille igen.',
           'Nyt i indstillinger: Tåge. Sten skjules, til du er tæt på. Tåge, Hård tåge og Brutal tåge har hver sin highscoreliste.',
           'På telefon og tablet: stryg på banen eller brug pilene på skærmen til at styre. I indstillinger kan du vælge touch-styring.',
-          'På telefon skjules menuerne, mens du spiller, og kommer tilbage, når du pauser. Banen er større, også med telefonen på siden.'
+          'På telefon skjules menuerne, mens du spiller, og kommer tilbage, når du pauser. Banen er større, også med telefonen på siden.',
+          'Nyt i indstillinger: en Alt tilfældigt-kontakt. Farve, mønster, tema og gitter skifter hver bane. Slå fra for at få dine valg tilbage.',
+          'Når en bane starter, kommer 3-2-1 nu først, ligesom efter en pause. Dit første tastetryk bestemmer retningen.',
+          'Nyt: temaer, farver, mønstre og gitre låses op, når du når højere baner. Låste ting har en hængelås i indstillinger.'
         ] },
       { id: 2,
         en: [
@@ -1416,8 +1523,91 @@
     function hasNews() { return CHANGELOG.length > 0 && newsSeenId() !== CHANGELOG[0].id; }
     function updateNewsDot() {
       const on = hasNews();
-      settingsBtn.classList.toggle('has-news', on);
-      newsDot.classList.toggle('on', on);
+      settingsBtn.classList.toggle('has-news', on || hasNewUnlocks()); // the gear's red dot: news OR something newly unlocked
+      newsDot.classList.toggle('on', on);                              // the dot inside the drawer's button: news only
+    }
+
+    // ===== Unlockables (#60 system, #61-#63 the tables; decisions in decisions-and-rationale.md) =====
+    // Everything except the starting items (LOOK_DEFAULTS) is locked until its condition is met. UNLOCKS is the one table to edit:
+    // item id ('<setting>:<value>') -> a condition { type, ...parameters }. An item without an entry is available from the start.
+    // UNLOCK_TYPES says what each condition type means (`met`) and how to tell the player (`text`). To add a new kind of condition
+    // (complete a level at max speed, eat 1000 food ...): add a counter to `stats`, add a type here, use it in UNLOCKS.
+    // Pacing: one unlock every second level up to level 34, a theme every fourth level or so, Retro LCD the finale at 40.
+    const UNLOCKS = {
+      'color:blue':      { type: 'level', value: 2 },
+      'theme:forest':    { type: 'level', value: 4 },
+      'pattern:solid':   { type: 'level', value: 6 },
+      'theme:ocean':     { type: 'level', value: 8 },
+      'grid:lines':      { type: 'level', value: 10 },
+      'theme:desert':    { type: 'level', value: 12 },
+      'color:orange':    { type: 'level', value: 14 },
+      'theme:space':     { type: 'level', value: 16 },
+      'pattern:striped': { type: 'level', value: 18 },
+      'theme:candy':     { type: 'level', value: 20 },
+      'grid:dots':       { type: 'level', value: 22 },
+      'theme:winter':    { type: 'level', value: 24 },
+      'color:purple':    { type: 'level', value: 26 },
+      'grid:none':       { type: 'level', value: 28 },
+      'theme:lava':      { type: 'level', value: 30 },
+      'color:pink':      { type: 'level', value: 32 },
+      'color:yellow':    { type: 'level', value: 34 },
+      'theme:lcd':       { type: 'level', value: 40 },
+    };
+    const UNLOCK_TYPES = {
+      level: { met: (c, s) => s.bestLevel >= c.value, text: (c) => t('unlockLevel', { n: c.value }) },
+    };
+    const LOOK_DEFAULTS = { color: 'green', pattern: 'fade', theme: 'classic', grid: 'checker' }; // the starting items
+    const LOOK_NAME_PREFIX = { color: 'color_', pattern: 'pattern_', theme: 'theme_', grid: 'grid_' };
+    const STATS_KEY = 'snake_stats';
+    const UNLOCK_SEEN_KEY = 'snake_unlock_seen';
+    // What the player has achieved so far. bestLevel = the highest level ever reached on any fog board (it counts from the day the
+    // unlock system shipped, so every existing player starts again). `all` is the debug menu's "unlock everything".
+    let stats = (() => {
+      const s = { bestLevel: 1, all: false };
+      try {
+        const v = JSON.parse(store.getItem(STATS_KEY) || 'null');
+        if (v && Number.isInteger(v.bestLevel) && v.bestLevel >= 1) s.bestLevel = Math.min(v.bestLevel, 999);
+        if (v && v.all === true) s.all = true;
+      } catch (e) { /* corrupt or unavailable storage: start from scratch */ }
+      return s;
+    })();
+    function saveStats() { try { store.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) { /* ignore */ } }
+    function isUnlocked(setting, value) {
+      const c = UNLOCKS[setting + ':' + value];
+      if (stats.all || !c) return true;
+      return !!(UNLOCK_TYPES[c.type] && UNLOCK_TYPES[c.type].met(c, stats)); // an unknown condition type stays locked
+    }
+    function unlockedIds() { return Object.keys(UNLOCKS).filter(id => isUnlocked(id.split(':')[0], id.split(':')[1])); }
+    function unlockText(setting, value) { const c = UNLOCKS[setting + ':' + value]; return c && UNLOCK_TYPES[c.type] ? UNLOCK_TYPES[c.type].text(c) : ''; }
+    function itemName(id) { const [setting, value] = id.split(':'); return t(LOOK_NAME_PREFIX[setting] + value); }
+    // A chosen value that is locked becomes the starting item (used when settings load and by the setters). 'random' is always allowed.
+    function allowedChoice(setting, value) { return (value === 'random' || isUnlocked(setting, value)) ? value : LOOK_DEFAULTS[setting]; }
+    function allowedChanges(changes) { const out = {}; for (const k of Object.keys(changes)) out[k] = allowedChoice(k, changes[k]); return out; }
+    // The player has now reached level n. Returns the ids that this unlocked (so the level-complete screen can say so).
+    function reachLevel(n) {
+      if (n <= stats.bestLevel) return [];
+      const before = new Set(unlockedIds());
+      stats.bestLevel = n;
+      saveStats();
+      return unlockedIds().filter(id => !before.has(id));
+    }
+    function unseenUnlocks() {
+      let seen = [];
+      try { seen = JSON.parse(store.getItem(UNLOCK_SEEN_KEY) || '[]'); } catch (e) { /* ignore */ }
+      if (!Array.isArray(seen)) seen = [];
+      return unlockedIds().filter(id => !seen.includes(id));
+    }
+    function hasNewUnlocks() { return unseenUnlocks().length > 0; }
+    function markUnlocksSeen() { // opening the settings counts as having seen them: the gear's dot goes away
+      try { store.setItem(UNLOCK_SEEN_KEY, JSON.stringify(unlockedIds())); } catch (e) { /* ignore */ }
+      updateNewsDot();
+    }
+    let lastUnlocks = []; // what the level that was just completed unlocked (shown on the level-complete screen)
+    let runUnlocks = [];  // everything this run unlocked so far (summarised on the Game Over screen); initGame() clears it
+    // What one unlock card says: headline ("NEW THEME UNLOCKED!"), the item ("Ocean theme", "Blue snake skin") and a joke.
+    function unlockCardInfo(id) {
+      const [setting, value] = id.split(':');
+      return { setting, value, head: t('unlockHead_' + setting), name: t('unlockItem_' + setting, { name: itemName(id) }), msg: t('unlockMsg_' + setting + '_' + value) };
     }
     function newsBullets(release) {
       if (lang === 'da') return release.da;
@@ -1595,6 +1785,9 @@
 
     // DOM References (loaded once at script init)
     const scoreEl = document.getElementById('score');
+    const allRandomSwitch = document.getElementById('allRandomSwitch');
+    const levelUnlocks = document.getElementById('levelUnlocks');
+    const levelDoneMsg = document.getElementById('levelDoneMsg');
     const finalScoreEl = document.getElementById('finalScore');
     const startOverlay = document.getElementById('startOverlay');
     const gameOverEl = document.getElementById('gameOver');
@@ -1647,6 +1840,7 @@
     const hsSaveBtn = document.getElementById('hsSave');
     const hsSkipBtn = document.getElementById('hsSkip');
     const finalRankEl = document.getElementById('finalRank');
+    const runUnlocksEl = document.getElementById('runUnlocks');
     const pauseOverlay = document.getElementById('pauseOverlay');
     const countdownOverlay = document.getElementById('countdownOverlay');
     const countdownNum = document.getElementById('countdownNum');
@@ -1841,6 +2035,12 @@
         beep(784, 0.28, 0.45, 'triangle', 0.07);
         beep(523, 0.28, 0.45, 'triangle', 0.07);
         sfx.voiceNumberOne(0.45);
+      },
+      // Something was unlocked (#60): a bright rising run and a held chord, a little after the level-complete jingle, then sparkles
+      unlock()     {
+        [[659, 0.55], [784, 0.65], [988, 0.75], [1319, 0.85]].forEach(([f, d]) => beep(f, d, 0.1, 'square', 0.06));
+        beep(1319, 0.95, 0.5, 'square', 0.06); beep(988, 0.95, 0.5, 'triangle', 0.07); beep(659, 0.95, 0.5, 'triangle', 0.07);
+        [2093, 2637, 3136].forEach((f, i) => beep(f, 1.05 + i * 0.08, 0.12, 'triangle', 0.04));
       },
       gameOver()   { [392, 330, 262, 196].forEach((f, i) => beep(f, i * 0.17, 0.22, 'sawtooth', 0.07)); },
       // A soft "pfff" for the snake crumbling into puffs: a muffled pop, a puff of air that closes down,
@@ -2213,6 +2413,7 @@
 
     function setupLevel(lv) {
       paused = false;
+      starting = false; pendingStartKey = null; // (a level never changes in the middle of the start countdown, except a debug jump)
       updatePauseButton();
       pauseOverlay.style.display = 'none';
       cancelCountdown();
@@ -2269,11 +2470,39 @@
     function updateLevelOverlay() {
       levelDoneTitle.textContent = t('levelDone', { n: level });
       levelNextBtn.textContent = t('levelStart', { n: level + 1 });
+      renderUnlockCards();
+    }
+    // The announcement on the level-complete screen: one card (headline, item, joke), then "+N more" (only a debug jump unlocks several at once;
+    // with the unlocks spaced two levels apart a player gets one at a time, and one card keeps the text at full size).
+    function renderUnlockCards() {
+      levelUnlocks.textContent = '';
+      const mk = (cls, text) => { const e = document.createElement('div'); e.className = cls; if (text) e.textContent = text; return e; };
+      for (const id of lastUnlocks.slice(0, 1)) {
+        const info = unlockCardInfo(id);
+        const card = mk('unlock-card');
+        const name = mk('unlock-name');
+        const icon = document.createElement('span');
+        if (info.setting === 'color') { // a round swatch of the colour, like the picker
+          const c = SNAKE_COLORS[info.value];
+          icon.className = 'unlock-icon';
+          icon.style.background = 'linear-gradient(135deg, ' + lerpColor(c.bright, c.dark, 0) + ', ' + lerpColor(c.bright, c.dark, 1) + ')';
+        } else { icon.className = 'unlock-star'; icon.textContent = '\u2605'; }
+        name.appendChild(icon);
+        const nameText = document.createElement('span'); nameText.textContent = info.name; name.appendChild(nameText);
+        card.appendChild(mk('unlock-head', info.head));
+        card.appendChild(name);
+        card.appendChild(mk('unlock-msg', info.msg));
+        levelUnlocks.appendChild(card);
+      }
+      if (lastUnlocks.length > 1) levelUnlocks.appendChild(mk('unlock-more', t('unlockMore', { n: lastUnlocks.length - 1 })));
+      levelUnlocks.style.display = lastUnlocks.length ? '' : 'none';
+      levelDoneMsg.style.display = lastUnlocks.length ? 'none' : ''; // the room goes to the announcement
     }
 
     let recordBeaten = false; // true once this game's score has passed the best recorded run (the fanfare plays once)
     function initGame() {
       score = 0;
+      runUnlocks = [];
       recordBeaten = false;
       recRun = null; recLevel = null; recTick = 0; // a new run starts a new recording
       speedLevel = preferredSpeed; // a run starts at the speed chosen at the start of the previous run
@@ -2294,7 +2523,11 @@
       gameRunning = false;
       updatePlayMode();
       if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
+      lastUnlocks = reachLevel(level + 1); // finishing this level means reaching the next one (#60)
+      runUnlocks = runUnlocks.concat(lastUnlocks);
+      updateNewsDot();
       sfx.levelUp();
+      if (lastUnlocks.length) { sfx.unlock(); unlockFx(); } // the kapow: a fanfare after the level jingle, gold rings and confetti
       updateLevelOverlay();
       levelOverlay.style.display = 'flex';
     }
@@ -2525,7 +2758,7 @@
         t('legendBonus_' + look.theme, { n: '<b>' + (30 * speedLevel) + '</b>' });
     }
 
-    function startGame() {
+    function startGame(fromCountdown) {
       if (gameStarted || gameRunning) return;
       gameStarted = true;
       gameRunning = true;
@@ -2536,7 +2769,7 @@
         try { store.setItem('snake_speed', String(preferredSpeed)); } catch (e) { /* ignore */ }
       }
       recBeginLevel(); // the replay recording starts with this level's starting position
-      sfx.start();
+      if (!fromCountdown) sfx.start(); // (after the 3-2-1 the "go" sound has just played)
       startMusic(); // background music for the game (the same tune as the intro)
       updatePlayMode();
       if (rafId !== null) cancelAnimationFrame(rafId);
@@ -2547,6 +2780,35 @@
     // ===== Pause (Space), the 3-2-1 resume countdown and auto-pause =====
     let paused = false;
     let countdownTimer = null; // non-null while the resume countdown is running
+
+    // Starting a level (#91, an experiment): the start trigger (an arrow key, a click on the start box, a swipe or D-pad tap)
+    // runs the same 3-2-1 as after a pause, and the snake moves when it ends. `starting` is true during that countdown.
+    // The key that started it is remembered as the first direction, and a later direction key during the countdown replaces it.
+    // The game itself (`startGame`) is unchanged, so replays and tests that call it directly are not affected.
+    let starting = false;
+    let pendingStartKey = null;
+    function beginRun(key) {
+      if (gameStarted || gameRunning || starting) return;
+      starting = true;
+      pendingStartKey = key || null;
+      startOverlay.style.display = 'none';
+      startCountdown(() => {
+        starting = false;
+        startGame(true);
+        if (pendingStartKey) handleDirection(pendingStartKey);
+        pendingStartKey = null;
+      });
+      updatePlayMode();
+    }
+    // Leaving the page (or opening the settings) during that countdown goes back to the start box.
+    function cancelStart() {
+      if (!starting) return false;
+      cancelCountdown();
+      starting = false;
+      pendingStartKey = null;
+      startOverlay.style.display = 'flex';
+      return true;
+    }
 
     function startCountdown(onDone) {
       let n = 3;
@@ -2579,7 +2841,7 @@
     // nothing in the layout moves when this changes (the D-pad stays under the thumb).
     function updatePlayMode() {
       if (!document.body.classList) return;
-      const playing = !replayActive && gameRunning && (!paused || countdownTimer !== null);
+      const playing = !replayActive && (gameRunning || starting) && (!paused || countdownTimer !== null);
       document.body.classList.toggle('playing', !!playing);
     }
 
@@ -2607,6 +2869,7 @@
     // Auto-pause when the player switches to another tab or window
     function autoPause() {
       if (replayActive) { rpPause(); return; } // a replay also stops when the player leaves the tab or window
+      if (cancelStart()) return; // the 3-2-1 before a level starts: back to the start box
       if (!gameRunning) return;
       if (countdownTimer !== null) { // switched away mid-countdown: back to the pause screen
         cancelCountdown();
@@ -3631,8 +3894,8 @@
     let gameTheme = { theme: 'classic', grid: 'checker' };
     try {
       const saved = JSON.parse(store.getItem(THEME_KEY) || 'null');
-      if (saved && (THEMES[saved.theme] || saved.theme === 'random')) gameTheme.theme = saved.theme;
-      if (saved && (GRID_STYLES.includes(saved.grid) || saved.grid === 'random')) gameTheme.grid = saved.grid;
+      if (saved && (THEMES[saved.theme] || saved.theme === 'random')) gameTheme.theme = allowedChoice('theme', saved.theme);
+      if (saved && (GRID_STYLES.includes(saved.grid) || saved.grid === 'random')) gameTheme.grid = allowedChoice('grid', saved.grid);
     } catch (e) { /* ignore corrupt / unavailable storage */ }
     // gameTheme / snakeStyle hold what the player CHOSE (possibly 'random');
     // the drawing code uses `look` (what is actually applied), see resolveLook() below.
@@ -3742,8 +4005,8 @@
     let snakeStyle = { color: 'green', pattern: 'fade' };
     try {
       const saved = JSON.parse(store.getItem(STYLE_KEY) || 'null');
-      if (saved && (SNAKE_COLORS[saved.color] || saved.color === 'random')) snakeStyle.color = saved.color;
-      if (saved && (SNAKE_PATTERNS[saved.pattern] || saved.pattern === 'random')) snakeStyle.pattern = saved.pattern;
+      if (saved && (SNAKE_COLORS[saved.color] || saved.color === 'random')) snakeStyle.color = allowedChoice('color', saved.color);
+      if (saved && (SNAKE_PATTERNS[saved.pattern] || saved.pattern === 'random')) snakeStyle.pattern = allowedChoice('pattern', saved.pattern);
     } catch (e) { /* ignore corrupt / unavailable storage */ }
 
     // What is actually applied right now. A setting chosen as 'random' is re-rolled by
@@ -3759,8 +4022,10 @@
       for (const key of keys) {
         const choice = (key === 'color' || key === 'pattern') ? snakeStyle[key] : gameTheme[key];
         if (choice === 'random') {
-          const others = LOOK_OPTIONS[key].filter(o => o !== look[key]); // never "re-roll" to the same value
-          look[key] = others[Math.floor(Math.random() * others.length)];
+          const pool = LOOK_OPTIONS[key].filter(o => isUnlocked(key, o)); // Random only picks unlocked items (#60)
+          const others = pool.filter(o => o !== look[key]); // never "re-roll" to the same value
+          const from = others.length ? others : pool; // (with a single unlocked item there is nothing else to roll to)
+          look[key] = from[Math.floor(Math.random() * from.length)];
         } else {
           look[key] = choice;
         }
@@ -3864,8 +4129,44 @@
       }
     }
 
+    // "All random" switch (#87). It is ON exactly when all four look settings are Random (`isAllRandom`), however they got there.
+    // Switching on remembers the four choices (LOOK_SAVED_KEY); switching off restores them, or the defaults when nothing was
+    // remembered (all four were set by hand). Changing one setting while it is on forgets the snapshot: no restore after that.
+    const LOOK_SAVED_KEY = 'snake_look_saved';
+    let bulkLookChange = false; // true while the switch itself changes the four settings
+    function currentChoices() { return { color: snakeStyle.color, pattern: snakeStyle.pattern, theme: gameTheme.theme, grid: gameTheme.grid }; }
+    function isAllRandom() { return Object.values(currentChoices()).every(v => v === 'random'); }
+    function forgetSavedLook() { try { store.removeItem(LOOK_SAVED_KEY); } catch (e) { /* ignore */ } }
+    function readSavedLook() {
+      try {
+        const s = JSON.parse(store.getItem(LOOK_SAVED_KEY) || 'null');
+        const ok = (v, list) => v === 'random' || list.includes(v);
+        if (s && ok(s.color, LOOK_OPTIONS.color) && ok(s.pattern, LOOK_OPTIONS.pattern) && ok(s.theme, LOOK_OPTIONS.theme) && ok(s.grid, LOOK_OPTIONS.grid)
+            && !Object.values(s).every(v => v === 'random')) return { color: s.color, pattern: s.pattern, theme: s.theme, grid: s.grid };
+      } catch (e) { /* corrupt or unavailable storage */ }
+      return null;
+    }
+    function setAllRandom(on) {
+      if (on === isAllRandom()) return;
+      let target;
+      if (on) {
+        try { store.setItem(LOOK_SAVED_KEY, JSON.stringify(currentChoices())); } catch (e) { /* ignore */ }
+        target = { color: 'random', pattern: 'random', theme: 'random', grid: 'random' };
+      } else {
+        target = readSavedLook() || LOOK_DEFAULTS;
+        forgetSavedLook();
+      }
+      bulkLookChange = true;
+      try {
+        setSnakeStyle({ color: target.color, pattern: target.pattern });
+        setGameTheme({ theme: target.theme, grid: target.grid });
+      } finally { bulkLookChange = false; }
+    }
+
     function setSnakeStyle(changes) {
+      changes = allowedChanges(changes);
       Object.assign(snakeStyle, changes);
+      if (!bulkLookChange && !isAllRandom()) forgetSavedLook();
       try { store.setItem(STYLE_KEY, JSON.stringify(snakeStyle)); } catch (e) { /* ignore */ }
       resolveLook(Object.keys(changes));
       refreshCustomizer();
@@ -3886,7 +4187,9 @@
     }
 
     function setGameTheme(changes) {
+      changes = allowedChanges(changes);
       Object.assign(gameTheme, changes);
+      if (!bulkLookChange && !isAllRandom()) forgetSavedLook();
       try { store.setItem(THEME_KEY, JSON.stringify(gameTheme)); } catch (e) { /* ignore */ }
       resolveLook(Object.keys(changes));
       updateSpeedDisplay(); // refreshes the legend text for this theme's foods
@@ -3896,7 +4199,29 @@
       draw();
     }
 
+    // Locked items (#60): dimmed with a padlock (CSS .locked), the tooltip says how to unlock, a click does nothing (see the handlers).
+    const LOCK_GROUPS = { colorOptions: 'color', patternOptions: 'pattern', themeOptions: 'theme', gridOptions: 'grid' };
+    function refreshLocks() {
+      for (const [boxId, setting] of Object.entries(LOCK_GROUPS)) {
+        document.querySelectorAll('#' + boxId + ' button').forEach(b => {
+          const v = b.dataset.value;
+          const locked = v !== 'random' && !isUnlocked(setting, v);
+          b.classList.toggle('locked', locked);
+          if (locked) {
+            const label = itemName(setting + ':' + v) + ' - ' + unlockText(setting, v);
+            b.setAttribute('aria-disabled', 'true');
+            b.title = label;
+            b.setAttribute('aria-label', label);
+          } else {
+            b.removeAttribute('aria-disabled');
+            if (setting !== 'color' && v !== 'random') { b.removeAttribute('title'); b.removeAttribute('aria-label'); } // (colours and Random set their own just before)
+          }
+        });
+      }
+    }
+
     function refreshCustomizer() {
+      allRandomSwitch.setAttribute('aria-checked', String(isAllRandom()));
       document.querySelectorAll('#touchOptions button').forEach(b => {
         b.textContent = t('touch_' + b.dataset.value);
         const on = b.dataset.value === touchMode;
@@ -3948,9 +4273,11 @@
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', on);
       });
+      refreshLocks();
     }
 
     function buildSnakeCustomizer() {
+      allRandomSwitch.addEventListener('click', () => { setAllRandom(!isAllRandom()); });
       const colorBox = document.getElementById('colorOptions');
       for (const [id, theme] of Object.entries(SNAKE_COLORS)) {
         const b = document.createElement('button');
@@ -3961,7 +4288,7 @@
         b.setAttribute('aria-label', theme.label + ' snake');
         b.style.background =
           'linear-gradient(135deg, ' + lerpColor(theme.bright, theme.dark, 0) + ', ' + lerpColor(theme.bright, theme.dark, 1) + ')';
-        b.addEventListener('click', () => { setSnakeStyle({ color: id }); b.blur(); });
+        b.addEventListener('click', () => { if (isUnlocked('color', id)) setSnakeStyle({ color: id }); b.blur(); });
         colorBox.appendChild(b);
       }
       const patternBox = document.getElementById('patternOptions');
@@ -3971,7 +4298,7 @@
         b.className = 'pattern-btn';
         b.dataset.value = id;
         b.textContent = label;
-        b.addEventListener('click', () => { setSnakeStyle({ pattern: id }); b.blur(); });
+        b.addEventListener('click', () => { if (isUnlocked('pattern', id)) setSnakeStyle({ pattern: id }); b.blur(); });
         patternBox.appendChild(b);
       }
       const themeBox = document.getElementById('themeOptions');
@@ -3980,7 +4307,7 @@
         b.type = 'button';
         b.className = 'pattern-btn';
         b.dataset.value = id;
-        b.addEventListener('click', () => { setGameTheme({ theme: id }); b.blur(); });
+        b.addEventListener('click', () => { if (isUnlocked('theme', id)) setGameTheme({ theme: id }); b.blur(); });
         themeBox.appendChild(b);
       }
       const gridBox = document.getElementById('gridOptions');
@@ -3989,7 +4316,7 @@
         b.type = 'button';
         b.className = 'pattern-btn';
         b.dataset.value = id;
-        b.addEventListener('click', () => { setGameTheme({ grid: id }); b.blur(); });
+        b.addEventListener('click', () => { if (isUnlocked('grid', id)) setGameTheme({ grid: id }); b.blur(); });
         gridBox.appendChild(b);
       }
       // A "Random" choice for every setting: re-rolled at the start of each level
@@ -4372,6 +4699,19 @@
       }
     }
 
+    // The unlock "kapow": gold and white shock rings from the middle of the board and waves of confetti (it shows above the dialog).
+    function unlockFx() {
+      if (REDUCED_MOTION) return;
+      const now = performance.now(), c = BOARD_LOGICAL / 2;
+      rings.push({ x: c, y: c, t0: now, dur: 500, max: 200, color: '#ffd23f' });
+      setTimeout(() => { rings.push({ x: c, y: c, t0: performance.now(), dur: 650, max: 280, color: '#ffffff' }); kickFx(); }, 120);
+      const colors = ['#ff5a5a', '#ffd23f', '#3ddc84', '#44d7ff', '#8a6cff', '#ff5cc8', '#ffffff'];
+      spawnParticles(c, c, 70, colors, { speed: 3.4, life: 1100, size: 3.2, gravity: 0.07 });
+      spawnParticles(c, c, 30, colors, { speed: 2.0, life: 1300, size: 3.6, gravity: 0.05, shape: 'star' });
+      setTimeout(() => spawnParticles(c, c, 40, colors, { speed: 2.6, life: 1000, size: 3, gravity: 0.08, shape: 'square' }), 260);
+      shake(false);
+    }
+
     // A burst of themed particles where the head just ate; bonus food is bigger and shakes the board a little
     function burstAt(cell, bonus) {
       const cfg = THEMES[look.theme].fx || {};
@@ -4452,6 +4792,11 @@
     let lastRunTotal = 0;
     function updateFinalRank() {
       finalRankEl.textContent = lastRank > 0 ? t('finalRank', { r: lastRank, n: lastRunTotal }) : '';
+      // what this run unlocked: up to three names, then "+N more" (nothing unlocked: the line is hidden)
+      const shown = runUnlocks.slice(0, 3).map(itemName); // the short names from the settings ("Blue", "Enchanted Forest")
+      if (runUnlocks.length > 3) shown.push(t('unlockMore', { n: runUnlocks.length - 3 }));
+      runUnlocksEl.textContent = shown.length ? t('runUnlocks', { names: shown.join(', ') }) : '';
+      runUnlocksEl.style.display = shown.length ? '' : 'none';
     }
 
     // ===== High-score entry (in-game dialog) =====
@@ -4891,9 +5236,9 @@
       if (key === ' ' && gameRunning) { e.preventDefault(); togglePause(); return; }
       if (paused) return; // no steering or speed changes while paused
 
+      if (starting) { if (isDirectional) pendingStartKey = key; return; } // during the 3-2-1 the last direction key wins
       if (!gameStarted && isDirectional) {
-        startGame();
-        handleDirection(key);
+        beginRun(key);
         return;
       }
 
@@ -4951,7 +5296,8 @@
       const key = TOUCH_DIR_KEYS[dirChar];
       if (!key || replayActive || introActive || newsOpen || drawerOpen || dying || paused) return false;
       if (levelOverlay.style.display === 'flex' || gameOverEl.style.display === 'flex' || highScoreOverlay.style.display === 'flex') return false;
-      if (!gameStarted) { startGame(); handleDirection(key); return true; }
+      if (starting) { pendingStartKey = key; return true; }
+      if (!gameStarted) { beginRun(key); return true; }
       if (gameRunning) { handleDirection(key); return true; }
       return false;
     }
@@ -4986,7 +5332,7 @@
     });
 
     // Click the start overlay to begin (snake heads right)
-    startOverlay.addEventListener('click', startGame);
+    startOverlay.addEventListener('click', () => beginRun());
 
     // Mouse-only buttons
     // blur after clicking so a later Space press pauses instead of re-clicking the button
@@ -5766,6 +6112,30 @@
       levelComplete();
       return 'Level complete shown';
     }
+    // Unlockables (#60): test locked content. A locked choice is replaced by the starting item, exactly as when settings load.
+    function applyUnlockChange() {
+      setSnakeStyle({ color: snakeStyle.color, pattern: snakeStyle.pattern });
+      setGameTheme({ theme: gameTheme.theme, grid: gameTheme.grid });
+      refreshCustomizer();
+      updateNewsDot();
+    }
+    function debugUnlockAll() {
+      stats.all = true; saveStats();
+      markUnlocksSeen();
+      applyUnlockChange();
+      return 'Everything unlocked';
+    }
+    function debugRelockAll() { // back to a brand-new player: best level 1, nothing unlocked, nothing "seen"
+      stats.all = false; stats.bestLevel = 1; saveStats();
+      try { store.removeItem(UNLOCK_SEEN_KEY); } catch (e) { /* ignore */ }
+      applyUnlockChange();
+      return 'Everything locked again (best level 1)';
+    }
+    function debugSetBestLevel(n) { // pretend the best level reached is n (also lower than now), to see exactly what that unlocks
+      stats.bestLevel = Math.max(1, Math.min(999, Math.floor(n))); stats.all = false; saveStats();
+      applyUnlockChange();
+      return 'Best level is now ' + stats.bestLevel + ' (' + unlockedIds().length + ' of ' + Object.keys(UNLOCKS).length + ' items unlocked)';
+    }
     // Kill the snake as if it hit the wall: needs a running game
     function debugKillSnake() {
       if (!gameRunning) return 'No game running: start one first';
@@ -5851,6 +6221,19 @@
       const killBtn = mk('button', btnCss + 'margin-left:4px;', 'Kill snake'); killBtn.type = 'button';
       act(killBtn, () => say(debugKillSnake()));
       g3.append(lcBtn, killBtn);
+
+      row('Unlocks (best level reached)');
+      const u1 = panel.lastChild;
+      const bestIn = mk('input', inCss + 'width:50px;'); bestIn.type = 'number'; bestIn.min = '1'; bestIn.max = '999'; bestIn.value = String(stats.bestLevel); bestIn.title = 'best level reached';
+      const bestBtn = mk('button', btnCss + 'margin-left:4px;', 'Set best level'); bestBtn.type = 'button';
+      act(bestBtn, () => { const v = parseInt(bestIn.value, 10); say(Number.isFinite(v) && v >= 1 ? debugSetBestLevel(v) : 'Type a level 1-999'); });
+      u1.append(bestIn, bestBtn);
+      const u2 = row();
+      const unlockAllBtn = mk('button', btnCss, 'Unlock all'); unlockAllBtn.type = 'button';
+      act(unlockAllBtn, () => say(debugUnlockAll()));
+      const relockBtn = mk('button', btnCss + 'margin-left:4px;', 'Relock all'); relockBtn.type = 'button';
+      act(relockBtn, () => { say(debugRelockAll()); bestIn.value = String(stats.bestLevel); });
+      u2.append(unlockAllBtn, relockBtn);
 
       row('Leaderboard');
       const r1 = panel.lastChild;
@@ -6123,6 +6506,7 @@
       settingsBtn.setAttribute('aria-expanded', String(open));
       if (open) {
         autoPause(); // opening the settings pauses a running game
+        markUnlocksSeen(); // ...and counts as having seen what was unlocked (the gear's dot goes away)
         renderSnakePreview();
         refitAll();
         drawerClose.focus();
