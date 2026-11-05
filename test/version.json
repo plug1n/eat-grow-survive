@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "f1efa1605c43a20d26e40236800c529fc837cf50",
-    "short":  "f1efa16",
-    "subject":  "Random snake colour: a multi-coloured question mark on a neutral button",
-    "published":  "2026-11-05T19:43:22Z",
+    "sha":  "67ed63327d8e341b507660d9d6a925a9cadbaeae",
+    "short":  "67ed633",
+    "subject":  "Use the multi-coloured question mark on every Random option",
+    "published":  "2026-11-05T19:57:47Z",
     "issues":  [
                    19,
                    46,
@@ -13,6 +13,8 @@
                    73,
                    74,
                    83,
-                   84
+                   84,
+                   85,
+                   86
                ]
 }

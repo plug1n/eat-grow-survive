@@ -647,12 +647,14 @@
       border-color: #3a4f73;
       display: flex; align-items: center; justify-content: center;
     }
-    .swatch.random .q {
+    /* the multi-coloured question mark used on every Random option (the colour swatch and the pattern / theme / grid buttons) */
+    .swatch.random .q, .rq {
       font: bold 1.3rem/1 "Courier New", monospace;
       background: conic-gradient(from 20deg at 50% 55%, #ff5a5a, #ffd23f, #3ddc84, #44d7ff, #8a6cff, #ff5cc8, #ff5a5a);
       -webkit-background-clip: text; background-clip: text;
       color: transparent; -webkit-text-fill-color: transparent;
     }
+    .pattern-btn .rq { display: inline-block; font-size: 1.25em; margin-right: 0.3em; vertical-align: -0.08em; }
     .swatch:hover { transform: scale(1.1); }
     .swatch.active { border-color: #ffffff; box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
     .pattern-btn {
@@ -3869,8 +3871,17 @@
       draw(); // update the board straight away
     }
 
-    function optionLabel(prefix, value) {
-      return value === 'random' ? '🎲 ' + t('random') : t(prefix + value);
+    // The text of an option button. The Random choice shows the multi-coloured question mark (the same look as the random colour
+    // swatch, see `.rq` in the CSS) followed by the word; every other choice is plain text. The tooltip and aria-label say "Random".
+    function setOptionLabel(b, prefix) {
+      if (b.dataset.value !== 'random') { b.textContent = t(prefix + b.dataset.value); return; }
+      b.textContent = '';
+      const q = document.createElement('span');
+      q.className = 'rq'; q.textContent = '?'; q.setAttribute('aria-hidden', 'true');
+      b.appendChild(q);
+      b.appendChild(document.createTextNode(t('random')));
+      b.title = t('random');
+      b.setAttribute('aria-label', t('random'));
     }
 
     function setGameTheme(changes) {
@@ -3911,13 +3922,13 @@
         b.setAttribute('aria-pressed', on);
       });
       document.querySelectorAll('#themeOptions button').forEach(b => {
-        b.textContent = optionLabel('theme_', b.dataset.value);
+        setOptionLabel(b, 'theme_');
         const on = b.dataset.value === gameTheme.theme;
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', on);
       });
       document.querySelectorAll('#gridOptions button').forEach(b => {
-        b.textContent = optionLabel('grid_', b.dataset.value);
+        setOptionLabel(b, 'grid_');
         const on = b.dataset.value === gameTheme.grid;
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', on);
@@ -3931,7 +3942,7 @@
         b.setAttribute('aria-pressed', on);
       });
       document.querySelectorAll('#patternOptions button').forEach(b => {
-        b.textContent = optionLabel('pattern_', b.dataset.value);
+        setOptionLabel(b, 'pattern_');
         const on = b.dataset.value === snakeStyle.pattern;
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', on);
