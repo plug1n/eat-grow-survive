@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "1c775f31d2dde7ad5927459e226750bd7078ba76",
-    "short":  "1c775f3",
-    "subject":  "Put a speed control in the start box and remember the starting speed",
-    "published":  "2026-11-05T16:56:13Z",
+    "sha":  "c7bcd5d63781d0d85b81f69d31257ab17554993f",
+    "short":  "c7bcd5d",
+    "subject":  "Add a \"What\u0027s new\" changelog to the game",
+    "published":  "2026-11-05T17:10:55Z",
     "issues":  [
 
                ]

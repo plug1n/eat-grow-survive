@@ -100,6 +100,12 @@
     }
     .icon-btn:hover { border-color: #00ff88; color: #00ff88; }
     .icon-btn:focus-visible { outline: 2px solid #00ccff; outline-offset: 2px; }
+    /* "New" dot on the gear while there is a release the player has not looked at (#70) */
+    #settingsBtn { position: relative; }
+    #settingsBtn.has-news::after {
+      content: ''; position: absolute; top: 3px; right: 3px; width: 9px; height: 9px; border-radius: 50%;
+      background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d;
+    }
 
     /* Status strip above the board: level, goal progress, score, record */
     #hud {
@@ -289,6 +295,27 @@
       border-radius: 8px;
     }
     #howtoPanel[hidden] { display: none; }
+
+    /* "What's new": the changelog (#70), a scrollable dialog in the colours of the "How to play" panel */
+    #news {
+      position: fixed; inset: 0; z-index: 70; padding: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+    }
+    #news[hidden] { display: none; }
+    .news-box {
+      width: min(460px, 100%); max-height: min(80vh, 560px);
+      display: flex; flex-direction: column; gap: 10px; padding: 14px 16px;
+      background: #0b1220; border: 2px solid #00ff88; border-radius: 10px;
+      color: #a0a0a0; font-size: 0.9rem;
+    }
+    .news-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .news-head h3 { flex: 1 1 0; min-width: 0; color: #00ff88; font-size: 1.15rem; }
+    .news-body { overflow-y: auto; display: grid; gap: 14px; }
+    .news-release h4 { color: #e0e0e0; font-size: 0.95rem; margin-bottom: 4px; }
+    .news-release ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; line-height: 1.35; }
+    .news-dot { display: none; width: 9px; height: 9px; margin-left: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d; }
+    .news-dot.on { display: inline-block; }
     .howto-links { display: flex; justify-content: center; gap: 24px; margin-top: 4px; }
     .howto-links a { display: block; flex: 0 1 auto; }
 
@@ -877,7 +904,21 @@
         <span class="vol-val" id="sfxVolVal">100%</span>
       </div>
     </div>
+    <div class="option-row">
+      <button type="button" class="toggle-btn" id="newsBtn" aria-haspopup="dialog"><span id="newsBtnLabel" data-i18n="newsOpen" data-fit>What's new</span><span class="news-dot" id="newsDot"></span></button>
+    </div>
   </aside>
+
+  <!-- What's new (the changelog, #70): opened from the settings drawer -->
+  <div id="news" hidden>
+    <div class="news-box" role="dialog" aria-modal="true" aria-labelledby="newsTitle">
+      <div class="news-head">
+        <h3 id="newsTitle" data-i18n="newsTitle" data-fit>What's new</h3>
+        <button type="button" class="icon-btn" id="newsClose" data-i18n-aria="closeTip" aria-label="Close">✕</button>
+      </div>
+      <div class="news-body" id="newsBody"></div>
+    </div>
+  </div>
 
 
   <!-- Intro cutscene (hidden until the script shows it) -->
@@ -1020,6 +1061,9 @@
         legendBonus_lcd: 'Heart — {n} points, time-limited',
         watchIntro: '▶ Watch intro',
         customizeTitle: 'Customize the game',
+        newsTitle: "What's new",
+        newsOpen: "What's new",
+        newsRelease: 'Version {n}',
         themeLabel: 'Theme',
         gridLabel: 'Grid',
         theme_classic: 'Classic',
@@ -1129,6 +1173,9 @@
         legendBonus_lcd: 'Hjerte — {n} point, tidsbegrænset',
         watchIntro: '▶ Se intro',
         customizeTitle: 'Tilpas spillet',
+        newsTitle: 'Nyt i spillet',
+        newsOpen: 'Nyt i spillet',
+        newsRelease: 'Version {n}',
         themeLabel: 'Tema',
         gridLabel: 'Gitter',
         theme_classic: 'Klassisk',
@@ -1197,6 +1244,52 @@
       return s;
     }
 
+    // ===== What's new: the changelog (#70) =====
+    // One entry per release, newest first. `id` is the release number (stable-N). Every ticket that changes what players
+    // see adds a bullet here, in English AND Danish, in player language (no tooling or chores). A bullet for something
+    // that is later parked or reverted is removed again. The player's "last release seen" is stored; the red dot shows
+    // on the gear (and in the drawer) until the panel has been opened for the newest release, for everyone.
+    const CHANGELOG = [
+      { id: 2,
+        en: [
+          'Watch a replay of your last run or your best run (on the Game Over screen and in the top-10 list).',
+          'Choose your starting speed in the start box. The game remembers it for your next run.',
+          'A new icon: a white S-shaped snake, in the browser tab and next to the title.',
+          'Retro LCD theme: the foods are now simply called apple and heart.',
+          'All sound now goes quiet when you switch to another browser tab.'
+        ],
+        da: [
+          'Se en gentagelse af dit seneste eller dit bedste forløb (på Game Over-skærmen og i top 10-listen).',
+          'Vælg din starthastighed i startboksen. Spillet husker den til dit næste forløb.',
+          'Nyt ikon: en hvid S-formet slange, i browserfanen og ved siden af titlen.',
+          'Retro LCD-temaet: maden hedder nu bare æble og hjerte.',
+          'Al lyd bliver nu stille, når du skifter til en anden browserfane.'
+        ] }
+    ];
+    const NEWS_KEY = 'snake_news_seen';
+    function newsSeenId() { try { return parseInt(store.getItem(NEWS_KEY), 10) || 0; } catch (e) { return 0; } }
+    function hasNews() { return CHANGELOG.length > 0 && newsSeenId() !== CHANGELOG[0].id; }
+    function updateNewsDot() {
+      const on = hasNews();
+      settingsBtn.classList.toggle('has-news', on);
+      newsDot.classList.toggle('on', on);
+    }
+    function newsBullets(release) {
+      if (lang === 'da') return release.da;
+      if (lang === 'pseudo') return release.en.map(s => s + ' ' + '·'.repeat(Math.ceil(s.length * 0.45))); // stress language: ~45% longer
+      return release.en;
+    }
+    function renderNews() {
+      newsBody.textContent = '';
+      for (const r of CHANGELOG) {
+        const box = document.createElement('div'); box.className = 'news-release';
+        const h = document.createElement('h4'); h.textContent = t('newsRelease', { n: r.id }); box.appendChild(h);
+        const ul = document.createElement('ul');
+        for (const s of newsBullets(r)) { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); }
+        box.appendChild(ul); newsBody.appendChild(box);
+      }
+    }
+
     // Re-apply every piece of text (static markup via data-i18n attributes, plus dynamic text)
     function applyLanguage() {
       document.documentElement.lang = lang;
@@ -1207,6 +1300,8 @@
       });
       document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });
       howtoLabel.textContent = t('howtoToggle');
+      renderNews();
+      updateNewsDot();
       updatePauseButton();
       updateStartOverlay();
       updateLevelOverlay();
@@ -1346,6 +1441,11 @@
     const howtoToggle = document.getElementById('howtoToggle');
     const howtoPanel = document.getElementById('howtoPanel');
     const howtoLabel = document.getElementById('howtoLabel');
+    const newsEl = document.getElementById('news');
+    const newsBody = document.getElementById('newsBody');
+    const newsClose = document.getElementById('newsClose');
+    const newsBtn = document.getElementById('newsBtn');
+    const newsDot = document.getElementById('newsDot');
     const soundBtn = document.getElementById('soundBtn');
     const introSoundBtn = document.getElementById('introSound');
     const pauseSoundBtn = document.getElementById('pauseSound');
@@ -4357,6 +4457,9 @@
       // Debug only (?debug in the URL): B copies / prints the current board
       if (DEBUG && (key === 'b' || key === 'B')) { debugDump('manual, pressed B', true); return; }
 
+      // "What's new" open: Esc closes it, and the game ignores every other key
+      if (newsOpen) { if (key === 'Escape') setNews(false); return; }
+
       // Settings drawer open: Esc closes it, and the game ignores every other key
       if (drawerOpen) { if (key === 'Escape') setDrawer(false); return; }
 
@@ -5393,6 +5496,27 @@
     settingsBtn.addEventListener('click', () => setDrawer(!drawerOpen));
     drawerClose.addEventListener('click', () => setDrawer(false));
     drawerBackdrop.addEventListener('click', () => setDrawer(false));
+
+    // "What's new": opened from the drawer (the drawer closes first). Opening it counts as seeing the newest release.
+    let newsOpen = false;
+    function setNews(open) {
+      newsOpen = open;
+      newsEl.hidden = !open;
+      if (open) {
+        if (drawerOpen) setDrawer(false);
+        autoPause(); // like the drawer: a running game pauses while the player reads
+        renderNews();
+        try { if (CHANGELOG.length) store.setItem(NEWS_KEY, String(CHANGELOG[0].id)); } catch (e) { /* ignore */ }
+        updateNewsDot();
+        refitAll();
+        newsClose.focus();
+      } else {
+        newsBtn.blur();
+      }
+    }
+    newsBtn.addEventListener('click', () => setNews(true));
+    newsClose.addEventListener('click', () => setNews(false));
+    newsEl.addEventListener('click', (e) => { if (e.target === newsEl) setNews(false); }); // a click on the dark area closes it
 
     function setHowto(open) {
       howtoPanel.hidden = !open;
