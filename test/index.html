@@ -1252,10 +1252,12 @@
     const CHANGELOG = [
       { id: 3,
         en: [
-          'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.'
+          'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.',
+          'On the Game Over screen, press Enter to play again.'
         ],
         da: [
-          'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.'
+          'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
+          'På Game Over-skærmen kan du trykke Enter for at spille igen.'
         ] },
       { id: 2,
         en: [
@@ -4451,6 +4453,20 @@
       }
     }
 
+    // Game Over screen (the leaderboard): Enter plays again, so the hands can stay on the keyboard (#74).
+    // Returns true when it used the key. It leaves Enter alone when a control has the keyboard (a focused button such as
+    // "Watch replay" or "Play Again", a link, the initials box: they handle Enter themselves), and on key repeat.
+    // That also keeps the Enter that SAVES the initials from instantly starting a new run: the initials box handles that
+    // key first and then the same event bubbles up here, when the Game Over box is already showing.
+    function handleGameOverKey(e) {
+      if (gameOverEl.style.display !== 'flex' || e.key !== 'Enter' || e.repeat) return false;
+      const tag = e.target && e.target.tagName;
+      if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'A' || tag === 'TEXTAREA') return false;
+      e.preventDefault();
+      restartGame();
+      return true;
+    }
+
     // Keyboard: movement starts game, +/- changes speed
     document.addEventListener('keydown', (e) => {
       const key = e.key;
@@ -4488,6 +4504,9 @@
         if (key === 'Enter' || key === ' ') { e.preventDefault(); nextLevel(); }
         return;
       }
+
+      // Game Over screen: Enter plays again
+      if (handleGameOverKey(e)) return;
 
       // Space pauses / resumes a running game (and stops the page scrolling)
       if (key === ' ' && gameRunning) { e.preventDefault(); togglePause(); return; }

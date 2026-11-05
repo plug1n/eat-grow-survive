@@ -2,13 +2,14 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "cdbe050dbf78d4c7f4e34bb8d5564be1a77e687f",
-    "short":  "cdbe050",
-    "subject":  "Open the intro on a retro boot screen so the first scene has sound",
-    "published":  "2026-11-05T17:34:02Z",
+    "sha":  "38409f2966b5576c07d9ee09dcdd4b9f0937ef1a",
+    "short":  "38409f2",
+    "subject":  "Make Enter play again on the Game Over screen",
+    "published":  "2026-11-05T17:39:31Z",
     "issues":  [
                    46,
                    72,
-                   73
+                   73,
+                   74
                ]
 }
