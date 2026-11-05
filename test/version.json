@@ -2,11 +2,13 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "c7bcd5d63781d0d85b81f69d31257ab17554993f",
-    "short":  "c7bcd5d",
-    "subject":  "Add a \"What\u0027s new\" changelog to the game",
-    "published":  "2026-11-05T17:10:55Z",
+    "sha":  "cdbe050dbf78d4c7f4e34bb8d5564be1a77e687f",
+    "short":  "cdbe050",
+    "subject":  "Open the intro on a retro boot screen so the first scene has sound",
+    "published":  "2026-11-05T17:34:02Z",
     "issues":  [
-
+                   46,
+                   72,
+                   73
                ]
 }

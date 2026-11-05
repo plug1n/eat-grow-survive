@@ -1250,6 +1250,13 @@
     // that is later parked or reverted is removed again. The player's "last release seen" is stored; the red dot shows
     // on the gear (and in the drawer) until the panel has been opened for the newest release, for everyone.
     const CHANGELOG = [
+      { id: 3,
+        en: [
+          'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.'
+        ],
+        da: [
+          'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.'
+        ] },
       { id: 2,
         en: [
           'Watch a replay of your last run or your best run (on the Game Over screen and in the top-10 list).',
@@ -1320,7 +1327,7 @@
       lang = l;
       if (l !== 'pseudo') { try { store.setItem('snake_lang', l); } catch (e) { /* ignore */ } }
       applyLanguage();
-      if (introActive) showIntroSlide(introSlide); // re-type the current intro line
+      if (introActive) { if (isSplash()) showSplash(); else showIntroSlide(introSlide); } // re-type the current intro line
     }
 
     // === Local run history (localStorage JSON) ===
@@ -1922,7 +1929,7 @@
       const go = () => {
         musicArmed = false;
         events.forEach(ev => document.removeEventListener(ev, go, true));
-        if (introActive) startMusic();
+        if (introActive && !isSplash()) startMusic(); // on the boot screen the key press that leaves it starts the music (startFromSplash)
       };
       events.forEach(ev => document.addEventListener(ev, go, true));
     }
@@ -4527,6 +4534,11 @@
         play: 'Play ▶',
         skip: 'Skip intro ✕ (Esc)',
         hint: 'Enter / Space / click to continue',
+        // the "boot screen" before the intro (browsers allow sound only after a click or key press, so this screen asks for one)
+        start: 'Start ▶',
+        splashHint: 'Click or press any key to start',
+        boot: ['> LOAD MEADOW ..... OK', '> LOAD APPLES ..... OK', '> SOUND CHIP ...... OK'],
+        bootPrompt: '> PRESS ANY KEY',
       },
       da: {
         title: 'SLANGE',
@@ -4540,6 +4552,10 @@
         play: 'Spil ▶',
         skip: 'Spring over ✕ (Esc)',
         hint: 'Enter / mellemrum / klik for at fortsætte',
+        start: 'Start ▶',
+        splashHint: 'Klik eller tryk på en tast for at starte',
+        boot: ['> HENTER ENGEN .... OK', '> HENTER ÆBLER .... OK', '> LYDCHIP ......... OK'],
+        bootPrompt: '> TRYK PÅ EN TAST',
       },
     };
 
@@ -4872,11 +4888,70 @@
       }
     }
 
+    // The "boot screen" shown before the intro (introSlide === -1): green-on-black boot lines that type out, then a blinking
+    // "> PRESS ANY KEY" with a block cursor. It exists because browsers allow sound only after a click or key press (see
+    // isSplash below). It makes no sound at all. `t` is seconds since the screen appeared.
+    // Text on this 160 x 100 canvas is drawn with a hand-made 5x7 pixel font: a normal font turns to mush at this size.
+    const FONT5 = (() => {
+      const g = {
+        'A': ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'], 'B': ['####.', '#...#', '#...#', '####.', '#...#', '#...#', '####.'],
+        'C': ['.###.', '#...#', '#....', '#....', '#....', '#...#', '.###.'], 'D': ['####.', '#...#', '#...#', '#...#', '#...#', '#...#', '####.'],
+        'E': ['#####', '#....', '#....', '####.', '#....', '#....', '#####'], 'F': ['#####', '#....', '#....', '####.', '#....', '#....', '#....'],
+        'G': ['.###.', '#...#', '#....', '#.###', '#...#', '#...#', '.####'], 'H': ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
+        'I': ['.###.', '..#..', '..#..', '..#..', '..#..', '..#..', '.###.'], 'J': ['..###', '...#.', '...#.', '...#.', '...#.', '#..#.', '.##..'],
+        'K': ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'], 'L': ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
+        'M': ['#...#', '##.##', '#.#.#', '#.#.#', '#...#', '#...#', '#...#'], 'N': ['#...#', '##..#', '#.#.#', '#..##', '#...#', '#...#', '#...#'],
+        'O': ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], 'P': ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
+        'Q': ['.###.', '#...#', '#...#', '#...#', '#.#.#', '#..#.', '.##.#'], 'R': ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
+        'S': ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'], 'T': ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
+        'U': ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], 'V': ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
+        'W': ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'], 'X': ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'],
+        'Y': ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'], 'Z': ['#####', '....#', '...#.', '..#..', '.#...', '#....', '#####'],
+        '0': ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'], '1': ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
+        '2': ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'], '3': ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],
+        '4': ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'], '5': ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
+        '6': ['..##.', '.#...', '#....', '####.', '#...#', '#...#', '.###.'], '7': ['#####', '....#', '...#.', '..#..', '.#...', '.#...', '.#...'],
+        '8': ['.###.', '#...#', '#...#', '.###.', '#...#', '#...#', '.###.'], '9': ['.###.', '#...#', '#...#', '.####', '....#', '...#.', '.##..'],
+        '.': ['.....', '.....', '.....', '.....', '.....', '.##..', '.##..'], '>': ['#....', '.#...', '..#..', '...#.', '..#..', '.#...', '#....'],
+        '-': ['.....', '.....', '.....', '#####', '.....', '.....', '.....'], ' ': ['.....', '.....', '.....', '.....', '.....', '.....', '.....'],
+        'Æ': ['.####', '#.#..', '#.#..', '####.', '#.#..', '#.#..', '#.###'], 'Å': ['..#..', '.#.#.', '..#..', '#...#', '#####', '#...#', '#...#'],
+        'Ø': ['.####', '#..##', '#.#.#', '#.#.#', '##..#', '##..#', '####.'],
+      };
+      return g;
+    })();
+    function ifont5(str, x, y, color) { // (x, y) = top-left corner; every letter is 5 wide plus 1 gap, 7 tall
+      [...String(str).toUpperCase()].forEach((ch, n) => {
+        (FONT5[ch] || FONT5[' ']).forEach((row, ry) => [...row].forEach((c, rx) => {
+          if (c === '#') ir(x + n * 6 + rx, y + ry, 1, 1, color);
+        }));
+      });
+    }
+    function sceneBoot(t) {
+      const tx = introT();
+      const CPS = 40; // typing speed, characters per second
+      ir(0, 0, 160, 100, '#05080f');
+      const lines = [
+        { s: tx.title + '.EXE  V' + CHANGELOG[0].id, y: 12, c: '#00ff88' },
+        { s: tx.boot[0], y: 30, c: '#00c26e' },
+        { s: tx.boot[1], y: 42, c: '#00c26e' },
+        { s: tx.boot[2], y: 54, c: '#00c26e' },
+        { s: tx.bootPrompt, y: 74, c: '#ffffff' },
+      ];
+      let start = 0.25, done = true; // the moment the line being considered starts typing
+      for (const ln of lines) {
+        const n = Math.max(0, Math.min(ln.s.length, Math.floor((t - start) * CPS)));
+        if (n > 0) ifont5(ln.s.slice(0, n), 10, ln.y, ln.c);
+        if (n < ln.s.length) done = false;
+        start += ln.s.length / CPS + 0.12;
+      }
+      if (done && Math.floor(t * 2) % 2 === 0) ir(10 + tx.bootPrompt.length * 6, 74, 5, 7, '#ffffff'); // the blinking block cursor
+      for (let y = 0; y < 100; y += 2) ir(0, y, 160, 1, 'rgba(0, 0, 0, 0.25)'); // scanlines
+    }
     const INTRO_SCENES = [sceneMeadow, sceneStones, sceneGems, sceneTitle];
 
     function drawIntroScene(t) {
       ictx.imageSmoothingEnabled = false;
-      INTRO_SCENES[introSlide](t);
+      (introSlide === -1 ? sceneBoot : INTRO_SCENES[introSlide])(t);
     }
 
     function introFrame(now) {
@@ -4891,10 +4966,13 @@
     // ----- flow -----
     function renderIntroUi() {
       const tx = introT();
+      const splash = introSlide === -1;
       const last = introSlide === tx.slides.length - 1;
-      introNextBtn.textContent = last ? tx.play : tx.next;
+      introNextBtn.textContent = splash ? tx.start : (last ? tx.play : tx.next);
       introSkipBtn.textContent = tx.skip;
-      introHintEl.textContent = tx.hint;
+      introHintEl.textContent = splash ? '' : tx.hint;
+      if (splash) introTextEl.textContent = tx.splashHint; // the instruction sits in the text box under the picture
+      introDotsEl.style.visibility = splash ? 'hidden' : ''; // no page dots on the boot screen
       if (introDotsEl.children.length !== tx.slides.length) { // build the page dots once: one clickable circle per part
         introDotsEl.textContent = '';
         tx.slides.forEach((_, i) => {
@@ -4944,7 +5022,29 @@
       }, 38);
     }
 
+    // ----- the boot screen before the intro -----
+    // Browsers play sound only after the page has had a click or key press. Without this screen the first part of the intro
+    // would play silently until the player happened to click (#46). So the intro opens on a boot screen without sound; the
+    // click or key press that leaves it is what unlocks the sound, and part 1 then plays with music from its first moment.
+    // It is skipped when sound is muted or already unlocked (for example "Watch intro" again after playing).
+    function isSplash() { return introActive && introSlide === -1; }
+    function needsSplash() { return soundOn && !(audioCtx && audioCtx.state === 'running'); }
+    function showSplash() {
+      introSlide = -1;
+      introTyped = 0;
+      introSceneStart = performance.now();
+      if (introTimer) { clearInterval(introTimer); introTimer = null; }
+      introTextEl.textContent = '';
+      renderIntroUi();
+    }
+    function startFromSplash() { // call this from inside the click / key press that leaves the boot screen
+      if (!isSplash()) return;
+      if (soundOn) startMusic(); // creates the audio and starts the tune: allowed, because we are inside a user gesture
+      showIntroSlide(0);
+    }
+
     function advanceIntro() {
+      if (isSplash()) { startFromSplash(); return; }
       const full = introT().slides[introSlide];
       if (introTimer) { // still typing: finish the line first
         clearInterval(introTimer);
@@ -4965,7 +5065,7 @@
       introEl.style.display = 'flex';
       armIntroMusic(); // plays as soon as the browser allows it (first click or key press)
       document.body.style.overflow = 'hidden';
-      showIntroSlide(0);
+      if (needsSplash()) showSplash(); else showIntroSlide(0);
       introLast = 0;
       introRaf = requestAnimationFrame(introFrame);
     }
@@ -4983,6 +5083,12 @@
 
     function handleIntroKey(e) {
       if (e.key === 'Escape') { endIntro(); return; }
+      if (isSplash()) { // the boot screen: any key starts the intro (modifier and Tab keys do not count: they cannot unlock sound)
+        if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'AltGraph'].includes(e.key)) return;
+        e.preventDefault();
+        startFromSplash();
+        return;
+      }
       const onDot = document.activeElement && document.activeElement.classList &&
         document.activeElement.classList.contains('intro-dot');
       if (onDot && (e.key === 'Enter' || e.key === ' ')) return; // a focused page dot handles its own Enter / Space
@@ -4995,7 +5101,14 @@
 
     introNextBtn.addEventListener('click', () => { advanceIntro(); introNextBtn.blur(); });
     introTextEl.addEventListener('click', advanceIntro);
-    introSkipBtn.addEventListener('click', endIntro);
+    introSkipBtn.addEventListener('click', () => {
+      if (isSplash() && soundOn) startMusic(); // skipping from the boot screen is a click too: use it to unlock the sound
+      endIntro();
+    });
+    // On the boot screen a click anywhere on the intro starts it (buttons keep their own jobs)
+    introEl.addEventListener('click', (e) => {
+      if (isSplash() && !(e.target && e.target.closest && e.target.closest('button'))) startFromSplash();
+    });
     document.querySelectorAll('.lang-switch button').forEach(b =>
       b.addEventListener('click', () => { setLanguage(b.dataset.lang); b.blur(); }));
     document.getElementById('replayIntro').addEventListener('click', (e) => {
