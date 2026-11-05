@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Snake Game</title>
+  <!-- Pixel-art snake, drawn as inline SVG so it looks the same on every device and needs no extra file.
+       The same picture is the tab icon (here) and the icon in the heading (h1::before in the CSS below). -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' rx='3' fill='%23102418'/%3E%3Cg fill='%2300ff88'%3E%3Crect x='4' y='2' width='8' height='1'/%3E%3Crect x='3' y='3' width='10' height='8'/%3E%3Crect x='4' y='11' width='8' height='1'/%3E%3C/g%3E%3Cg fill='%2300cc6a'%3E%3Crect x='6' y='8' width='1' height='1'/%3E%3Crect x='9' y='8' width='1' height='1'/%3E%3C/g%3E%3Cg fill='white'%3E%3Crect x='4' y='4' width='3' height='3'/%3E%3Crect x='9' y='4' width='3' height='3'/%3E%3C/g%3E%3Cg fill='%23102418'%3E%3Crect x='5' y='5' width='2' height='2'/%3E%3Crect x='10' y='5' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23ff4d4d'%3E%3Crect x='7' y='12' width='2' height='2'/%3E%3Crect x='6' y='14' width='1' height='1'/%3E%3Crect x='9' y='14' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E" />
   <style>
     * {
       box-sizing: border-box;
@@ -68,6 +71,16 @@
       font-size: 1.7rem;
       color: #00ff88;
       text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    }
+    /* the heading icon: the same pixel snake as the tab icon (it replaces the snake emoji, which every device draws differently) */
+    h1::before {
+      content: '';
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      margin-right: 0.3em;
+      vertical-align: -0.12em;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' rx='3' fill='%23102418'/%3E%3Cg fill='%2300ff88'%3E%3Crect x='4' y='2' width='8' height='1'/%3E%3Crect x='3' y='3' width='10' height='8'/%3E%3Crect x='4' y='11' width='8' height='1'/%3E%3C/g%3E%3Cg fill='%2300cc6a'%3E%3Crect x='6' y='8' width='1' height='1'/%3E%3Crect x='9' y='8' width='1' height='1'/%3E%3C/g%3E%3Cg fill='white'%3E%3Crect x='4' y='4' width='3' height='3'/%3E%3Crect x='9' y='4' width='3' height='3'/%3E%3C/g%3E%3Cg fill='%23102418'%3E%3Crect x='5' y='5' width='2' height='2'/%3E%3Crect x='10' y='5' width='2' height='2'/%3E%3C/g%3E%3Cg fill='%23ff4d4d'%3E%3Crect x='7' y='12' width='2' height='2'/%3E%3Crect x='6' y='14' width='1' height='1'/%3E%3Crect x='9' y='14' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
     }
     .topbar-actions { flex: none; display: flex; align-items: center; gap: 8px; }
     .icon-btn {
@@ -691,7 +704,7 @@
 <body>
   <div id="app">
     <header id="topbar">
-      <h1 data-i18n="heading" data-fit>🐍 SNAKE</h1>
+      <h1 data-i18n="heading" data-fit>SNAKE</h1>
       <div class="topbar-actions">
         <div class="lang-switch" role="group" data-i18n-aria="langAria" aria-label="Language">
           <button type="button" data-lang="en">EN</button>
@@ -916,7 +929,7 @@
     const I18N = {
       en: {
         docTitle: 'Snake Game',
-        heading: '🐍 SNAKE',
+        heading: 'SNAKE',
         startTitle1: 'SNAKE',
         startTitleN: 'LEVEL {n}',
         startGoal: 'Goal: {n} points',
@@ -972,7 +985,7 @@
         legendFood_candy: 'Lollipop — {n} points',
         legendFood_lava: 'Ember — {n} points',
         legendFood_winter: 'Ornament — {n} points',
-        legendFood_lcd: 'Pixel apple — {n} points',
+        legendFood_lcd: 'Apple — {n} points',
         legendBonus_classic: 'Bonus gem — {n} points, time-limited',
         legendBonus_forest: 'Magic leaf — {n} points, time-limited',
         legendBonus_space: 'Bonus star — {n} points, time-limited',
@@ -981,7 +994,7 @@
         legendBonus_candy: 'Wrapped candy — {n} points, time-limited',
         legendBonus_lava: 'Phoenix flame — {n} points, time-limited',
         legendBonus_winter: 'Ice crystal — {n} points, time-limited',
-        legendBonus_lcd: 'Pixel heart — {n} points, time-limited',
+        legendBonus_lcd: 'Heart — {n} points, time-limited',
         watchIntro: '▶ Watch intro',
         customizeTitle: 'Customize the game',
         themeLabel: 'Theme',
@@ -1025,7 +1038,7 @@
       },
       da: {
         docTitle: 'Slangespil',
-        heading: '🐍 SLANGE',
+        heading: 'SLANGE',
         startTitle1: 'SLANGE',
         startTitleN: 'NIVEAU {n}',
         startGoal: 'Mål: {n} point',
@@ -1081,7 +1094,7 @@
         legendFood_candy: 'Slikkepind — {n} point',
         legendFood_lava: 'Gløde — {n} point',
         legendFood_winter: 'Julekugle — {n} point',
-        legendFood_lcd: 'Pixel-æble — {n} point',
+        legendFood_lcd: 'Æble — {n} point',
         legendBonus_classic: 'Bonusædelsten — {n} point, tidsbegrænset',
         legendBonus_forest: 'Magisk blad — {n} point, tidsbegrænset',
         legendBonus_space: 'Bonusstjerne — {n} point, tidsbegrænset',
@@ -1090,7 +1103,7 @@
         legendBonus_candy: 'Indpakket bolsje — {n} point, tidsbegrænset',
         legendBonus_lava: 'Føniksflamme — {n} point, tidsbegrænset',
         legendBonus_winter: 'Iskrystal — {n} point, tidsbegrænset',
-        legendBonus_lcd: 'Pixelhjerte — {n} point, tidsbegrænset',
+        legendBonus_lcd: 'Hjerte — {n} point, tidsbegrænset',
         watchIntro: '▶ Se intro',
         customizeTitle: 'Tilpas spillet',
         themeLabel: 'Tema',
@@ -1339,9 +1352,24 @@
       if (!audioCtx) {
         try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
       }
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx.state === 'suspended' && !document.hidden) audioCtx.resume(); // a hidden tab stays silent (see audioHeldByHide)
       return audioCtx;
     }
+
+    // A tab the player is not looking at is silent: suspending the audio context stops every sound and also
+    // freezes the music clock. It comes back when the tab is visible again. Only a context that was really
+    // running is held and resumed, so this never fights the "no sound before a click" rule; the general mute
+    // (soundOn) is untouched because muted music is simply not playing.
+    let audioHeldByHide = false;
+    function onVisibilityAudio() {
+      if (document.hidden) {
+        if (audioCtx && audioCtx.state === 'running') { audioHeldByHide = true; audioCtx.suspend(); }
+      } else if (audioHeldByHide) {
+        audioHeldByHide = false;
+        if (audioCtx) audioCtx.resume();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityAudio);
 
     // ===== Volume: effects and music each have their own volume stage (sliders in the settings drawer) =====
     // 100% is exactly how loud things were before the sliders existed. The general mute (soundOn) sits above both.
