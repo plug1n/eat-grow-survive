@@ -24,11 +24,13 @@
     body[data-theme="lava"]   { background: radial-gradient(ellipse at 50% 100%, #4a140a 0%, #0d0403 75%) fixed; }
     body[data-theme="winter"] { background: linear-gradient(180deg, #16385e 0%, #07111f 100%) fixed; }
     body[data-theme="lcd"]    { background: linear-gradient(180deg, #2b3a14 0%, #121909 100%) fixed; }
+    body[data-theme="neon"]   { background: radial-gradient(ellipse at 50% 0%, #34105e 0%, #0b0a24 50%, #04040e 100%) fixed; }
     body[data-theme="desert"] #gameCanvas { border-color: #c98a3a; box-shadow: 0 0 30px rgba(255, 170, 70, 0.30); }
     body[data-theme="candy"]  #gameCanvas { border-color: #ff7ac8; box-shadow: 0 0 30px rgba(255, 120, 200, 0.35); }
     body[data-theme="lava"]   #gameCanvas { border-color: #ff6a1a; box-shadow: 0 0 34px rgba(255, 90, 20, 0.45); }
     body[data-theme="winter"] #gameCanvas { border-color: #8fd0ff; box-shadow: 0 0 30px rgba(150, 210, 255, 0.35); }
     body[data-theme="lcd"]    #gameCanvas { border-color: #8bac0f; box-shadow: 0 0 26px rgba(155, 188, 15, 0.30); }
+    body[data-theme="neon"]   #gameCanvas { border-color: #19e6ff; box-shadow: 0 0 28px rgba(0, 229, 255, 0.45), 0 0 64px rgba(255, 61, 242, 0.20); }
     body[data-theme="forest"] #gameCanvas { border-color: #2f7a4a; box-shadow: 0 0 30px rgba(120, 255, 160, 0.28); }
     body[data-theme="space"]  #gameCanvas { border-color: #4b3fa8; box-shadow: 0 0 30px rgba(140, 120, 255, 0.35); }
     body[data-theme="ocean"]  #gameCanvas { border-color: #2a8fb5; box-shadow: 0 0 30px rgba(90, 210, 255, 0.30); }
@@ -348,7 +350,7 @@
     /* the speed control in the first level's start box: same look and size as the one in the bottom bar */
     .start-speed { display: flex; align-items: center; justify-content: center; gap: 6px; color: #a0a0a0; font-size: 0.8rem; }
     .game-over { display: none; height: 380px; gap: 0.35em; padding-top: 1em; padding-bottom: 1em; }
-    .level-up { display: none; height: 300px; }
+    .level-up { display: none; height: 350px; }
     .pause-overlay { display: none; cursor: pointer; height: 220px; }
     .hs-overlay { display: none; height: 340px; }
 
@@ -641,6 +643,27 @@
     .unlock-star { color: #ffd23f; }
     .unlock-msg { font-size: 0.85em; font-style: italic; color: #cfe0ff; }
     .run-unlocks { color: #ffd23f; font-weight: bold; font-size: 0.8em; line-height: 1.25; margin: 0.2em 0; }
+    /* the flavour name of a level ("Frost Funnel"), under the title of the start box and the level-complete box (#79) */
+    .level-name { margin: -0.3em 0 0.1em; font-size: 0.95em; font-style: italic; letter-spacing: 0.04em; color: #ffd84a; }
+    /* how you died, one cheeky line under GAME OVER (#78) */
+    .death-cause { margin: -0.2em 0 0.1em; font-size: 0.9em; font-style: italic; color: #ff9d9d; line-height: 1.15; }
+    .level-name, .death-cause { flex: none; } /* a fitted line in a column box must not be squeezed to nothing when the box is full */
+    /* the level screen's receipt (#109, option A of the static options): one line per item, dotted leaders, a total */
+    .invoice { width: 100%; text-align: left; font-size: 0.78em; line-height: 1.3; cursor: pointer; }
+    .inv-box { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 0.5em 0.7em; }
+    .inv-row { display: flex; align-items: center; gap: 0.4em; white-space: nowrap;
+      --on: clamp(0, calc(var(--shown, 99) - var(--i, 0) + 1), 1); opacity: var(--on); transform: translateY(calc((1 - var(--on)) * 6px)); transition: opacity 0.25s, transform 0.25s; }
+    .inv-row > span:first-child { display: inline-flex; align-items: center; gap: 0.35em; }
+    .inv-dots { flex: 1; min-width: 6px; height: 0; align-self: center; border-bottom: 1px dotted rgba(255, 255, 255, 0.3); }
+    .inv-r { color: #dfe8ff; }
+    .inv-row.gold .inv-r { color: #ffd84a; }
+    .inv-row.total { margin-top: 0.35em; padding-top: 0.3em; border-top: 2px solid rgba(255, 255, 255, 0.35); font-size: 1.2em; }
+    .inv-row.total .inv-r { color: #00ff88; }
+    .inv-row.inv-sub { display: block; }
+    .inv-sub { display: block; font-size: 0.85em; color: #8aa0d8; margin: -0.1em 0 0.35em 1.7em; text-align: left; }
+    .inv-sub.note { margin-left: 0; }
+    .inv-sub.streak { color: #ffd84a; margin-left: 0; margin-top: 0.4em; text-align: center; }
+    .inv-dot { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; background: #ff4d4d; }
     .unlock-more { color: #ffd23f; font-size: 0.9em; font-weight: bold; }
     @keyframes unlock-pop { 0% { transform: scale(0.4) rotate(-4deg); opacity: 0; } 60% { transform: scale(1.12) rotate(1deg); opacity: 1; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
     @keyframes unlock-glow { 50% { box-shadow: 0 0 26px rgba(255, 210, 63, 0.95); } }
@@ -893,6 +916,7 @@
 
         <div class="overlay start-overlay" id="startOverlay">
           <h2 id="startTitle">SNAKE</h2>
+          <p id="startLevelName" class="level-name" data-fit></p>
           <p id="startGoal"></p>
           <!-- Speed for the start of a run (#14): only on the first level's start box, in step with the buttons below the board.
                Clicks here must not start the game (see the click handler near the end of the script). -->
@@ -907,9 +931,11 @@
         </div>
         <div class="overlay game-over" id="gameOver">
           <h2 data-i18n="gameOver">GAME OVER</h2>
+          <p id="finalCause" class="death-cause" data-fit="wrap" style="display:none"></p>
           <p><span data-i18n="finalScore">Final Score:</span> <span id="finalScore" style="color: #00ff88;">0</span></p>
           <p id="finalRank" class="final-rank"></p>
           <p id="runUnlocks" class="run-unlocks" style="display:none"></p>
+          <p id="runGems" class="run-unlocks" style="display:none"></p>
           <h3 class="score-title" id="scoreTitle" data-i18n="highScores" data-fit>HIGH SCORES</h3>
           <ul id="scoreboardList" class="score-list"></ul>
           <div class="hs-buttons">
@@ -938,9 +964,11 @@
         </div>
         <div class="overlay level-up" id="levelOverlay">
           <h2 id="levelDoneTitle">LEVEL COMPLETE!</h2>
+          <p id="levelDoneName" class="level-name" data-fit></p>
           <p id="levelDoneMsg" data-i18n="levelDoneMsg">Next level is harder: more obstacles and a higher minimum speed.</p>
+          <div id="levelInvoice" class="invoice" onclick="finishInvoice()" style="display:none"></div>
           <div class="unlock-cards" id="levelUnlocks" style="display:none"></div>
-          <button id="levelNextBtn" onclick="nextLevel()">Next Level</button>
+          <button id="levelNextBtn" onclick="levelAdvance()">Next Level</button>
           <div class="hint" data-i18n="levelHint">or press Enter</div>
         </div>
         <div class="replay-banner" id="replayBanner" data-i18n="replayBanner" data-fit>REPLAY</div>
@@ -1117,8 +1145,10 @@
     let testBadgeEl = null;     // the "TEST BUILD" marker (test page only)
 
     let snake, food, direction, nextDirection, score, gameRunning, gameStarted;
+    let dirQueue = []; // turns pressed faster than the snake moves wait here (at most two), so a quick second turn is not lost (#114)
     let specialFood = null;
     let specialFoodTimer = 0;
+    let bonusCountdown = null; // timer mode (#92): moves left until the next gem; null = not counting (a gem is on the board, or the gap is not rolled yet)
     let rafId = null;
     const SPECIAL_FOOD_MAX_TIME = 80;
     const SPECIAL_FOOD_WARN_TIME = 30; // start blinking with this many moves left
@@ -1139,9 +1169,9 @@
         heading: 'SNAKE',
         startTitle1: 'SNAKE',
         startTitleN: 'LEVEL {n}',
-        startGoal: 'Goal: {n} points',
+        startGoal: 'Goal: eat {n} food',
         startPress: 'Press any arrow key or WASD to start',
-        startHint: 'Use WASD or Arrow Keys to move · Space to pause',
+        startHint: 'Use WASD or Arrow Keys to move · Space, P or Esc to pause',
         gameOver: 'GAME OVER',
         finalScore: 'Final Score:',
         playAgain: 'Play Again',
@@ -1193,6 +1223,7 @@
         legendFood_lava: 'Ember — {n} points',
         legendFood_winter: 'Ornament — {n} points',
         legendFood_lcd: 'Apple — {n} points',
+        legendFood_neon: 'Energy cell — {n} points',
         legendBonus_classic: 'Bonus gem — {n} points, time-limited',
         legendBonus_forest: 'Magic leaf — {n} points, time-limited',
         legendBonus_space: 'Bonus star — {n} points, time-limited',
@@ -1202,6 +1233,7 @@
         legendBonus_lava: 'Phoenix flame — {n} points, time-limited',
         legendBonus_winter: 'Ice crystal — {n} points, time-limited',
         legendBonus_lcd: 'Heart — {n} points, time-limited',
+        legendBonus_neon: 'Hologram crystal — {n} points, time-limited',
         watchIntro: '▶ Watch intro',
         customizeTitle: 'Customize the game',
         newsTitle: "What's new",
@@ -1233,6 +1265,7 @@
         theme_lava: 'Lava',
         theme_winter: 'Winter',
         theme_lcd: 'Retro LCD',
+        theme_neon: 'Neon Grid',
         grid_checker: 'Checker',
         grid_lines: 'Lines',
         grid_dots: 'Dots',
@@ -1252,7 +1285,7 @@
         previewAria: 'Snake preview',
         finalRank: 'Scoreboard rank: #{r} of {n}',
         pauseTitle: 'PAUSED',
-        pauseHint: 'Press Space to resume',
+        pauseHint: 'Press Space, P or Esc to resume',
         random: 'Random',
         unlockLevel: 'Reach level {n} to unlock',
         unlockHead_color: 'NEW SNAKE SKIN UNLOCKED!',
@@ -1268,6 +1301,10 @@
         runCopied: '✔ Copied!',
         runCopyFail: 'Copy failed: see the console',
         runUnlocks: 'Unlocked this run: {names}',
+        gemTally: 'Bonus gems: {n} worth {p} points',
+        invFood: 'Food ×{n}', invBonus: 'Bonus {n}', invFresh: 'fresh', invStreak: 'streak', invTidy: 'tidy', invMore: '{n} more bonus',
+        invRoute: 'Route: {n} moves, shortest {par} ({e}% tidy)', invTotal: 'LEVEL TOTAL', invScore: 'Score', invStreakNext: 'Keep it up: bonus items pay +{p}% next level',
+        levelContinue: 'Continue',
         unlockMsg_color_blue: 'Your snake turns blue when it holds its breath.',
         unlockMsg_color_orange: 'Now it looks like a very large, very hungry carrot.',
         unlockMsg_color_purple: 'Royal purple. The apples bow as you pass.',
@@ -1281,6 +1318,7 @@
         unlockMsg_theme_winter: 'Cold scales, warm heart. Mind the ice.',
         unlockMsg_theme_lava: 'The floor is lava. Literally.',
         unlockMsg_theme_lcd: 'Pixels from the old days. Press start on your memories.',
+        unlockMsg_theme_neon: 'Welcome to the grid. Try not to get deleted.',
         unlockMsg_pattern_solid: 'Plain and proud. No stripes, no fuss.',
         unlockMsg_pattern_striped: 'Stripes make you look faster. Science says so.',
         unlockMsg_grid_lines: 'Straight lines for straight thinking.',
@@ -1300,9 +1338,9 @@
         heading: 'SLANGE',
         startTitle1: 'SLANGE',
         startTitleN: 'NIVEAU {n}',
-        startGoal: 'Mål: {n} point',
+        startGoal: 'Mål: spis {n} mad',
         startPress: 'Tryk på en piletast eller WASD for at starte',
-        startHint: 'Brug WASD eller piletasterne til at styre · Mellemrum for pause',
+        startHint: 'Brug WASD eller piletasterne til at styre · Mellemrum, P eller Esc for pause',
         gameOver: 'SPIL SLUT',
         finalScore: 'Slutpoint:',
         playAgain: 'Spil igen',
@@ -1354,6 +1392,7 @@
         legendFood_lava: 'Gløde — {n} point',
         legendFood_winter: 'Julekugle — {n} point',
         legendFood_lcd: 'Æble — {n} point',
+        legendFood_neon: 'Energicelle — {n} point',
         legendBonus_classic: 'Bonusædelsten — {n} point, tidsbegrænset',
         legendBonus_forest: 'Magisk blad — {n} point, tidsbegrænset',
         legendBonus_space: 'Bonusstjerne — {n} point, tidsbegrænset',
@@ -1363,6 +1402,7 @@
         legendBonus_lava: 'Føniksflamme — {n} point, tidsbegrænset',
         legendBonus_winter: 'Iskrystal — {n} point, tidsbegrænset',
         legendBonus_lcd: 'Hjerte — {n} point, tidsbegrænset',
+        legendBonus_neon: 'Hologramkrystal — {n} point, tidsbegrænset',
         watchIntro: '▶ Se intro',
         customizeTitle: 'Tilpas spillet',
         newsTitle: 'Nyt i spillet',
@@ -1394,6 +1434,7 @@
         theme_lava: 'Lava',
         theme_winter: 'Vinter',
         theme_lcd: 'Retro-skærm',
+        theme_neon: 'Neongitter',
         grid_checker: 'Skakternet',
         grid_lines: 'Linjer',
         grid_dots: 'Prikker',
@@ -1413,7 +1454,7 @@
         previewAria: 'Forhåndsvisning af slange',
         finalRank: 'Placering på listen: nr. {r} af {n}',
         pauseTitle: 'PAUSET',
-        pauseHint: 'Tryk mellemrum for at fortsætte',
+        pauseHint: 'Tryk mellemrum, P eller Esc for at fortsætte',
         random: 'Tilfældig',
         unlockLevel: 'Nå bane {n} for at låse op',
         unlockHead_color: 'NY SLANGEHUD LÅST OP!',
@@ -1429,6 +1470,10 @@
         runCopied: '✔ Kopieret!',
         runCopyFail: 'Kopiering fejlede: se konsollen',
         runUnlocks: 'Låst op i dette forløb: {names}',
+        gemTally: 'Bonusædelsten: {n} til {p} point',
+        invFood: 'Mad ×{n}', invBonus: 'Bonus {n}', invFresh: 'frisk', invStreak: 'række', invTidy: 'effektiv', invMore: '{n} flere bonus',
+        invRoute: 'Rute: {n} træk, korteste {par} ({e}% effektiv)', invTotal: 'BANETOTAL', invScore: 'Point', invStreakNext: 'Bliv ved: bonus giver +{p}% på næste bane',
+        levelContinue: 'Fortsæt',
         unlockMsg_color_blue: 'Din slange bliver blå, når den holder vejret.',
         unlockMsg_color_orange: 'Nu ligner den en meget stor, meget sulten gulerod.',
         unlockMsg_color_purple: 'Kongelig lilla. Æblerne nejer, når du kommer forbi.',
@@ -1442,6 +1487,7 @@
         unlockMsg_theme_winter: 'Kolde skæl, varmt hjerte. Pas på isen.',
         unlockMsg_theme_lava: 'Gulvet er lava. Helt bogstaveligt.',
         unlockMsg_theme_lcd: 'Pixels fra gamle dage. Tryk start på dine minder.',
+        unlockMsg_theme_neon: 'Velkommen til gitteret. Prøv ikke at blive slettet.',
         unlockMsg_pattern_solid: 'Enkel og stolt. Ingen striber, ingen postyr.',
         unlockMsg_pattern_striped: 'Striber gør dig hurtigere. Det siger videnskaben.',
         unlockMsg_grid_lines: 'Lige linjer til lige tanker.',
@@ -1485,6 +1531,154 @@
       return s;
     }
 
+    // ===== Theme texts: level names (#79) and death lines (#78) =====
+    // ALL the theme-specific words of a theme live in ONE object per theme in THEME_TEXT, so a theme's flavour is edited in one place. Every text is
+    // [English, Danish]. Per theme:
+    //   word     the word put in front of a shape name ("Frost" + "Funnel"; Danish makes a compound: "Frost" + "tragten"), or null for none (Classic)
+    //   opener   the name of level 1, an empty field
+    //   deaths   OPTIONAL lines for the Game Over screen, per cause: wall (the outer wall), obstacle, body (its own body). A theme can have as many
+    //            or as few lines as it has puns; a cause it does not list uses the shared DEATH_LINES below. A line is picked at random and never
+    //            the same twice in a row.
+    // A test fails if a theme in THEMES has no entry here, so a new theme cannot be forgotten.
+    const THEME_TEXT = {
+      classic: { word: null, opener: ['Open Field', 'Åben mark'],
+        deaths: { obstacle: [['You hit a stone. Rock solid.', 'Du ramte en sten. Stensikkert.'], ['Stones 1, snake 0.', 'Sten 1, slange 0.'], ['You bumped into a block.', 'Du stødte ind i en klods.']] } },
+      forest: { word: ['Forest', 'Skov'], opener: ['Forest Clearing', 'Skovlysning'],
+        deaths: {
+          wall: [['You hit the edge of the woods.', 'Du ramte skovbrynet.']],
+          obstacle: [['You got stuck in a bush.', 'Du sad fast i en busk.'], ['Beating around the bush, a bit too closely.', 'Du gik for tæt på busken.'], ['The bushes got you.', 'Buskene fik dig.']],
+          body: [['You tangled yourself up.', 'Du filtrede dig selv ind.']],
+        } },
+      space: { word: ['Star', 'Stjerne'], opener: ['Open Space', 'Det åbne rum'],
+        deaths: {
+          wall: [['You left the known universe.', 'Du forlod det kendte univers.'], ['The edge of space is closer than it looks.', 'Rummets kant er tættere, end den ser ud.']],
+          obstacle: [['An asteroid sends its regards.', 'En asteroide hilser pænt.'], ['Houston, we have a problem.', 'Houston, vi har et problem.'], ['You are now part of the asteroid belt.', 'Du er nu en del af asteroidebæltet.']],
+          body: [['You collided with your own orbit.', 'Du kolliderede med din egen bane.']],
+        } },
+      ocean: { word: ['Reef', 'Rev'], opener: ['Open Water', 'Åbent vand'],
+        deaths: {
+          wall: [['You hit the edge of the sea.', 'Du ramte havets kant.'], ['Out of water, out of luck.', 'Ude af vandet, ude af held.']],
+          obstacle: [['You hit the coral. That stings.', 'Du ramte koraller. Av.'], ['Not the reef again!', 'Ikke revet igen!']],
+          body: [["You tied yourself in a sailor's knot.", 'Du slog en sømandsknob på dig selv.']],
+        } },
+      desert: { word: ['Dune', 'Klit'], opener: ['Open Dunes', 'Åbne klitter'],
+        deaths: {
+          wall: [['You hit the edge of the dunes.', 'Du ramte klitternes kant.'], ['A mirage! ...no, a wall.', 'En luftspejling! ...nej, en væg.']],
+          obstacle: [['Ouch! A cactus.', 'Av! En kaktus.'], ['You tried to hug a cactus.', 'Du prøvede at kramme en kaktus.'], ['A prickly situation.', 'En prikkende situation.']],
+          body: [['You knotted yourself like a rattlesnake.', 'Du slog knude som en klapperslange.']],
+        } },
+      candy: { word: ['Candy', 'Slik'], opener: ['Candy Counter', 'Slikbutikken'],
+        deaths: {
+          wall: [['You hit the sugar wall.', 'Du ramte sukkervæggen.']],
+          obstacle: [['You hit a peppermint swirl. Too sweet.', 'Du ramte en pebermyntespiral. Alt for sødt.'], ['A candy cane in the way.', 'En slikstang i vejen.'], ['That was a sticky end.', 'Det var en klistret ende.']],
+          body: [['You wrapped yourself like a candy.', 'Du pakkede dig selv ind som en bolsje.'], ['You ate your own sweet tail.', 'Du spiste din egen søde hale.']],
+        } },
+      lava: { word: ['Lava', 'Lava'], opener: ['Lava Plain', 'Lavaslette'],
+        deaths: {
+          wall: [['You melted into the wall.', 'Du smeltede ind i væggen.'], ['That was the end of the lava field.', 'Det var enden på lavamarken.']],
+          obstacle: [['Caught between a rock and a hot place.', 'Fanget mellem en sten og et hedt sted.'], ['Rock hard. Literally.', 'Stenhårdt. Bogstaveligt.']],
+          body: [['You burned your own tail.', 'Du brændte din egen hale.']],
+        } },
+      winter: { word: ['Frost', 'Frost'], opener: ['Frozen Lake', 'Den frosne sø'],
+        deaths: {
+          wall: [['You froze at the edge.', 'Du frøs fast ved kanten.'], ['Frozen solid against the wall.', 'Frosset fast mod væggen.']],
+          obstacle: [['Into the pine. Cold.', 'Ind i grantræet. Koldt.'], ['Snow joke: you hit a tree.', 'Ingen spøg: du ramte et træ.'], ['A snowy pine had the last word.', 'En snedækket gran fik det sidste ord.']],
+          body: [['You froze to your own tail.', 'Du frøs fast til din egen hale.']],
+        } },
+      neon: { word: ['Neon', 'Neon'], opener: ['Neon Grid', 'Neongitter'],
+        deaths: {
+          wall: [['You hit the firewall.', 'Du ramte firewallen.'], ['Out of bounds.', 'Uden for banen.']],
+          obstacle: [['Collision detected.', 'Kollision registreret.'], ['Access denied.', 'Adgang nægtet.'], ['That hologram was solid.', 'Det hologram var massivt.']],
+          body: [['Stack overflow: you ate your own tail.', 'Stack overflow: du spiste din egen hale.'], ['Self-collision. Reboot?', 'Selvkollision. Genstart?']],
+        } },
+      lcd: { word: ['Pixel', 'Pixel'], opener: ['Blank Screen', 'Tom skærm'],
+        deaths: {
+          wall: [['You hit the edge of the screen.', 'Du ramte skærmens kant.'], ['Out of screen.', 'Ud af skærmen.']],
+          obstacle: [['Game over, pixel perfect.', 'Game over, pixelperfekt.'], ['A block stopped you. Retro life.', 'En blok stoppede dig. Retroliv.'], ['You hit a pixel block.', 'Du ramte en pixelblok.']],
+          body: [['Snake eats snake: the classic.', 'Slange æder slange: klassikeren.'], ['Your tail was in your way.', 'Din hale stod i vejen.']],
+        } },
+    };
+    // Death lines every theme can fall back on, per cause: [English, Danish]
+    const DEATH_LINES = {
+      wall: [['You hit the wall.', 'Du ramte væggen.'], ["You've reached the end of the road.", 'Du er nået til vejs ende.'], ['You met the edge of the world.', 'Du mødte verdens ende.']],
+      obstacle: [['That was in the way.', 'Den stod i vejen.'], ['Obstacle 1, you 0.', 'Forhindring 1, dig 0.'], ['You found the one thing to avoid.', 'Du fandt det eneste, du skulle undgå.']],
+      debug: [['You pulled the plug on yourself.', 'Du trak selv stikket ud.'], ['Self-inflicted. Thanks, debug menu.', 'Selvforskyldt. Tak, debugmenu.'], ['Snake took the easy way out.', 'Slangen tog den lette udvej.'], ['Died by own hand. Mostly yours.', 'Døde for egen hånd. Mest din.']], // only the developer sees these (the Kill snake button)
+      body: [['You ate yourself.', 'Du spiste dig selv.'], ['You tied yourself in a knot.', 'Du bandt knude på dig selv.'], ['Your tail was faster than you.', 'Din hale var hurtigere end dig.']],
+    };
+    // The level names' shape part (levels 2 to 20, in order): [English, Danish]. English is a noun phrase that takes a theme word in front
+    // ("Boulder Run" -> "Lava Boulder Run"). Danish is ONE noun in the definite form ("Tragten"), because Danish builds the name as a compound:
+    // theme word + noun in lower case ("Lava" + "tragten" = "Lavatragten"). After level 20 the list starts again with a Roman numeral:
+    // level 21 is "Stones II", level 40 is "Stones III". (The user rejected "Spidsroden" for Gauntlet: it is a punishment idiom, so "Prøven".)
+    const LEVEL_NAMES = {
+      shapes: [
+        ['Stones', 'Stenene'],         // level 2
+        ['Path', 'Stien'],             // 3
+        ['Funnel', 'Tragten'],         // 4
+        ['Meadow', 'Engen'],           // 5
+        ['Zigzag', 'Siksakken'],       // 6
+        ['Slalom', 'Slalomen'],        // 7
+        ['Garden', 'Haven'],           // 8
+        ['Squeeze', 'Klemmen'],        // 9
+        ['Boulder Run', 'Stenløbet'],  // 10
+        ['Gauntlet', 'Prøven'],        // 11
+        ['Canyon', 'Kløften'],         // 12
+        ['Alley', 'Gyden'],            // 13
+        ['Pinch', 'Snævringen'],       // 14
+        ['Ruins', 'Ruinerne'],         // 15
+        ['Rockfall', 'Stenskredet'],   // 16
+        ['Labyrinth', 'Labyrinten'],   // 17
+        ['Needle', 'Nålen'],           // 18
+        ['Pit', 'Graven'],             // 19
+        ['Summit', 'Toppen'],          // 20
+      ],
+    };
+    const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+    // The name of a level in a theme and a language ('en' or 'da'; anything else gets English). The same level in the same theme always has the same name.
+    function levelName(lv, theme = look.theme, language = lang) {
+      const li = language === 'da' ? 1 : 0;
+      const tt = THEME_TEXT[theme] || THEME_TEXT.classic;
+      if (lv <= 1) return tt.opener[li];
+      const n = LEVEL_NAMES.shapes.length, idx = (lv - 2) % n, cycle = Math.floor((lv - 2) / n);
+      const shape = LEVEL_NAMES.shapes[idx][li], word = tt.word;
+      let name;
+      if (!word) name = li ? shape : 'The ' + shape;                                              // Classic: "The Funnel" / "Tragten"
+      else name = li ? word[1] + shape.charAt(0).toLowerCase() + shape.slice(1) : word[0] + ' ' + shape; // "Frost Funnel" / "Frosttragten"
+      return cycle ? name + ' ' + (ROMAN[cycle + 1] || String(cycle + 1)) : name;
+    }
+    // ===== The cause of death on the Game Over screen (#78) =====
+    const DEATH_CAUSES = { 'hit the outer wall': 'wall', 'hit an obstacle': 'obstacle', 'ran into its own body': 'body', 'killed from the debug menu': 'debug' }; // deathInfo.why -> cause
+    function deathPool(theme, cause) { // the theme's own lines for this cause, or the shared ones
+      const own = THEME_TEXT[theme] && THEME_TEXT[theme].deaths && THEME_TEXT[theme].deaths[cause];
+      return (own && own.length) ? own : (DEATH_LINES[cause] || []);
+    }
+    let deathLineRef = null;  // { theme, cause, idx } of the line on the Game Over screen (kept so a language switch can redraw it)
+    const lastDeathIdx = {};  // per theme + cause: the line shown last, so the same one does not come twice in a row
+    function chooseDeathLine() {
+      const cause = deathInfo && DEATH_CAUSES[deathInfo.why];
+      if (!cause) return null; // a debug kill (or an unknown cause) has no line
+      const theme = look.theme, pool = deathPool(theme, cause);
+      if (!pool.length) return null;
+      const key = theme + '/' + cause;
+      let idx = Math.floor(Math.random() * pool.length);
+      if (pool.length > 1 && idx === lastDeathIdx[key]) idx = (idx + 1 + Math.floor(Math.random() * (pool.length - 1))) % pool.length;
+      lastDeathIdx[key] = idx;
+      return { theme, cause, idx };
+    }
+    function renderDeathLine() {
+      const ref = deathLineRef, pool = ref ? deathPool(ref.theme, ref.cause) : [];
+      const line = ref && pool[ref.idx] ? pool[ref.idx][lang === 'da' ? 1 : 0] : '';
+      finalCauseEl.textContent = line;
+      finalCauseEl.style.display = line ? '' : 'none';
+      if (line) fitText(finalCauseEl);
+    }
+
+    // Put the name of the current level into the start box and the level-complete box (the look, and so the theme, is that of the level).
+    function updateLevelNames() {
+      const name = levelName(level);
+      startLevelName.textContent = name; levelDoneName.textContent = name;
+      fitText(startLevelName); fitText(levelDoneName);
+    }
+
     // ===== What's new: the changelog (#70) =====
     // One entry per release, newest first. `id` is the release number (stable-N). Every ticket that changes what players
     // see adds a bullet here, in English AND Danish, in player language (no tooling or chores). A bullet for something
@@ -1501,7 +1695,18 @@
           'New in settings: an All random switch. Colour, pattern, theme and grid change every level. Switch it off to get your choices back.',
           'Starting a level now plays the 3-2-1 first, just like after a pause. Your first key press decides the direction.',
           'Unlockables: themes, colours, patterns and grids unlock as you reach higher levels. Locked ones show a padlock in settings.',
-          'Game Over has a new Copy run link. It copies your run as text, to share when something felt unfair.'
+          'Game Over has a new Copy run link. It copies your run as text, to share when something felt unfair.',
+          'Bonus gems now appear on a timer instead of by chance when you eat, and a gem is never swapped for a new one.',
+          'Bonus gems pay more the sooner you grab them: a soft glow shows the time left. They add to your score, never to the level goal.',
+          'Eat a bonus gem level after level: the next ones pay more and glow gold. Skip a level and it starts over.',
+          'A level goal is now a number of foods (10 on level 1), the same at every speed. Speed only changes your score.',
+          'Levels now count your moves. Wander around and a bonus gem pays less, even nothing, so gems cannot be farmed.',
+          'Every level now has a name that follows its theme, like Frost Funnel or Lava Gauntlet. It shows on the start and level boxes.',
+          'Game Over now says how you died, with a joke that follows the theme: a cactus in the desert, an asteroid in space.',
+          'The level screen is now a receipt: what each bonus item paid and why. The moves pill is gone.',
+          'A new theme, Neon Grid, unlocks at level 44: hologram cubes, energy cells and a glowing snake.',
+          'A quick second turn is no longer lost, and the first food of a level is always ahead of you. Pause: Space, P or Esc.',
+          'Forest and Ocean are free from the start, so three themes are ready to use.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
@@ -1512,7 +1717,18 @@
           'Nyt i indstillinger: en Alt tilfældigt-kontakt. Farve, mønster, tema og gitter skifter hver bane. Slå fra for at få dine valg tilbage.',
           'Når en bane starter, kommer 3-2-1 nu først, ligesom efter en pause. Dit første tastetryk bestemmer retningen.',
           'Nyt: temaer, farver, mønstre og gitre låses op, når du når højere baner. Låste ting har en hængelås i indstillinger.',
-          'Game Over har et nyt Kopier forløb-link. Det kopierer dit forløb som tekst, så du kan dele det, hvis noget føltes uretfærdigt.'
+          'Game Over har et nyt Kopier forløb-link. Det kopierer dit forløb som tekst, så du kan dele det, hvis noget føltes uretfærdigt.',
+          'Bonusædelsten dukker nu op på en timer i stedet for tilfældigt, når du spiser, og en ædelsten byttes aldrig ud med en ny.',
+          'Bonusædelsten giver flere point, jo hurtigere du tager den: et blødt skær viser tiden. Tæller i scoren, aldrig i banens mål.',
+          'Tag en bonusædelsten bane efter bane: de næste giver mere og gløder guld. Springer du en over, starter rækken forfra.',
+          'Banens mål er nu et antal mad (10 på bane 1), ens ved alle hastigheder. Hastighed ændrer kun din score.',
+          'Baner tæller nu dine træk. Render du rundt, giver en bonusædelsten mindre, ja intet, så de kan ikke høstes.',
+          'Hver bane har nu et navn, der følger temaet, fx Frosttragten eller Lavaprøven. Det vises på start- og banekort.',
+          'Game Over siger nu, hvordan du døde, med en joke efter temaet: en kaktus i ørkenen, en asteroide i rummet.',
+          'Banekortet er nu en kvittering: hvad hver bonus gav, og hvorfor. Trækpillen er væk.',
+          'Et nyt tema, Neongitter, låses op på niveau 44: hologramkuber, energiceller og en glødende slange.',
+          'Et hurtigt andet drej går ikke tabt, og første mad på en bane er altid foran dig. Pause: mellemrum, P eller Esc.',
+          'Skov og Hav er gratis fra start, så tre temaer er klar til brug.'
         ] },
       { id: 2,
         en: [
@@ -1547,9 +1763,7 @@
     // Pacing: one unlock every second level up to level 34, a theme every fourth level or so, Retro LCD the finale at 40.
     const UNLOCKS = {
       'color:blue':      { type: 'level', value: 2 },
-      'theme:forest':    { type: 'level', value: 4 },
       'pattern:solid':   { type: 'level', value: 6 },
-      'theme:ocean':     { type: 'level', value: 8 },
       'grid:lines':      { type: 'level', value: 10 },
       'theme:desert':    { type: 'level', value: 12 },
       'color:orange':    { type: 'level', value: 14 },
@@ -1564,6 +1778,7 @@
       'color:pink':      { type: 'level', value: 32 },
       'color:yellow':    { type: 'level', value: 34 },
       'theme:lcd':       { type: 'level', value: 40 },
+      'theme:neon':      { type: 'level', value: 44 },
     };
     const UNLOCK_TYPES = {
       level: { met: (c, s) => s.bestLevel >= c.value, text: (c) => t('unlockLevel', { n: c.value }) },
@@ -1707,7 +1922,7 @@
       },
       colors: { // the fog's colour per theme (light for the misty / hazy ones)
         default: '#03060d', classic: '#02050b', forest: '#031208', space: '#000008', ocean: '#021a2e',
-        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f',
+        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f', neon: '#02020c',
       },
     };
     const FOG_KEY = 'snake_fog';
@@ -1816,6 +2031,8 @@
     const hudBestLabel = document.getElementById('hudBestLabel');
     const scoreTitleEl = document.getElementById('scoreTitle');
     const startTitle = document.getElementById('startTitle');
+    const startLevelName = document.getElementById('startLevelName');
+    const levelDoneName = document.getElementById('levelDoneName');
     const startGoal = document.getElementById('startGoal');
     const levelOverlay = document.getElementById('levelOverlay');
     const levelDoneTitle = document.getElementById('levelDoneTitle');
@@ -1853,6 +2070,9 @@
     const hsSkipBtn = document.getElementById('hsSkip');
     const finalRankEl = document.getElementById('finalRank');
     const runUnlocksEl = document.getElementById('runUnlocks');
+    const runGemsEl = document.getElementById('runGems');
+    const finalCauseEl = document.getElementById('finalCause');
+    const levelInvoiceEl = document.getElementById('levelInvoice');
     const pauseOverlay = document.getElementById('pauseOverlay');
     const countdownOverlay = document.getElementById('countdownOverlay');
     const countdownNum = document.getElementById('countdownNum');
@@ -2334,8 +2554,13 @@
     //  - every open cell has >= 2 open neighbours (no dead-end cells)
     //  - there is enough open room to grow the snake to the length needed to reach the goal
     let level = 1;
-    let levelScore = 0;
-    let levelTarget = 0;
+    let levelFoods = 0;
+    let levelMoves = 0, runMoves = 0;          // moves (ticks) this level / this run (#102)
+    let foodPar = 0, levelPar = 0, levelFoodPts = 0, levelEff = 1; // par = shortest path to each food when it appeared (#103)
+    let levelGemList = [];   // per gem eaten this level: { worth, fresh, streak, eff }, for the receipt on the level screen (#109)
+    let levelPage = 'invoice', invoiceShown = 99, invoiceRows = 0, invoiceTimer = null; // which page of the level screen, and the receipt's line-by-line reveal
+    let levelGems = 0, levelGemPts = 0, runGems = 0, runGemPts = 0; // bonus gems eaten this level / this run, and what they paid (#99)
+    let levelGoal = 0;
     let obstacleSet = new Set();
 
     const START_X = 10, START_Y = 10;
@@ -2346,11 +2571,13 @@
 
     // Higher levels force a higher minimum speed (the player may still go faster)
     function minSpeedFor(lv) { return Math.min(8, 1 + Math.floor((lv - 1) / 2)); }
-    function targetFor(lv) { return 300 + (lv - 1) * 150; }
+    // The level goal is a number of regular foods, the same at every speed (#101); speed only changes the score. Tunable from the debug menu.
+    const LEVEL_GOAL = { first: 10, perLevel: 2 };
+    function targetFor(lv) { return Math.max(1, Math.round(LEVEL_GOAL.first + (lv - 1) * LEVEL_GOAL.perLevel)); }
 
     // Open space required so the goal is reachable even at the slowest allowed speed
     function neededFreeCells(lv) {
-      const worstFoods = Math.ceil(targetFor(lv) / (BASE_POINTS_PER_FOOD * minSpeedFor(lv)));
+      const worstFoods = targetFor(lv); // (the goal is in foods now, so the speed no longer matters)
       return Math.ceil((3 + worstFoods) / MAX_FILL);
     }
 
@@ -2426,7 +2653,7 @@
 
     function setupLevel(lv) {
       paused = false;
-      starting = false; pendingStartKey = null; // (a level never changes in the middle of the start countdown, except a debug jump)
+      starting = false; pendingStartKeys = []; // (a level never changes in the middle of the start countdown, except a debug jump)
       updatePauseButton();
       pauseOverlay.style.display = 'none';
       cancelCountdown();
@@ -2434,8 +2661,11 @@
       dying = false;
       resolveLook(); // settings set to Random get a fresh roll on every new level
       level = lv;
-      levelScore = 0;
-      levelTarget = targetFor(lv);
+      levelFoods = 0;
+      levelGems = 0; levelGemPts = 0; levelGemList = []; levelPage = 'invoice'; clearInvoiceTimer();
+      levelMoves = 0; levelPar = 0; levelFoodPts = 0; levelEff = 1;
+      if (lv === 1) { runGems = 0; runGemPts = 0; runMoves = 0; } // (a debug jump to level 1 also starts the gem tally afresh)
+      levelGoal = targetFor(lv);
       obstacleSet = generateObstacles(lv);
       speedLevel = Math.max(speedLevel, minSpeedFor(lv));
 
@@ -2446,6 +2676,7 @@
       ];
       direction = { x: 1, y: 0 };
       nextDirection = { x: 1, y: 0 };
+      dirQueue = [];
       fogResetLevel(); // fog of war: a new level starts with nothing seen and nothing lost
       gameRunning = false;
       gameStarted = false;
@@ -2460,7 +2691,7 @@
       startOverlay.style.display = 'flex';
 
       deathInfo = null;
-      placeFood();
+      placeFood(true); // the first food of the level: ahead of the snake
       updateSpeedDisplay();
       updateScore();
       draw();
@@ -2471,7 +2702,8 @@
 
     function updateStartOverlay() {
       startTitle.textContent = level === 1 ? t('startTitle1') : t('startTitleN', { n: level });
-      startGoal.textContent = t('startGoal', { n: levelTarget });
+      updateLevelNames();
+      startGoal.textContent = t('startGoal', { n: levelGoal });
       startSpeedEl.style.display = level === 1 ? 'flex' : 'none'; // only the box that starts a run has the speed control
       // a touch screen has no arrow keys: the start box talks about swiping and the on-screen arrows instead
       const touch = !!(document.body.classList && document.body.classList.contains('touch'));
@@ -2480,11 +2712,94 @@
       pauseHintEl.textContent = t(touch ? 'pauseHintTouch' : 'pauseHint'); // the pause box too: tapping it resumes
     }
 
-    function updateLevelOverlay() {
+    // The level screen has up to two pages: the receipt (always), and when the level unlocked something, the announcement. Enter or the button moves on.
+    function updateLevelOverlay() { // draws the CURRENT page (also used when the language changes)
       levelDoneTitle.textContent = t('levelDone', { n: level });
-      levelNextBtn.textContent = t('levelStart', { n: level + 1 });
-      renderUnlockCards();
+      updateLevelNames();
+      const unlockPage = levelPage === 'unlock' && lastUnlocks.length > 0;
+      levelInvoiceEl.style.display = unlockPage ? 'none' : '';
+      if (unlockPage) renderUnlockCards(); else { renderInvoice(); levelUnlocks.style.display = 'none'; }
+      levelDoneMsg.style.display = 'none'; // (the receipt and the announcement take the room of the old "next level is harder" line)
+      levelNextBtn.textContent = (!unlockPage && lastUnlocks.length) ? t('levelContinue') : t('levelStart', { n: level + 1 });
+      fitInvoice();
     }
+    function showLevelPage(page) { levelPage = page; updateLevelOverlay(); }
+    function levelAdvance() { // Enter / Space / the button on the level screen
+      if (invoiceTimer !== null) { finishInvoice(); return; }                              // still counting up: show it all first
+      if (levelPage === 'invoice' && lastUnlocks.length) { showLevelPage('unlock'); return; } // then the announcement, if there is one
+      nextLevel();
+    }
+    const GEM_ICON = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 L14 7 L8 15 L2 7 Z" fill="#6cf0ff" stroke="#e8ffff" stroke-width="1"/></svg>';
+    const FLAME_ICON = '<svg width="12" height="16" viewBox="0 0 14 18" aria-hidden="true"><path d="M7 1 C8 5 12 7 12 12 C12 15.5 9.5 17 7 17 C4.5 17 2 15.5 2 12 C2 9.5 3.5 8.5 4 6.5 C5 8 5.5 8 6 7.5 C6.5 5.5 6.5 3 7 1 Z" fill="#ffd84a"/></svg>';
+    // The receipt (#109): what the level paid, line by line, with what made each bonus item worth that much. Built from fixed icons, numbers and the
+    // game's own texts. Every line has --i (its place); the container's --shown says how many are visible, which is how the reveal animates.
+    function renderInvoice() {
+      const esc = (x) => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      const fmt = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      const dec = (x, d) => String(Math.round(x * Math.pow(10, d)) / Math.pow(10, d));
+      const img = (url, fallback) => url ? '<img src="' + url + '" width="18" height="18" alt="" style="margin:-3px 0;">' : fallback;
+      const foodIcon = img(themeIconUrl(() => drawFood(0, 0)), '<span class="inv-dot"></span>');
+      const gemIcon = img(levelGemList.length ? bonusIconUrl() : '', GEM_ICON);
+      let i = 0, html = '';
+      const row = (left, right, cls) => { html += '<div class="inv-row ' + (cls || '') + '" style="--i:' + (i++) + '"><span>' + left + '</span><span class="inv-dots"></span><b class="inv-r">' + right + '</b></div>'; };
+      const sub = (text, cls) => { html += '<div class="inv-row inv-sub ' + (cls || '') + '" style="--i:' + Math.max(0, i - 1) + '">' + text + '</div>'; }; // appears with the line above
+      row(foodIcon + esc(t('invFood', { n: levelFoods })), fmt(levelFoodPts));
+      const shown = levelGemList.slice(0, 3), rest = levelGemList.slice(3);
+      shown.forEach((g, k) => {
+        row(gemIcon + esc(t('invBonus', { n: k + 1 })), '+' + fmt(g.worth), 'gold');
+        sub(esc(t('invFresh') + ' ×' + dec(g.fresh, 1) + ' · ' + t('invStreak') + ' ×' + dec(g.streak, 2) + ' · ' + t('invTidy') + ' ×' + dec(g.eff, 1)));
+      });
+      if (rest.length) row(gemIcon + esc(t('invMore', { n: rest.length })), '+' + fmt(rest.reduce((a, g) => a + g.worth, 0)), 'gold');
+      if (levelGemList.length) { i++; sub(esc(t('invRoute', { n: levelMoves, par: levelPar, e: Math.round(levelEff * 100) })), 'note'); } // why the bonus items were paid as they were
+      row(esc(t('invTotal')), fmt(levelFoodPts + levelGemPts), 'total');
+      row(esc(t('invScore')), fmt(score));
+      if (gemStreak > 0) { i++; sub(FLAME_ICON + ' ' + esc(t('invStreakNext', { p: Math.round((streakFactor(gemStreak) - 1) * 100) })), 'streak'); }
+      invoiceRows = i;
+      levelInvoiceEl.innerHTML = '<div class="inv-box">' + html + '</div>';
+    }
+    // The receipt never wraps its text: if a line does not fit, the whole receipt gets a smaller font (down to about half) until it does.
+    // (Called again when the screen becomes visible, because a hidden element has no width to measure.)
+    function fitInvoice() {
+      const el = levelInvoiceEl;
+      if (!el || !el.clientWidth) return;
+      el.style.fontSize = '';
+      const base = parseFloat(getComputedStyle(el).fontSize);
+      if (!base) return;
+      let size = base;
+      while (el.scrollWidth > el.clientWidth + 1 && size > base * 0.55) { size -= 0.5; el.style.fontSize = size + 'px'; }
+    }
+    function setInvoiceShown(k) {
+      invoiceShown = k;
+      const st = levelInvoiceEl.style;
+      if (st && typeof st.setProperty === 'function') st.setProperty('--shown', String(k));
+    }
+    function clearInvoiceTimer() { if (invoiceTimer !== null) { clearTimeout(invoiceTimer); invoiceTimer = null; } }
+    function finishInvoice() { clearInvoiceTimer(); setInvoiceShown(99); } // show every line now (a key press or a click on the receipt)
+    function startInvoiceReveal() { // the lines appear one by one with a soft tick, like a till printing the receipt
+      clearInvoiceTimer();
+      if (REDUCED_MOTION || invoiceRows <= 1) { setInvoiceShown(99); return; }
+      setInvoiceShown(0);
+      const step = () => {
+        if (invoiceShown >= invoiceRows) { invoiceTimer = null; return; }
+        setInvoiceShown(invoiceShown + 1); sfx.tick();
+        invoiceTimer = setTimeout(step, 300);
+        if (invoiceTimer && invoiceTimer.unref) invoiceTimer.unref(); // (Node only: a test must not wait for the animation)
+      };
+      invoiceTimer = setTimeout(step, 500);
+      if (invoiceTimer && invoiceTimer.unref) invoiceTimer.unref();
+    }
+    // The bonus item of the CURRENT look as a small picture (a data URL): a diamond in Classic, a leaf in the forest, a scarab in the desert...
+    // Empty when the browser cannot make one (the receipt then falls back to a plain icon).
+    function themeIconUrl(drawFn) {
+      try {
+        const c = document.createElement('canvas');
+        c.width = 56; c.height = 56;
+        if (typeof c.toDataURL !== 'function') return '';
+        renderLegendIcon(c, drawFn);
+        return c.toDataURL('image/png');
+      } catch (e) { return ''; }
+    }
+    function bonusIconUrl() { return themeIconUrl(() => drawSpecialFood({ x: 0, y: 0 }, SPECIAL_FOOD_MAX_TIME)); }
     // The announcement on the level-complete screen: one card (headline, item, joke), then "+N more" (only a debug jump unlocks several at once;
     // with the unlocks spaced two levels apart a player gets one at a time, and one card keeps the text at full size).
     function renderUnlockCards() {
@@ -2517,6 +2832,8 @@
       score = 0;
       runUnlocks = [];
       recordBeaten = false;
+      deathLineRef = null;
+      gemStreak = 0;
       recRun = null; recLevel = null; recTick = 0; // a new run starts a new recording
       speedLevel = preferredSpeed; // a run starts at the speed chosen at the start of the previous run
       runSpeedSaved = false;
@@ -2531,8 +2848,24 @@
       setupLevel(level + 1);
     }
 
+    // Efficiency = par / moves on this level, at most 1 (1 when there is nothing to compare). Shown on the level chip's tooltip.
+    function efficiencyOf(moves, par) { return moves > 0 && par > 0 ? Math.min(1, par / moves) : 1; }
+    // The efficiency a gem is paid by right now (#108). The food on the board counts as already owed (its par is added to both sides, so wandering
+    // shows at once but normal play barely moves it), and the gem's own route counts as par (so chasing a gem is not a penalty).
+    function gemEfficiency(gemPar = 0) {
+      const par = levelPar + foodPar + gemPar, moves = levelMoves + foodPar;
+      return moves > 0 && par > 0 ? Math.min(1, par / moves) : 1;
+    }
+    // The sliding scale: 0 at `floor` or lower, 1 at `full` or higher, a straight line between. 1 when the scaling is off.
+    function efficiencyFactor(eff) {
+      const G = FOOD_CONFIG.gemEfficiency;
+      if (!G.on) return 1;
+      return Math.max(0, Math.min(1, (eff - G.floor) / Math.max(0.01, G.full - G.floor)));
+    }
     function levelComplete() {
-      if (recLevel && !recLevel.end) recLevel.end = 'c'; // replay recording: this level was completed
+      levelEff = efficiencyOf(levelMoves, levelPar);
+      gemStreak = levelGems > 0 ? gemStreak + 1 : 0; // a gem on every level in a row builds the streak (#100)
+      if (recLevel && !recLevel.end) { recLevel.end = 'c'; recLevel.par = levelPar; } // replay recording: this level was completed, with its par
       gameRunning = false;
       updatePlayMode();
       if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
@@ -2541,13 +2874,16 @@
       updateNewsDot();
       sfx.levelUp();
       if (lastUnlocks.length) { sfx.unlock(); unlockFx(); } // the kapow: a fanfare after the level jingle, gold rings and confetti
+      levelPage = 'invoice';
       updateLevelOverlay();
       levelOverlay.style.display = 'flex';
+      fitInvoice();         // (now that the screen is visible it has a width to measure)
+      startInvoiceReveal(); // the receipt prints line by line (Enter shows it all at once)
     }
 
-    function addScore(points) {
+    function addScore(points, goalFoods = 0) { // goalFoods: how many foods this counts towards the level goal (1 for regular food, 0 for a bonus gem, #99)
       score += points;
-      levelScore += points;
+      levelFoods += goalFoods;
       updateScore();
       // Passing the best recorded run: fanfare, once per game (needs an existing #1 to beat)
       if (!recordBeaten) {
@@ -2589,7 +2925,23 @@
       maxRegularPath: 70,  // sanity cap on the path length to regular food (steps)
       // bonus time on screen in moves: longer on generous levels, shorter on hard ones (0.5 = 80, as before)
       bonusTime: { generous: 120, normal: 80, hard: 50 },
-      bonusChance: 0.1,      // chance of a bonus gem each time regular food is eaten (never while one is on the board); the debug menu edits it
+      // When does a bonus gem appear? (#92; the debug menu edits all of these live, none is saved)
+      bonusMode: 'timer',    // 'timer': a gem appears after a gap of moves; 'meal': a chance each time regular food is eaten
+      bonusGap: { min: 50, max: 90 }, // timer mode: moves from a gem vanishing (eaten, expired, new level) to the next one appearing, random in between
+      bonusRetry: 10,        // timer mode: if no reachable spot existed, try again after this many moves
+      bonusChance: 0.1,      // meal mode: chance of a gem each time regular food is eaten
+      // In both modes there is never more than one gem on the board (#94).
+      // What a gem is worth (#99): bonusPoints x speed x (1 + bonusFresh x share of its life still left). A fresh gem pays 3x the base, an
+      // about-to-expire one 1x. The gem never counts towards the level goal, so eating it only ever adds to the score.
+      bonusPoints: 30,
+      // A gem pays by the player's efficiency (#108, replaces the end-of-level bonus of #103): efficiency = par / moves on this level (par = the sum of
+      // the shortest paths from the head to each food when it appeared, plus the gem's own route). A SLIDING scale: nothing at `floor` or lower,
+      // the full worth at `full` or higher, a straight line between. This stops farming gems by wandering. `on: false` turns it off.
+      gemEfficiency: { on: true, floor: 0.3, full: 0.7 },
+      bonusFresh: 2,         // extra multiples of the base for a fresh gem (0 = a flat worth)
+      // Streak (#100): each level in a row in which you ate a gem adds this much to every later gem's worth, up to the cap. A level without a gem resets it.
+      bonusStreakStep: 0.25,
+      bonusStreakMax: 4,     // so at most x2
       bonusReachMargin: 0.7, // the bonus must be reachable within 70% of its time
       bonusWarnShare: 0.375, // it starts blinking with this share of its time left (30 of 80 moves)
     };
@@ -2722,19 +3074,54 @@
       return pool[idx].c;
     }
 
-    function placeFood() {
+    // The FIRST food of a level always appears ahead of the snake (it starts heading right), in a cone from the head: 3 to 9 cells to the right,
+    // at most half that many cells up or down (#114). The player never has to turn "backwards" in the first seconds, which was hard to time.
+    function inStartCone(c, head) { const dx = c.x - head.x; return dx >= 3 && dx <= 9 && Math.abs(c.y - head.y) <= Math.floor(dx / 2); }
+    function placeFood(firstOfLevel = false) {
       food = null; // so the old food cell counts as open
       const cells = openCells();
+      const cone = firstOfLevel && snake.length ? cells.filter(c => inStartCone(c, snake[0])) : [];
       const pick = cells.length
-        ? chooseFoodCell(cells, { minPath: FOOD_CONFIG.minPath, maxPath: FOOD_CONFIG.maxRegularPath })
+        ? chooseFoodCell(cone.length ? cone : cells, { minPath: FOOD_CONFIG.minPath, maxPath: FOOD_CONFIG.maxRegularPath })
         : null;
       food = pick || { x: -1, y: -1 };
+      const par = food.x >= 0 ? pathDistances().get(cellId(food.x, food.y)) : undefined;
+      foodPar = par === undefined ? 0 : par; // how many moves the shortest way to this food takes (#103)
       if (DEBUG) debugFoodNote();
     }
 
     function clearSpecialFood() {
       specialFood = null;
       specialFoodTimer = 0;
+      bonusCountdown = null; // timer mode: the gap to the next gem is rolled afresh on the next move
+    }
+
+    // ---- When a bonus gem appears (timer mode, #92) ----
+    function rollBonusGap() {
+      const lo = Math.max(1, Math.round(FOOD_CONFIG.bonusGap.min));
+      const hi = Math.max(lo, Math.round(FOOD_CONFIG.bonusGap.max));
+      return lo + Math.floor(Math.random() * (hi - lo + 1));
+    }
+    // Called once per move (after regular food, before the gem collision, the same place the meal roll has). The countdown runs only while
+    // no gem is on the board, so there is never more than one. The replay needs nothing: it applies the recorded 'b' events.
+    function bonusTimerStep() {
+      if (FOOD_CONFIG.bonusMode !== 'timer' || specialFood) { bonusCountdown = null; return; }
+      if (bonusCountdown === null) bonusCountdown = rollBonusGap();
+      if (--bonusCountdown <= 0) {
+        spawnSpecialFood();
+        bonusCountdown = specialFood ? null : FOOD_CONFIG.bonusRetry; // no reachable spot: try again soon
+      }
+    }
+
+    // What a gem is worth right now (#99): `timer` moves left of `life`, at this speed. Also the number shown beside it on the board.
+    let gemStreak = 0; // consecutive completed levels in which a gem was eaten (#100); reset by a level without one and by a new run
+    function streakFactor(streak) { return 1 + FOOD_CONFIG.bonusStreakStep * Math.max(0, Math.min(FOOD_CONFIG.bonusStreakMax, streak)); }
+    function gemWorth(timer, life, speed, streak = gemStreak, eff = 1) { // eff: the player's efficiency (#108); 1 = no reduction
+      const share = life > 0 ? Math.max(0, Math.min(1, timer / life)) : 0;
+      return Math.round(FOOD_CONFIG.bonusPoints * speed * (1 + FOOD_CONFIG.bonusFresh * share) * streakFactor(streak) * efficiencyFactor(eff));
+    }
+    function gemWorthRange(speed) { // for the legend: the least and the most a gem can pay at this speed
+      return [Math.round(FOOD_CONFIG.bonusPoints * speed * streakFactor(gemStreak)), Math.round(FOOD_CONFIG.bonusPoints * speed * (1 + FOOD_CONFIG.bonusFresh) * streakFactor(gemStreak))];
     }
 
     // Spawn the bonus food. The same hardness picks its spot AND how long it stays: generous
@@ -2747,7 +3134,8 @@
         minPath: 2, maxPath: Math.floor(life * FOOD_CONFIG.bonusReachMargin), strict: true,
       });
       if (!pos) return; // nowhere it could be reached in time: skip this bonus
-      specialFood = { x: pos.x, y: pos.y, timer: life, warn: Math.round(life * FOOD_CONFIG.bonusWarnShare) };
+      const route = pathDistances().get(cellId(pos.x, pos.y)); // the shortest way to the gem counts as par when it is eaten (#108)
+      specialFood = { x: pos.x, y: pos.y, timer: life, life, par: route === undefined ? 0 : route, warn: Math.round(life * FOOD_CONFIG.bonusWarnShare) };
       specialFoodTimer = life;
       recEvent('b', pos.x, pos.y, life); // replay recording: the bonus food appeared
       sfx.bonusSpawn();
@@ -2769,7 +3157,7 @@
       document.getElementById('legendFood').innerHTML =
         t('legendFood_' + look.theme, { n: '<b>' + (scoreMultiplier * speedLevel) + '</b>' });
       document.getElementById('legendBonus').innerHTML =
-        t('legendBonus_' + look.theme, { n: '<b>' + (30 * speedLevel) + '</b>' });
+        t('legendBonus_' + look.theme, { n: '<b>' + gemWorthRange(speedLevel).join('–') + '</b>' });
     }
 
     function startGame(fromCountdown) {
@@ -2800,17 +3188,18 @@
     // The key that started it is remembered as the first direction, and a later direction key during the countdown replaces it.
     // The game itself (`startGame`) is unchanged, so replays and tests that call it directly are not affected.
     let starting = false;
-    let pendingStartKey = null;
+    let pendingStartKeys = []; // the direction keys pressed before and during the 3-2-1, in order (at most three): they are turns, e.g. down then left to start "backwards"
+    function addStartKey(key) { if (pendingStartKeys.length < 3 && pendingStartKeys[pendingStartKeys.length - 1] !== key) pendingStartKeys.push(key); }
     function beginRun(key) {
       if (gameStarted || gameRunning || starting) return;
       starting = true;
-      pendingStartKey = key || null;
+      pendingStartKeys = key ? [key] : [];
       startOverlay.style.display = 'none';
       startCountdown(() => {
         starting = false;
         startGame(true);
-        if (pendingStartKey) handleDirection(pendingStartKey);
-        pendingStartKey = null;
+        pendingStartKeys.forEach(handleDirection); // the turns pressed so far, in order
+        pendingStartKeys = [];
       });
       updatePlayMode();
     }
@@ -2819,7 +3208,7 @@
       if (!starting) return false;
       cancelCountdown();
       starting = false;
-      pendingStartKey = null;
+      pendingStartKeys = [];
       startOverlay.style.display = 'flex';
       return true;
     }
@@ -2834,6 +3223,8 @@
       };
       countdownOverlay.style.display = 'flex';
       begin();
+      // 3 ... 2 ... 1 ... go: one beat each. (An experiment in #114 started the action on the explosion of the "1" itself and moved at once;
+      // the player felt the game started BEFORE the countdown was done, so it is back to a full beat after the "1".)
       countdownTimer = setInterval(() => {
         n--;
         if (n === 0) { cancelCountdown(); sfx.go(); onDone(); }
@@ -2842,7 +3233,7 @@
     }
 
     function cancelCountdown() {
-      if (countdownTimer !== null) { clearInterval(countdownTimer); countdownTimer = null; }
+      if (countdownTimer !== null) { clearTimeout(countdownTimer); clearInterval(countdownTimer); countdownTimer = null; }
       countdownAnim = null;
       countdownOverlay.style.display = 'none';
       updatePlayMode(); // (a cancelled countdown: back to the paused state)
@@ -2952,6 +3343,7 @@
         nextDirection = direction; // ignore reverse
       }
       direction = nextDirection;
+      if (dirQueue.length) nextDirection = dirQueue.shift(); // a turn that was waiting becomes the next move's direction (#114)
       if (recLevel) recLevel.moves += dirChar(direction); // replay recording: the direction taken this tick
 
       // Move head
@@ -2985,27 +3377,37 @@
       // ---- Regular food collision ----
       if (head.x === food.x && head.y === food.y) {
         ate = true;
-        addScore(scoreMultiplier * speedLevel); // speed-scaled points
+        addScore(scoreMultiplier * speedLevel, 1); // speed-scaled points; one food towards the level goal
+        levelFoodPts += scoreMultiplier * speedLevel; levelPar += foodPar; // (the par of the food just eaten; placeFood below sets the next)
         sfx.eat();
         burstAt(head, false);
         placeFood();
         recEvent('f', food.x, food.y); // replay recording: where the new food appeared
 
-        // After eating regular food, maybe spawn special food with small chance.
+        // Meal mode: after eating regular food, maybe spawn special food with a small chance.
         // Never while a gem is already on the board (#94): spawnSpecialFood() would overwrite it,
         // so the old gem vanished and a new one appeared elsewhere. The roll is skipped, not saved.
-        if (!specialFood && Math.random() < FOOD_CONFIG.bonusChance) {
+        if (FOOD_CONFIG.bonusMode === 'meal' && !specialFood && Math.random() < FOOD_CONFIG.bonusChance) {
           spawnSpecialFood();
         }
       }
+      bonusTimerStep(); // timer mode: count down to the next gem (does nothing in meal mode)
 
       // ---- Special food collision ----
       if (specialFood && head.x === specialFood.x && head.y === specialFood.y) {
         // eat bonus food
         ate = true;
-        addScore(30 * speedLevel); // bonus points scaled by speed
+        const eff = gemEfficiency(specialFood.par || 0), G = FOOD_CONFIG.gemEfficiency;
+        const worth = gemWorth(specialFoodTimer, specialFood.life, speedLevel, gemStreak, eff); // speed, freshness, streak and efficiency (#99, #108)
+        recEvent('g', worth, Math.round(eff * 100)); // the replay uses the worth instead of working it out again (the efficiency is kept for analysis)
+        levelPar += specialFood.par || 0; // (after the worth: the gem's own route is par from now on)
+        addScore(worth); // score only: the gem never brings the end of the level closer
+        levelGems++; levelGemPts += worth; runGems++; runGemPts += worth;
+        const lifeShare = specialFood.life > 0 ? Math.max(0, Math.min(1, specialFoodTimer / specialFood.life)) : 0;
+        levelGemList.push({ worth, fresh: 1 + FOOD_CONFIG.bonusFresh * lifeShare, streak: streakFactor(gemStreak), eff: efficiencyFactor(eff) }); // what made it worth that much
         sfx.bonus();
         burstAt(head, true);
+        floatText(head, '+' + worth, true, G.on && eff < G.full ? 'eff ' + Math.round(eff * 100) + '%' : ''); // says why it paid less
         clearSpecialFood();
       }
 
@@ -3014,12 +3416,13 @@
         snake.pop();
       }
       recTick++; // replay recording: this tick is complete
+      levelMoves++; runMoves++; // (#102)
       fogStep(fogLive, runFog, level, head, ate); // fog of war: count the move, look around from the new position
 
       // ---- Draw everything ----
       draw();
 
-      if (levelScore >= levelTarget) {
+      if (levelFoods >= levelGoal) {
         levelComplete();
         return;
       }
@@ -3903,6 +4306,101 @@
           ctx.fillRect(x0 + px, y0 + px, px, px);
         },
       },
+      neon: { // Neon Grid (#93): near-black indigo, a faint glowing grid, circuit traces with light pulses, hologram cubes, an energy cell and a hologram crystal
+        fx: { colors: ['#00e5ff', '#ff3df2', '#ffffff'], shape: 'square', gravity: 0.02, size: 2.4 },
+        snakeGlow: 'rgba(0, 229, 255, 0.85)', // the snake keeps its colour but gets a neon edge
+        build(g) {
+          const bg = g.createLinearGradient(0, 0, 0, THEME_SIZE);
+          bg.addColorStop(0, '#0d0b2b');
+          bg.addColorStop(1, '#070716');
+          g.fillStyle = bg;
+          g.fillRect(0, 0, THEME_SIZE, THEME_SIZE);
+          // two soft glows, magenta at the top and cyan at the bottom, like a city lighting the sky
+          let glow = g.createRadialGradient(THEME_SIZE / 2, 0, 10, THEME_SIZE / 2, 0, 260);
+          glow.addColorStop(0, 'rgba(255, 61, 242, 0.20)'); glow.addColorStop(1, 'rgba(255, 61, 242, 0)');
+          g.fillStyle = glow; g.fillRect(0, 0, THEME_SIZE, THEME_SIZE);
+          glow = g.createRadialGradient(THEME_SIZE / 2, THEME_SIZE, 10, THEME_SIZE / 2, THEME_SIZE, 260);
+          glow.addColorStop(0, 'rgba(0, 229, 255, 0.18)'); glow.addColorStop(1, 'rgba(0, 229, 255, 0)');
+          g.fillStyle = glow; g.fillRect(0, 0, THEME_SIZE, THEME_SIZE);
+          g.lineWidth = 1; // the faint grid
+          for (let i = 0; i <= THEME_SIZE; i += 40) {
+            g.strokeStyle = 'rgba(0, 229, 255, 0.10)';
+            g.beginPath(); g.moveTo(i + 0.5, 0); g.lineTo(i + 0.5, THEME_SIZE); g.stroke();
+            g.strokeStyle = 'rgba(255, 61, 242, 0.08)';
+            g.beginPath(); g.moveTo(0, i + 0.5); g.lineTo(THEME_SIZE, i + 0.5); g.stroke();
+          }
+          const r = mulberry32(97);
+          g.strokeStyle = 'rgba(0, 229, 255, 0.20)'; // circuit traces: right-angled lines that end in a node
+          g.fillStyle = 'rgba(0, 229, 255, 0.35)';
+          for (let i = 0; i < 9; i++) {
+            let x = Math.round(r() * 19) * 20 + 10, y = Math.round(r() * 19) * 20 + 10;
+            g.beginPath(); g.moveTo(x, y);
+            for (let k = 0; k < 3; k++) {
+              if (k % 2 === 0) x += (r() < 0.5 ? -1 : 1) * (2 + Math.floor(r() * 4)) * 20; else y += (r() < 0.5 ? -1 : 1) * (2 + Math.floor(r() * 4)) * 20;
+              x = Math.max(10, Math.min(THEME_SIZE - 10, x)); y = Math.max(10, Math.min(THEME_SIZE - 10, y));
+              g.lineTo(x, y);
+            }
+            g.stroke();
+            g.beginPath(); g.arc(x, y, 2.5, 0, Math.PI * 2); g.fill();
+          }
+        },
+        animate(now) { // light pulses running along the grid lines, slowly
+          for (let i = 0; i < 6; i++) {
+            const horizontal = i % 2 === 0, along = ((now * (0.03 + (i % 3) * 0.012) + i * 97) % 520) - 60, fixed = 40 + i * 60 + 0.5;
+            const x0 = horizontal ? along : fixed, y0 = horizontal ? fixed : along, x1 = horizontal ? along + 36 : fixed, y1 = horizontal ? fixed : along + 36;
+            const g = ctx.createLinearGradient(x0, y0, x1, y1);
+            const c = i % 3 === 0 ? '255, 61, 242' : '0, 229, 255';
+            g.addColorStop(0, 'rgba(' + c + ', 0)'); g.addColorStop(1, 'rgba(' + c + ', 0.55)');
+            ctx.strokeStyle = g; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+          }
+        },
+        obstacle(ox, oy, id) { // a wireframe hologram cube, cyan or (now and then) magenta
+          const c = id % 4 === 0 ? '255, 61, 242' : '0, 229, 255';
+          const fx = ox + 3, fy = oy + 7, w = 11, d = 4; // front face; the back face sits up and to the right
+          ctx.fillStyle = 'rgba(' + c + ', 0.13)';
+          ctx.fillRect(fx, fy, w, w);
+          ctx.fillRect(fx + d, fy - d, w, w);
+          ctx.shadowColor = 'rgb(' + c + ')'; ctx.shadowBlur = 6;
+          ctx.strokeStyle = 'rgba(' + c + ', 0.95)'; ctx.lineWidth = 1.2;
+          ctx.strokeRect(fx + 0.5, fy + 0.5, w, w);
+          ctx.strokeStyle = 'rgba(' + c + ', 0.55)';
+          ctx.strokeRect(fx + d + 0.5, fy - d + 0.5, w, w);
+          ctx.beginPath();
+          ctx.moveTo(fx, fy); ctx.lineTo(fx + d, fy - d);
+          ctx.moveTo(fx + w, fy); ctx.lineTo(fx + w + d, fy - d);
+          ctx.moveTo(fx + w, fy + w); ctx.lineTo(fx + w + d, fy - d + w);
+          ctx.moveTo(fx, fy + w); ctx.lineTo(fx + d, fy - d + w);
+          ctx.stroke();
+          ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+        },
+        food(cx, cy) { // an energy cell: a glowing cyan hexagon with a bright core
+          ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 10;
+          const g = ctx.createRadialGradient(cx, cy, 1, cx, cy, 7.5);
+          g.addColorStop(0, '#d9fcff'); g.addColorStop(0.45, '#19e6ff'); g.addColorStop(1, '#0a4a78');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; const x = cx + Math.cos(a) * 7, y = cy + Math.sin(a) * 7; if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+          ctx.closePath(); ctx.fill();
+          ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+          ctx.strokeStyle = '#bff8ff'; ctx.lineWidth = 1; ctx.stroke();
+          ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 1.5, cy - 1.5, 3, 3);
+        },
+        bonus(cx, cy) { // a hologram crystal: a tall magenta diamond with facets and a sheen
+          ctx.shadowColor = '#ff3df2'; ctx.shadowBlur = 13;
+          ctx.fillStyle = '#c21bd0';
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx + 6.5, cy); ctx.lineTo(cx, cy + 10); ctx.lineTo(cx - 6.5, cy); ctx.closePath(); ctx.fill();
+          ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+          ctx.fillStyle = '#ff7cf6'; // lit facet (upper left)
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx - 6.5, cy); ctx.lineTo(cx, cy); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#7a0f99'; // shaded facet (lower right)
+          ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 6.5, cy); ctx.lineTo(cx, cy + 10); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = '#ffd6fb'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx + 6.5, cy); ctx.lineTo(cx, cy + 10); ctx.lineTo(cx - 6.5, cy); ctx.closePath(); ctx.stroke();
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(cx - 3, cy - 5, 1.6, 4); // the sheen
+          ctx.fillStyle = '#00e5ff'; ctx.fillRect(cx + 7, cy - 9, 2, 2); ctx.fillRect(cx - 9, cy + 7, 2, 2); // two stray data bits
+        },
+      },
     };
 
     const THEME_KEY = 'snake_theme';
@@ -3990,6 +4488,7 @@
       const cx = sf.x * GRID_SIZE + GRID_SIZE / 2;
       const cy = sf.y * GRID_SIZE + GRID_SIZE / 2;
       const expiring = timer <= (sf.warn !== undefined ? sf.warn : SPECIAL_FOOD_WARN_TIME);
+      if (sf.life) drawGemHalo(sf, cx, cy, timer);
       ctx.save();
       // blink slowly enough to read at any speed (toggles every 3 ticks)
       ctx.globalAlpha = expiring && Math.floor(timer / 3) % 2 !== 0 ? 0.35 : 1;
@@ -4000,6 +4499,31 @@
         roundRectPath(sf.x * GRID_SIZE + 1, sf.y * GRID_SIZE + 1, GRID_SIZE - 2, GRID_SIZE - 2, 5);
         ctx.stroke();
       }
+      ctx.restore();
+      if (sf.life) drawGemRing(sf, cx, cy, timer);
+    }
+    // The gem's age as light (#99): a soft halo that fades as the gem ages, with a faint arc that shortens. Meant to be felt, not read.
+    // A running streak turns both gold and a little stronger. Variant 5 of the user's glow sheet (screenshots/108).
+    function gemGlowColor() {
+      const streak = replayActive ? 0 : Math.min(gemStreak, FOOD_CONFIG.bonusStreakMax);
+      return { rgb: streak > 0 ? '255, 216, 74' : '215, 240, 255', boost: 1 + 0.08 * streak };
+    }
+    function drawGemHalo(sf, cx, cy, timer) { // drawn BEHIND the gem
+      const share = Math.max(0, Math.min(1, timer / sf.life)), c = gemGlowColor();
+      const r = GRID_SIZE * 1.0;
+      const g = ctx.createRadialGradient(cx, cy, 2, cx, cy, r);
+      g.addColorStop(0, 'rgba(' + c.rgb + ', ' + (0.1 + 0.25 * share) * c.boost + ')');
+      g.addColorStop(1, 'rgba(' + c.rgb + ', 0)');
+      ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+    function drawGemRing(sf, cx, cy, timer) { // the faint arc, drawn over the gem
+      const share = Math.max(0, Math.min(1, timer / sf.life)), c = gemGlowColor();
+      ctx.save();
+      ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(' + c.rgb + ', ' + 0.22 * c.boost + ')';
+      ctx.beginPath();
+      ctx.arc(cx, cy, GRID_SIZE * 0.7, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * share);
+      ctx.stroke();
       ctx.restore();
     }
 
@@ -4072,6 +4596,9 @@
         return lerpColor(theme.bright, theme.dark, k);
       };
 
+      // A theme may give the snake a glowing edge (Neon Grid): `snakeGlow` is the glow colour and the outline colour, `snakeEdge` the outline alone.
+      const glow = THEMES[look.theme].snakeGlow, edge = THEMES[look.theme].snakeEdge || glow;
+      if (glow) { ctx.shadowColor = glow; ctx.shadowBlur = 8; }
       // draw tail -> head so the head overlaps the body
       for (let i = n - 1; i >= 0; i--) {
         const c = cells[i];
@@ -4094,7 +4621,7 @@
         const radius = i === 0 ? 7 : (i === n - 1 ? 7 : 5);
         roundRectPath(x, y, size, size, radius);
         ctx.fill();
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)'; // thin outline keeps the snake readable on any theme
+        ctx.strokeStyle = edge || 'rgba(0, 0, 0, 0.35)'; // thin outline keeps the snake readable on any theme
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -4104,6 +4631,7 @@
         ctx.fill();
       }
 
+      if (glow) { ctx.shadowBlur = 0; ctx.shadowColor = 'transparent'; }
       // head details
       const h = cells[0];
       const cx = h.x * GRID_SIZE + GRID_SIZE / 2;
@@ -4517,9 +5045,9 @@
     function updateScore() {
       scoreEl.textContent = score;
       hudLevelEl.textContent = level;
-      const shown = Math.min(levelScore, levelTarget);
-      progressText.textContent = shown + ' / ' + levelTarget;
-      progressFill.style.width = (levelTarget > 0 ? Math.round((100 * shown) / levelTarget) : 0) + '%';
+      const shown = Math.min(levelFoods, levelGoal);
+      progressText.textContent = shown + ' / ' + levelGoal;
+      progressFill.style.width = (levelGoal > 0 ? Math.round((100 * shown) / levelGoal) : 0) + '%';
       updateSpeedDisplay(); // also refreshes the minimum-speed tooltip for this level
       [scoreEl, hudLevelEl, progressText].forEach(fitText);
     }
@@ -4551,6 +5079,36 @@
         });
       }
       kickFx();
+    }
+
+    // A number that rises from a cell and fades, e.g. "+90" where a gem was eaten (#99). It lives on the effects layer.
+    let floats = [];
+    function floatText(cell, text, gold, sub) {
+      const x = cell.x * GRID_SIZE + GRID_SIZE / 2;
+      const y = Math.max(14, cell.y * GRID_SIZE + GRID_SIZE / 2 - 4);
+      floats.push({ x: Math.min(Math.max(x, 22), BOARD_LOGICAL - 22), y, text, sub: sub || '', gold: !!gold, life: 0, max: sub ? 1500 : 1100 });
+      kickFx();
+    }
+    function drawFloats(dt) {
+      floats = floats.filter(f => f.life < f.max);
+      for (const f of floats) {
+        f.life += dt;
+        const k = f.life / f.max;
+        const rise = REDUCED_MOTION ? 0 : 26 * (1 - Math.pow(1 - k, 2)); // rises quickly, then settles
+        fxCtx.save();
+        fxCtx.globalAlpha = k < 0.7 ? 1 : Math.max(0, 1 - (k - 0.7) / 0.3);
+        fxCtx.font = 'bold ' + (f.gold ? 17 : 13) + 'px "Courier New", monospace';
+        fxCtx.textAlign = 'center'; fxCtx.textBaseline = 'middle';
+        fxCtx.lineJoin = 'round'; fxCtx.lineWidth = 4; fxCtx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+        fxCtx.fillStyle = f.gold ? '#ffd84a' : '#ffffff';
+        fxCtx.strokeText(f.text, f.x, f.y - rise);
+        fxCtx.fillText(f.text, f.x, f.y - rise);
+        if (f.sub) { // a smaller line under it, e.g. "eff 54%"
+          fxCtx.font = 'bold 11px "Courier New", monospace'; fxCtx.fillStyle = '#cfe0ff'; fxCtx.lineWidth = 3;
+          fxCtx.strokeText(f.sub, f.x, f.y - rise + 15); fxCtx.fillText(f.sub, f.x, f.y - rise + 15);
+        }
+        fxCtx.restore();
+      }
     }
 
     function kickFx() { // make sure the effects loop is running
@@ -4586,7 +5144,8 @@
       }
       fxCtx.globalAlpha = 1;
       drawCountdownFx(now);
-      if (particles.length || countdownAnim || rings.length) {
+      drawFloats(dt);
+      if (particles.length || countdownAnim || rings.length || floats.length) {
         fxRaf = requestAnimationFrame(fxFrame);
       } else {
         fxRaf = null;
@@ -4597,6 +5156,7 @@
     function clearParticles() {
       particles = [];
       rings = [];
+      floats = [];
       fxCtx.clearRect(0, 0, BOARD_LOGICAL, BOARD_LOGICAL);
     }
 
@@ -4776,6 +5336,7 @@
       stopMusic(0.12); // the music cuts out so the death jingle plays on its own
       sfx.gameOver();
       finalScoreEl.textContent = score;
+      deathLineRef = chooseDeathLine(); // the cause of death, in the theme of the level it happened on (#78)
 
       // Every run is recorded. The rank is worked out before adding it, so a tie ranks
       // below earlier runs with the same score (matching how the board is sorted).
@@ -4808,12 +5369,15 @@
     let lastRank = 0;
     let lastRunTotal = 0;
     function updateFinalRank() {
+      renderDeathLine(); // (also called when the language changes)
       finalRankEl.textContent = lastRank > 0 ? t('finalRank', { r: lastRank, n: lastRunTotal }) : '';
       // what this run unlocked: up to three names, then "+N more" (nothing unlocked: the line is hidden)
       const shown = runUnlocks.slice(0, 3).map(itemName); // the short names from the settings ("Blue", "Enchanted Forest")
       if (runUnlocks.length > 3) shown.push(t('unlockMore', { n: runUnlocks.length - 3 }));
       runUnlocksEl.textContent = shown.length ? t('runUnlocks', { names: shown.join(', ') }) : '';
       runUnlocksEl.style.display = shown.length ? '' : 'none';
+      runGemsEl.textContent = runGems ? t('gemTally', { n: runGems, p: runGemPts }) : ''; // and in the whole run
+      runGemsEl.style.display = runGems ? '' : 'none';
     }
 
     // ===== High-score entry (in-game dialog) =====
@@ -4941,13 +5505,13 @@
       w.snake = [{ x: START_X, y: START_Y }, { x: START_X - 1, y: START_Y }, { x: START_X - 2, y: START_Y }];
       w.food = { x: L.food.x, y: L.food.y };
       w.bonus = null;
-      w.speed = L.speed; w.score = L.score0; w.levelScore = 0;
+      w.speed = L.speed; w.score = L.score0; w.levelFoods = 0;
       w.fog = fogNew(); // fog of war: the replay keeps its own view, the same one the run had
       fogReveal(w.fog, data.fog || 'off', L.lv, w.snake[0]);
     }
     function rpApplyLevel(L) { // the level's obstacles and look go onto the board
       level = L.lv;
-      levelTarget = targetFor(L.lv);
+      levelGoal = targetFor(L.lv);
       obstacleSet = new Set(L.obs);
       Object.assign(look, L.look);
       document.body.dataset.theme = look.theme;
@@ -4967,31 +5531,33 @@
       if (head.x === w.food.x && head.y === w.food.y) {
         ate = true;
         const pts = BASE_POINTS_PER_FOOD * w.speed;
-        w.score += pts; w.levelScore += pts;
+        w.score += pts; w.levelFoods += 1; // (recordings from before #101 counted points here; only the progress bar differs)
         if (fx) { sfx.eat(); burstAt(head, false); }
       }
       while (w.ei < L.ev.length && L.ev[w.ei][0] === T) { // food and bonus food that appeared during this tick
         const e = L.ev[w.ei++];
         if (e[1] === 'f') w.food = { x: e[2], y: e[3] };
         else if (e[1] === 'b') {
-          w.bonus = { x: e[2], y: e[3], timer: e[4], warn: Math.round(e[4] * FOOD_CONFIG.bonusWarnShare) };
+          w.bonus = { x: e[2], y: e[3], timer: e[4], life: e[4], warn: Math.round(e[4] * FOOD_CONFIG.bonusWarnShare) };
           if (fx) sfx.bonusSpawn();
-        }
+        } else if (e[1] === 'g') w.gemWorth = e[2]; // what the gem paid, as the run recorded it (#99)
       }
       if (w.bonus && head.x === w.bonus.x && head.y === w.bonus.y) {
         ate = true;
-        const pts = 30 * w.speed;
-        w.score += pts; w.levelScore += pts;
+        const pts = w.gemWorth !== undefined ? w.gemWorth : 30 * w.speed; // older recordings have no 'g' event: they paid a flat 30 x speed
+        w.gemWorth = undefined;
+        w.score += pts; // (older recordings counted a gem towards the level progress shown; only the bar differs, the moves decide)
         w.bonus = null;
-        if (fx) { sfx.bonus(); burstAt(head, true); }
+        if (fx) { sfx.bonus(); burstAt(head, true); floatText(head, '+' + pts, true); }
       }
       if (!ate) w.snake.pop();
       fogStep(w.fog, w.data.fog || 'off', L.lv, head, ate); // mirrors gameLoop (fog only changes how the board is drawn)
       w.t++;
+      if (w.t === w.ticks && L.end === 'c' && L.bonus) w.score += L.bonus; // the efficiency bonus (#103) is paid when the level ends; the recording holds it
     }
     function rpRender(w) { // copy the simulated state into the game's variables and draw it with the normal drawing code
       snake = w.snake; food = w.food; specialFood = w.bonus; specialFoodTimer = w.bonus ? w.bonus.timer : 0;
-      score = w.score; levelScore = w.levelScore; speedLevel = w.speed;
+      score = w.score; levelFoods = w.levelFoods; speedLevel = w.speed;
       direction = DIR_VECTORS[w.t > 0 ? w.L.moves[w.t - 1] : 'R'];
       replayFog = { fs: w.fog, preset: replay.data.fog || 'off' };
       draw();
@@ -5003,14 +5569,14 @@
     // level, how the run ended, every food placement of the last level with how awkward it was, the board just before the fatal move (the same
     // dump the debug key B makes), and finally the complete recording as JSON (so it could be loaded back later).
     function withRunState(w, L, death, fn) { // briefly put a replay state into the game's variables so the board-dump code can describe it
-      const keep = { snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelScore, levelTarget, score, speedLevel, direction, deathInfo };
+      const keep = { snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelFoods, levelGoal, score, speedLevel, direction, deathInfo };
       try {
         snake = w.snake; food = w.food; specialFood = w.bonus; specialFoodTimer = w.bonus ? w.bonus.timer : 0;
-        obstacleSet = new Set(L.obs); level = L.lv; levelScore = w.levelScore; levelTarget = targetFor(L.lv);
+        obstacleSet = new Set(L.obs); level = L.lv; levelFoods = w.levelFoods; levelGoal = targetFor(L.lv);
         score = w.score; speedLevel = w.speed; direction = DIR_VECTORS[w.t > 0 ? L.moves[w.t - 1] : 'R']; deathInfo = death || null;
         return fn();
       } finally {
-        ({ snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelScore, levelTarget, score, speedLevel, direction, deathInfo } = keep);
+        ({ snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelFoods, levelGoal, score, speedLevel, direction, deathInfo } = keep);
       }
     }
     function buildRunExport(data) {
@@ -5036,8 +5602,8 @@
         }
         foods.push(cur);
         out.push('level ' + L.lv + ': look ' + L.look.theme + '/' + L.look.color + '/' + L.look.pattern + '/' + L.look.grid + ' | speed at start ' + L.speed +
-          ' | score at start ' + L.score0 + ' | ' + w.ticks + ' moves | ' + (foods.length - 1) + ' food eaten | ' + bonus + ' bonus food appeared' + (replaced ? ' (' + replaced + ' of them REPLACED a gem that was still on the board: the old gem vanished and a new one appeared elsewhere)' : '') + ' | ' +
-          (L.end === 'c' ? 'completed' : 'the run ended here'));
+          ' | score at start ' + L.score0 + ' | ' + w.ticks + ' moves | ' + (foods.length - 1) + ' food eaten | ' + bonus + ' bonus food appeared' + ((g) => g.length ? ', ' + g.length + ' eaten for ' + g.reduce((a, e) => a + e[2], 0) + ' points' : '')(L.ev.filter(e => e[1] === 'g')) + (replaced ? ' (' + replaced + ' of them REPLACED a gem that was still on the board: the old gem vanished and a new one appeared elsewhere)' : '') + ' | ' +
+          (L.end === 'c' ? 'completed' + (L.par ? ', moves ' + w.ticks + ' vs par ' + L.par + ' (' + Math.round(100 * Math.min(1, L.par / Math.max(1, w.ticks))) + '% efficient)' + (L.bonus ? ', efficiency bonus ' + L.bonus : '') : '') : 'the run ended here'));
         lastWalk = { w, L, foods };
       });
       const { w, L, foods } = lastWalk;
@@ -5080,7 +5646,7 @@
       replay = {
         data, starts, total, w: null, playing: false, mult: 1, timer: null, token: 0, finished: false,
         saved: { // the screen as it is now, so Exit can put everything back
-          snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelScore, levelTarget, score, speedLevel,
+          snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelFoods, levelGoal, score, speedLevel,
           direction, nextDirection, look: Object.assign({}, look),
         },
       };
@@ -5103,7 +5669,7 @@
       R.token++;
       const s = R.saved;
       snake = s.snake; food = s.food; specialFood = s.specialFood; specialFoodTimer = s.specialFoodTimer;
-      obstacleSet = s.obstacleSet; level = s.level; levelScore = s.levelScore; levelTarget = s.levelTarget;
+      obstacleSet = s.obstacleSet; level = s.level; levelFoods = s.levelFoods; levelGoal = s.levelGoal;
       score = s.score; speedLevel = s.speedLevel; direction = s.direction; nextDirection = s.nextDirection;
       Object.assign(look, s.look);
       document.body.dataset.theme = look.theme;
@@ -5250,21 +5816,30 @@
       initGame();
     }
 
-    function handleDirection(key) {
+    function keyVector(key) {
       switch (key) {
-        case 'ArrowUp': case 'w': case 'W':
-          if (direction.y === 0) nextDirection = { x: 0, y: -1 };
-          break;
-        case 'ArrowDown': case 's': case 'S':
-          if (direction.y === 0) nextDirection = { x: 0, y: 1 };
-          break;
-        case 'ArrowLeft': case 'a': case 'A':
-          if (direction.x === 0) nextDirection = { x: -1, y: 0 };
-          break;
-        case 'ArrowRight': case 'd': case 'D':
-          if (direction.x === 0) nextDirection = { x: 1, y: 0 };
-          break;
+        case 'ArrowUp': case 'w': case 'W': return { x: 0, y: -1 };
+        case 'ArrowDown': case 's': case 'S': return { x: 0, y: 1 };
+        case 'ArrowLeft': case 'a': case 'A': return { x: -1, y: 0 };
+        case 'ArrowRight': case 'd': case 'D': return { x: 1, y: 0 };
       }
+      return null;
+    }
+    // A direction key. The snake takes one turn per move; a second turn pressed BEFORE the first has happened used to be dropped (it was a
+    // turn "backwards" as far as the snake's current direction was concerned), so the player had to press it again, late (#114). Now it is
+    // queued (at most two waiting) and happens on the next move. A key that only reverses a turn that has not happened yet still changes
+    // the player's mind, as before.
+    function handleDirection(key) {
+      const v = keyVector(key);
+      if (!v) return;
+      const intended = dirQueue.length ? dirQueue[dirQueue.length - 1] : nextDirection; // where the snake is going to be heading after what is already pressed
+      if (v.x === intended.x && v.y === intended.y) return;
+      if (v.x === -intended.x && v.y === -intended.y) { // the opposite of where it is about to go
+        if (!dirQueue.length && !(v.x === -direction.x && v.y === -direction.y)) nextDirection = v; // a change of mind about a pending turn (never a real reverse)
+        return;
+      }
+      if (!dirQueue.length && nextDirection.x === direction.x && nextDirection.y === direction.y) { nextDirection = v; return; } // nothing waiting: a plain turn
+      if (dirQueue.length < 2) dirQueue.push(v); // a turn pressed before the earlier one happened: it follows on the next move
     }
 
     function changeSpeed(delta) {
@@ -5293,7 +5868,7 @@
     }
 
     // Keyboard: movement starts game, +/- changes speed
-    document.addEventListener('keydown', (e) => {
+    function onGameKeyDown(e) {
       const key = e.key;
       const isDirectional = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(key);
       const isSpeedUp = key === '+' || key === '=';
@@ -5326,7 +5901,7 @@
 
       // Level-complete screen: Enter / Space continues
       if (levelOverlay.style.display === 'flex') {
-        if (key === 'Enter' || key === ' ') { e.preventDefault(); nextLevel(); }
+        if (key === 'Enter' || key === ' ') { e.preventDefault(); levelAdvance(); }
         return;
       }
 
@@ -5334,10 +5909,10 @@
       if (handleGameOverKey(e)) return;
 
       // Space pauses / resumes a running game (and stops the page scrolling)
-      if (key === ' ' && gameRunning) { e.preventDefault(); togglePause(); return; }
+      if ((key === ' ' || key === 'p' || key === 'P' || key === 'Escape') && gameRunning) { e.preventDefault(); togglePause(); return; } // Space, P or Esc pauses / resumes (#113)
       if (paused) return; // no steering or speed changes while paused
 
-      if (starting) { if (isDirectional) pendingStartKey = key; return; } // during the 3-2-1 the last direction key wins
+      if (starting) { if (key === 'Escape') cancelStart(); else if (isDirectional) addStartKey(key); return; } // during the 3-2-1 the direction keys are remembered, in order
       if (!gameStarted && isDirectional) {
         beginRun(key);
         return;
@@ -5348,7 +5923,8 @@
         else if (isSpeedUp) changeSpeed(1);
         else if (isSpeedDown) changeSpeed(-1);
       }
-    });
+    }
+    document.addEventListener('keydown', onGameKeyDown);
 
     // ===== Touch input (#19): swipe on the board and an on-screen D-pad =====
     // Everything touch-specific lives in this section. Both inputs only call steerFromTouch(), which applies the same rules as
@@ -5397,7 +5973,7 @@
       const key = TOUCH_DIR_KEYS[dirChar];
       if (!key || replayActive || introActive || newsOpen || drawerOpen || dying || paused) return false;
       if (levelOverlay.style.display === 'flex' || gameOverEl.style.display === 'flex' || highScoreOverlay.style.display === 'flex') return false;
-      if (starting) { pendingStartKey = key; return true; }
+      if (starting) { addStartKey(key); return true; }
       if (!gameStarted) { beginRun(key); return true; }
       if (gameRunning) { handleDirection(key); return true; }
       return false;
@@ -6128,7 +6704,7 @@
       const lines = [];
       lines.push('=== SNAKE BOARD DUMP (' + reason + ') ===');
       lines.push('grid ' + GRID_WIDTH + 'x' + GRID_HEIGHT + ', coordinates are (x,y) with (0,0) top-left; x grows right, y grows DOWN');
-      lines.push('level ' + level + ' | score ' + score + ' | level progress ' + levelScore + '/' + levelTarget +
+      lines.push('level ' + level + ' | score ' + score + ' | level progress ' + levelFoods + '/' + levelGoal +
         ' | speed ' + speedLevel + ' (min ' + minSpeedFor(level) + ') | snake length ' + snake.length +
         ' | moving ' + dirName(direction) + ' | step every ' + Math.round(currentInterval()) + 'ms');
       lines.push('head (' + snake[0].x + ',' + snake[0].y + ')');
@@ -6148,7 +6724,7 @@
       lines.push('snake (head first): ' + snake.map(c => '(' + c.x + ',' + c.y + ')').join(' '));
       lines.push('state JSON: ' + JSON.stringify({
         reason: reason,
-        level: level, score: score, levelScore: levelScore, levelTarget: levelTarget,
+        level: level, score: score, levelFoods: levelFoods, levelGoal: levelGoal,
         speedLevel: speedLevel, direction: direction,
         snake: snake.map(c => [c.x, c.y]),
         food: food ? [food.x, food.y] : null,
@@ -6198,11 +6774,27 @@
       setupLevel(lv);
       return 'Level ' + lv + ' ready';
     }
-    // Add points as if food was eaten (can trigger the new-record fanfare and, in a running game, the level-complete screen)
+    // Add points to the score (can trigger the new-record fanfare). The level goal counts foods now, so this no longer moves it (#101): use Add food.
     function debugAddPoints(n) {
       addScore(n);
-      if (gameRunning && levelScore >= levelTarget) { levelComplete(); return '+' + n + ' points: level complete'; }
       return '+' + n + ' points';
+    }
+    // Count n regular foods towards the level goal without eating them (in a running game it completes the level once the goal is reached)
+    function debugAddFood(n) {
+      const k = Math.max(1, Math.floor(Number(n)));
+      if (!Number.isFinite(k)) return 'Type a number of foods';
+      levelFoods += k; updateScore();
+      if (gameRunning && levelFoods >= levelGoal) { levelComplete(); return '+' + k + ' food: level complete'; }
+      return '+' + k + ' food (' + levelFoods + ' of ' + levelGoal + ')';
+    }
+    // The level goal in foods: `first` on level 1 plus `perLevel` for every level after it. Applies at once and lasts until the page is reloaded.
+    function debugSetGoal(first, perLevel) {
+      const a = Number(first), b = Number(perLevel);
+      if (!Number.isFinite(a) || a < 1 || !Number.isFinite(b) || b < 0) return 'Type the foods for level 1 (1 or more) and the extra foods per level (0 or more)';
+      LEVEL_GOAL.first = a; LEVEL_GOAL.perLevel = b; levelGoal = targetFor(level);
+      if (!gameStarted) startGoal.textContent = t('startGoal', { n: levelGoal });
+      updateScore();
+      return 'Level goal: ' + targetFor(1) + ' food on level 1, ' + b + ' more per level (this level: ' + levelGoal + ')';
     }
     // Show the level-complete screen right now (works from the start box too)
     function debugLevelComplete() {
@@ -6243,6 +6835,34 @@
       if (!Number.isFinite(p)) return 'Type a percentage 0-100';
       FOOD_CONFIG.bonusChance = Math.max(0, Math.min(100, p)) / 100;
       return 'Bonus gem chance is now ' + Math.round(FOOD_CONFIG.bonusChance * 1000) / 10 + '% per food eaten';
+    }
+    // When a bonus gem appears: mode 'timer' (a gap of min..max moves after a gem vanishes) or 'meal' (a chance per food, see above).
+    // Applies at once (the countdown is rolled again) and lasts until the page is reloaded.
+    function debugSetBonusSpawn(mode, min, max) {
+      if (mode !== 'timer' && mode !== 'meal') return 'Mode must be timer or meal';
+      const lo = Number(min), hi = Number(max);
+      if (!Number.isFinite(lo) || !Number.isFinite(hi) || lo < 1 || hi < 1) return 'Type the gap in moves, 1 or more';
+      FOOD_CONFIG.bonusMode = mode;
+      FOOD_CONFIG.bonusGap = { min: Math.round(Math.min(lo, hi)), max: Math.round(Math.max(lo, hi)) };
+      bonusCountdown = null;
+      return mode === 'timer'
+        ? 'Bonus gem: a gap of ' + FOOD_CONFIG.bonusGap.min + '-' + FOOD_CONFIG.bonusGap.max + ' moves after the last gem is gone'
+        : 'Bonus gem: a ' + Math.round(FOOD_CONFIG.bonusChance * 1000) / 10 + '% chance each time food is eaten';
+    }
+    // What a gem pays (#99): base points per speed level, and how many extra multiples a fresh gem adds. Applies at once, lasts until reload.
+    function debugSetBonusPay(base, fresh, streakStep) { // streakStep (#100) is optional: left out, it stays as it is
+      const b = Number(base), f = Number(fresh), st = streakStep === undefined ? FOOD_CONFIG.bonusStreakStep : Number(streakStep);
+      if (!Number.isFinite(b) || b < 1 || !Number.isFinite(f) || f < 0 || !Number.isFinite(st) || st < 0) return 'Type a base of 1 or more, a fresh boost of 0 or more and a streak step of 0 or more';
+      FOOD_CONFIG.bonusPoints = b; FOOD_CONFIG.bonusFresh = f; FOOD_CONFIG.bonusStreakStep = st;
+      const r = gemWorthRange(1);
+      return 'Bonus gem pays ' + r[0] + '-' + r[1] + ' points at speed 1 (fresh gem: ' + (1 + f) + 'x the base; each streak level adds ' + st + ')';
+    }
+    // How a gem is paid by efficiency (#108): the efficiency (percent) at or below which it pays nothing, the one at or above which it pays in full, and on/off.
+    function debugSetGemEfficiency(floorPct, fullPct, on) {
+      const lo = Number(floorPct), hi = Number(fullPct);
+      if (!Number.isFinite(lo) || !Number.isFinite(hi) || lo < 0 || hi > 100 || hi <= lo) return 'Type the floor and full efficiency in percent (floor below full, full at most 100)';
+      FOOD_CONFIG.gemEfficiency = { on: on !== false && on !== 'off', floor: lo / 100, full: hi / 100 };
+      return FOOD_CONFIG.gemEfficiency.on ? 'A gem pays nothing at ' + lo + '% efficiency or less and in full at ' + hi + '% or more' : 'A gem no longer depends on efficiency';
     }
     // Kill the snake as if it hit the wall: needs a running game
     function debugKillSnake() {
@@ -6323,6 +6943,19 @@
       const ptsBtn = mk('button', btnCss + 'margin-left:4px;', 'Add points'); ptsBtn.type = 'button';
       act(ptsBtn, () => { const v = parseInt(ptsIn.value, 10); say(Number.isFinite(v) && v > 0 ? debugAddPoints(v) : 'Type a number of points'); });
       g2.append(ptsIn, ptsBtn);
+      const g2b = row();
+      const foodIn = mk('input', inCss + 'width:70px;'); foodIn.type = 'number'; foodIn.min = '1'; foodIn.value = '3'; foodIn.title = 'foods towards the level goal';
+      const foodBtn = mk('button', btnCss + 'margin-left:4px;', 'Add food'); foodBtn.type = 'button';
+      act(foodBtn, () => { const v = parseInt(foodIn.value, 10); say(Number.isFinite(v) && v > 0 ? debugAddFood(v) : 'Type a number of foods'); });
+      g2b.append(foodIn, foodBtn);
+      const g2c = row();
+      const goalFirst = mk('input', inCss + 'width:50px;'); goalFirst.type = 'number'; goalFirst.min = '1'; goalFirst.title = 'foods to eat on level 1';
+      const goalPer = mk('input', inCss + 'width:50px;margin-left:4px;'); goalPer.type = 'number'; goalPer.min = '0'; goalPer.step = '0.5'; goalPer.title = 'extra foods for every level after level 1';
+      const goalBtn = mk('button', btnCss + 'margin-left:4px;', 'Set goal'); goalBtn.type = 'button';
+      const loadGoal = () => { goalFirst.value = LEVEL_GOAL.first; goalPer.value = LEVEL_GOAL.perLevel; };
+      act(goalBtn, () => { say(debugSetGoal(parseFloat(goalFirst.value), parseFloat(goalPer.value))); loadGoal(); });
+      g2c.append(goalFirst, goalPer, goalBtn);
+      loadGoal();
       const g3 = row();
       const lcBtn = mk('button', btnCss, 'Level complete'); lcBtn.type = 'button';
       act(lcBtn, () => say(debugLevelComplete()));
@@ -6330,13 +6963,62 @@
       act(killBtn, () => say(debugKillSnake()));
       g3.append(lcBtn, killBtn);
 
-      row('Bonus gem chance (% per food eaten)');
+      // Bonus gem spawn (#92): timer (a gap of moves) or meal (a chance per food eaten). Applies at once, not saved.
+      row('Bonus gem: when does it appear?');
       const b1 = panel.lastChild;
-      const chanceIn = mk('input', inCss + 'width:56px;'); chanceIn.type = 'number'; chanceIn.min = '0'; chanceIn.max = '100'; chanceIn.step = '1';
-      chanceIn.value = String(Math.round(FOOD_CONFIG.bonusChance * 1000) / 10); chanceIn.title = '0-100; 100 = a gem after every food (when none is on the board)';
-      const chanceBtn = mk('button', btnCss + 'margin-left:4px;', 'Set'); chanceBtn.type = 'button';
-      act(chanceBtn, () => { say(debugSetBonusChance(parseFloat(chanceIn.value))); chanceIn.value = String(Math.round(FOOD_CONFIG.bonusChance * 1000) / 10); });
-      b1.append(chanceIn, chanceBtn);
+      const modeSel = mk('select', inCss + 'width:110px;');
+      [['timer', 'timer'], ['meal', 'on eating']].forEach(([v, label]) => { const o = document.createElement('option'); o.value = v; o.textContent = label; modeSel.appendChild(o); });
+      modeSel.value = FOOD_CONFIG.bonusMode;
+      b1.appendChild(modeSel);
+      const b2 = row();
+      const gapMin = mk('input', inCss + 'width:50px;'); gapMin.type = 'number'; gapMin.min = '1'; gapMin.step = '5'; gapMin.title = 'timer: shortest gap, in moves';
+      const gapMax = mk('input', inCss + 'width:50px;margin-left:4px;'); gapMax.type = 'number'; gapMax.min = '1'; gapMax.step = '5'; gapMax.title = 'timer: longest gap, in moves';
+      b2.append(mk('span', 'display:inline-block;width:88px;opacity:0.75;', 'gap (moves)'), gapMin, gapMax);
+      const b3 = row();
+      const chanceIn = mk('input', inCss + 'width:50px;'); chanceIn.type = 'number'; chanceIn.min = '0'; chanceIn.max = '100'; chanceIn.step = '1';
+      chanceIn.title = 'on eating: 0-100; 100 = a gem after every food (when none is on the board)';
+      b3.append(mk('span', 'display:inline-block;width:88px;opacity:0.75;', 'chance (%)'), chanceIn);
+      const b4 = row();
+      const spawnBtn = mk('button', btnCss, 'Apply');  spawnBtn.type = 'button';
+      const loadSpawn = () => { modeSel.value = FOOD_CONFIG.bonusMode; gapMin.value = FOOD_CONFIG.bonusGap.min; gapMax.value = FOOD_CONFIG.bonusGap.max; chanceIn.value = String(Math.round(FOOD_CONFIG.bonusChance * 1000) / 10); };
+      act(spawnBtn, () => {
+        const c = parseFloat(chanceIn.value);
+        if (Number.isFinite(c)) debugSetBonusChance(c);
+        say(debugSetBonusSpawn(modeSel.value, parseFloat(gapMin.value), parseFloat(gapMax.value)));
+        loadSpawn();
+      });
+      b4.appendChild(spawnBtn);
+      loadSpawn();
+
+      // What a gem pays (#99)
+      row('Bonus gem: what is it worth?');
+      const p1 = panel.lastChild;
+      const baseIn = mk('input', inCss + 'width:50px;'); baseIn.type = 'number'; baseIn.min = '1'; baseIn.step = '5'; baseIn.title = 'points per speed level for an old gem (a regular food gives 10)';
+      const freshIn = mk('input', inCss + 'width:50px;margin-left:4px;'); freshIn.type = 'number'; freshIn.min = '0'; freshIn.step = '0.5'; freshIn.title = 'extra multiples of the base for a fresh gem; 0 = always the base';
+      const streakIn = mk('input', inCss + 'width:50px;margin-left:4px;'); streakIn.type = 'number'; streakIn.min = '0'; streakIn.step = '0.05'; streakIn.title = 'streak: extra share of the worth per level in a row with a gem (0.25 = +25%), up to 4 levels; 0 = no streak';
+      p1.append(mk('span', 'display:inline-block;width:88px;opacity:0.75;', 'base, fresh, streak'), baseIn, freshIn, streakIn);
+      const p2 = row();
+      const payBtn = mk('button', btnCss, 'Apply'); payBtn.type = 'button';
+      const loadPay = () => { baseIn.value = FOOD_CONFIG.bonusPoints; freshIn.value = FOOD_CONFIG.bonusFresh; streakIn.value = FOOD_CONFIG.bonusStreakStep; };
+      act(payBtn, () => { say(debugSetBonusPay(parseFloat(baseIn.value), parseFloat(freshIn.value), parseFloat(streakIn.value))); loadPay(); });
+      p2.appendChild(payBtn);
+      loadPay();
+
+      // A gem pays by efficiency (#108)
+      row('Gem pays by efficiency: floor, full (%)');
+      const m1 = panel.lastChild;
+      const mFloor = mk('input', inCss + 'width:46px;'), mFull = mk('input', inCss + 'width:46px;margin-left:4px;');
+      [mFloor, mFull].forEach(i => { i.type = 'number'; i.min = '0'; i.max = '100'; i.step = '5'; });
+      mFloor.title = 'efficiency (par / moves, in %) at or below which a gem pays nothing'; mFull.title = 'efficiency (in %) at or above which a gem pays in full';
+      const mOn = mk('select', inCss + 'width:70px;margin-left:4px;');
+      [['on', 'on'], ['off', 'off']].forEach(([v, label]) => { const o = document.createElement('option'); o.value = v; o.textContent = label; mOn.appendChild(o); });
+      m1.append(mFloor, mFull, mOn);
+      const m2 = row();
+      const mBtn = mk('button', btnCss, 'Apply'); mBtn.type = 'button';
+      const loadEff = () => { const G = FOOD_CONFIG.gemEfficiency; mFloor.value = Math.round(G.floor * 100); mFull.value = Math.round(G.full * 100); mOn.value = G.on ? 'on' : 'off'; };
+      act(mBtn, () => { say(debugSetGemEfficiency(parseFloat(mFloor.value), parseFloat(mFull.value), mOn.value)); loadEff(); });
+      m2.appendChild(mBtn);
+      loadEff();
 
       row('Unlocks (best level reached)');
       const u1 = panel.lastChild;
@@ -6463,8 +7145,8 @@
     if (DEBUG) debugMessage(DEBUG_HINT);
 
     // Legend icons: reuse the in-game food drawing so they always match the board
-    function renderLegendIcon(canvasId, drawFn) {
-      const iconCanvas = document.getElementById(canvasId);
+    function renderLegendIcon(canvasId, drawFn) { // canvasId: the id of a canvas, or the canvas itself
+      const iconCanvas = typeof canvasId === 'string' ? document.getElementById(canvasId) : canvasId;
       const boardCtx = ctx;
       ctx = iconCanvas.getContext('2d');
       ctx.clearRect(0, 0, iconCanvas.width, iconCanvas.height);
@@ -6484,6 +7166,7 @@
 
     // The bonus food depends on the theme, so its legend icon is redrawn whenever the theme changes
     function renderLegendIcons() {
+      updateLevelNames(); // (the name follows the theme, and this runs whenever the theme changes)
       renderLegendIcon('iconFood', () => drawFood(0, 0));
       renderLegendIcon('iconBonus', () => drawSpecialFood({ x: 0, y: 0 }, SPECIAL_FOOD_MAX_TIME));
     }
