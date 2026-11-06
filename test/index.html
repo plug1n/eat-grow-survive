@@ -741,6 +741,9 @@
 
     /* Dialog typography (em, so a dialog's font can shrink as one unit) */
     .overlay h2 { color: #00ff88; font-size: 2em; margin-bottom: 0; }
+    .overlay .link-btn { background: none; border: none; box-shadow: none; color: #8aa0c0; text-decoration: underline; cursor: pointer; font: inherit; font-size: 0.8em; padding: 0.1em 0.4em; margin: 0; }
+    .overlay .link-btn:hover { color: #00ff88; background: none; }
+    .overlay .link-btn:focus-visible { outline: 2px solid #00ccff; outline-offset: 2px; }
     .game-over > * { flex-shrink: 0; } /* nothing is squeezed: if it does not fit, fitBox scales the whole dialog (a squeezed title was hiding behind the unlock summary) */
     .game-over h2 { color: #ff4444; font-size: 1.7em; }
     .overlay p { color: #e0e0e0; margin: 0; }
@@ -913,6 +916,7 @@
             <button onclick="restartGame()" data-i18n="playAgain">Play Again</button>
             <button type="button" id="watchReplayBtn" class="secondary" data-i18n="replayWatch">▶ Watch replay</button>
           </div>
+          <div class="hs-extra"><button type="button" id="copyRunBtn" class="link-btn" data-i18n="runCopy">📋 Copy run</button></div>
         </div>
         <div class="overlay hs-overlay" id="highScoreOverlay" role="dialog" aria-modal="true" aria-labelledby="hsTitle">
           <h2 id="hsTitle" data-i18n="hsTitle">NEW HIGH SCORE!</h2>
@@ -1260,6 +1264,9 @@
         unlockItem_pattern: '{name} pattern',
         unlockItem_grid: '{name} grid',
         unlockMore: '+{n} more unlocked',
+        runCopy: '📋 Copy run',
+        runCopied: '✔ Copied!',
+        runCopyFail: 'Copy failed: see the console',
         runUnlocks: 'Unlocked this run: {names}',
         unlockMsg_color_blue: 'Your snake turns blue when it holds its breath.',
         unlockMsg_color_orange: 'Now it looks like a very large, very hungry carrot.',
@@ -1418,6 +1425,9 @@
         unlockItem_pattern: 'Mønster: {name}',
         unlockItem_grid: 'Gitter: {name}',
         unlockMore: '+{n} mere låst op',
+        runCopy: '📋 Kopier forløb',
+        runCopied: '✔ Kopieret!',
+        runCopyFail: 'Kopiering fejlede: se konsollen',
         runUnlocks: 'Låst op i dette forløb: {names}',
         unlockMsg_color_blue: 'Din slange bliver blå, når den holder vejret.',
         unlockMsg_color_orange: 'Nu ligner den en meget stor, meget sulten gulerod.',
@@ -1490,7 +1500,8 @@
           'On phones the menus hide while you play and return when you pause. The board is bigger, also with the phone on its side.',
           'New in settings: an All random switch. Colour, pattern, theme and grid change every level. Switch it off to get your choices back.',
           'Starting a level now plays the 3-2-1 first, just like after a pause. Your first key press decides the direction.',
-          'Unlockables: themes, colours, patterns and grids unlock as you reach higher levels. Locked ones show a padlock in settings.'
+          'Unlockables: themes, colours, patterns and grids unlock as you reach higher levels. Locked ones show a padlock in settings.',
+          'Game Over has a new Copy run link. It copies your run as text, to share when something felt unfair.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
@@ -1500,7 +1511,8 @@
           'På telefon skjules menuerne, mens du spiller, og kommer tilbage, når du pauser. Banen er større, også med telefonen på siden.',
           'Nyt i indstillinger: en Alt tilfældigt-kontakt. Farve, mønster, tema og gitter skifter hver bane. Slå fra for at få dine valg tilbage.',
           'Når en bane starter, kommer 3-2-1 nu først, ligesom efter en pause. Dit første tastetryk bestemmer retningen.',
-          'Nyt: temaer, farver, mønstre og gitre låses op, når du når højere baner. Låste ting har en hængelås i indstillinger.'
+          'Nyt: temaer, farver, mønstre og gitre låses op, når du når højere baner. Låste ting har en hængelås i indstillinger.',
+          'Game Over har et nyt Kopier forløb-link. Det kopierer dit forløb som tekst, så du kan dele det, hvis noget føltes uretfærdigt.'
         ] },
       { id: 2,
         en: [
@@ -1845,6 +1857,7 @@
     const countdownOverlay = document.getElementById('countdownOverlay');
     const countdownNum = document.getElementById('countdownNum');
     const watchReplayBtn = document.getElementById('watchReplayBtn');
+    const copyRunBtn = document.getElementById('copyRunBtn');
     const replayBanner = document.getElementById('replayBanner');
     const replayBar = document.getElementById('replayBar');
     const rpPlayBtn = document.getElementById('rpPlay');
@@ -2576,6 +2589,7 @@
       maxRegularPath: 70,  // sanity cap on the path length to regular food (steps)
       // bonus time on screen in moves: longer on generous levels, shorter on hard ones (0.5 = 80, as before)
       bonusTime: { generous: 120, normal: 80, hard: 50 },
+      bonusChance: 0.1,      // chance of a bonus gem each time regular food is eaten (never while one is on the board); the debug menu edits it
       bonusReachMargin: 0.7, // the bonus must be reachable within 70% of its time
       bonusWarnShare: 0.375, // it starts blinking with this share of its time left (30 of 80 moves)
     };
@@ -2977,8 +2991,10 @@
         placeFood();
         recEvent('f', food.x, food.y); // replay recording: where the new food appeared
 
-        // After eating regular food, maybe spawn special food with small chance
-        if (Math.random() < 0.1) { // 10% chance
+        // After eating regular food, maybe spawn special food with small chance.
+        // Never while a gem is already on the board (#94): spawnSpecialFood() would overwrite it,
+        // so the old gem vanished and a new one appeared elsewhere. The roll is skipped, not saved.
+        if (!specialFood && Math.random() < FOOD_CONFIG.bonusChance) {
           spawnSpecialFood();
         }
       }
@@ -4773,6 +4789,7 @@
       saveRuns();
       recFinish(run); // keep the replay of this run (and of the best run)
       watchReplayBtn.style.display = replayLast ? '' : 'none'; // no recording, no "Watch replay" button
+      copyRunBtn.style.display = replayLast ? '' : 'none';     // (nor "Copy run")
       renderScoreboard();
       lastRank = rank;
       lastRunTotal = board.length + 1;
@@ -4916,15 +4933,17 @@
 
     // --- the simulated state of a replay: its own copy, advanced tick by tick with the same rules as the game ---
     function rpTicks(L) { return L.moves.length - (L.fatal ? 1 : 0); } // ticks that actually moved the snake
-    function rpInitLevel(w, li) {
-      const L = replay.data.levels[li];
+    function rpInitLevel(w, li, dataArg) { // dataArg: a recording to walk without opening a replay (the run export uses this)
+      const data = dataArg || replay.data;
+      const L = data.levels[li];
+      w.data = data;
       w.li = li; w.L = L; w.t = 0; w.ei = 0; w.ticks = rpTicks(L);
       w.snake = [{ x: START_X, y: START_Y }, { x: START_X - 1, y: START_Y }, { x: START_X - 2, y: START_Y }];
       w.food = { x: L.food.x, y: L.food.y };
       w.bonus = null;
       w.speed = L.speed; w.score = L.score0; w.levelScore = 0;
       w.fog = fogNew(); // fog of war: the replay keeps its own view, the same one the run had
-      fogReveal(w.fog, replay.data.fog || 'off', L.lv, w.snake[0]);
+      fogReveal(w.fog, data.fog || 'off', L.lv, w.snake[0]);
     }
     function rpApplyLevel(L) { // the level's obstacles and look go onto the board
       level = L.lv;
@@ -4967,7 +4986,7 @@
         if (fx) { sfx.bonus(); burstAt(head, true); }
       }
       if (!ate) w.snake.pop();
-      fogStep(w.fog, replay.data.fog || 'off', L.lv, head, ate); // mirrors gameLoop (fog only changes how the board is drawn)
+      fogStep(w.fog, w.data.fog || 'off', L.lv, head, ate); // mirrors gameLoop (fog only changes how the board is drawn)
       w.t++;
     }
     function rpRender(w) { // copy the simulated state into the game's variables and draw it with the normal drawing code
@@ -4977,6 +4996,78 @@
       replayFog = { fs: w.fog, preset: replay.data.fog || 'off' };
       draw();
       updateScore();
+    }
+
+    // --- export a run (#95): one text block to paste into a chat, so someone can see why a run went wrong ---
+    // It walks the recording with the replay stepper (no replay needs to be open, nothing on screen changes) and writes: a header, a line per
+    // level, how the run ended, every food placement of the last level with how awkward it was, the board just before the fatal move (the same
+    // dump the debug key B makes), and finally the complete recording as JSON (so it could be loaded back later).
+    function withRunState(w, L, death, fn) { // briefly put a replay state into the game's variables so the board-dump code can describe it
+      const keep = { snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelScore, levelTarget, score, speedLevel, direction, deathInfo };
+      try {
+        snake = w.snake; food = w.food; specialFood = w.bonus; specialFoodTimer = w.bonus ? w.bonus.timer : 0;
+        obstacleSet = new Set(L.obs); level = L.lv; levelScore = w.levelScore; levelTarget = targetFor(L.lv);
+        score = w.score; speedLevel = w.speed; direction = DIR_VECTORS[w.t > 0 ? L.moves[w.t - 1] : 'R']; deathInfo = death || null;
+        return fn();
+      } finally {
+        ({ snake, food, specialFood, specialFoodTimer, obstacleSet, level, levelScore, levelTarget, score, speedLevel, direction, deathInfo } = keep);
+      }
+    }
+    function buildRunExport(data) {
+      const out = [];
+      const placement = (w, L) => withRunState(w, L, null, () => debugPlacement(w.food) + ', hardness ' + currentHardness().toFixed(2));
+      out.push('=== SNAKE RUN EXPORT v1 ===');
+      out.push('Paste this whole block into the chat. The last line (RECORDING) is the complete run; everything above explains it.');
+      out.push('game: ' + (siteVersion ? [siteVersion.env, siteVersion.tag || siteVersion.short].filter(Boolean).join(' ') : 'local file') +
+        ' | played ' + data.date + ' | final score ' + data.score + ' | fog ' + (data.fog || 'off') + ' | levels ' + data.levels.length);
+      out.push('grid ' + GRID_WIDTH + 'x' + GRID_HEIGHT + ', coordinates are (x,y) with (0,0) top-left; x grows right, y grows DOWN');
+      let lastWalk = null;
+      data.levels.forEach((L, li) => {
+        const w = {};
+        rpInitLevel(w, li, data);
+        const foods = [];
+        let cur = { tick: 0, x: w.food.x, y: w.food.y, note: placement(w, L), eaten: null };
+        let bonus = 0, replaced = 0; // gems that appeared, and how many of those took the place of a gem that was still on the board
+        for (let k = 0; k < w.ticks; k++) {
+          const prev = w.food, prevBonus = w.bonus;
+          rpStepTick(w, false);
+          if (w.bonus && w.bonus !== prevBonus) { bonus++; if (prevBonus && prevBonus.timer > 1) replaced++; } // (a gem with 1 move left was about to expire anyway)
+          if (w.food !== prev) { cur.eaten = w.t; foods.push(cur); cur = { tick: w.t, x: w.food.x, y: w.food.y, note: placement(w, L), eaten: null }; }
+        }
+        foods.push(cur);
+        out.push('level ' + L.lv + ': look ' + L.look.theme + '/' + L.look.color + '/' + L.look.pattern + '/' + L.look.grid + ' | speed at start ' + L.speed +
+          ' | score at start ' + L.score0 + ' | ' + w.ticks + ' moves | ' + (foods.length - 1) + ' food eaten | ' + bonus + ' bonus food appeared' + (replaced ? ' (' + replaced + ' of them REPLACED a gem that was still on the board: the old gem vanished and a new one appeared elsewhere)' : '') + ' | ' +
+          (L.end === 'c' ? 'completed' : 'the run ended here'));
+        lastWalk = { w, L, foods };
+      });
+      const { w, L, foods } = lastWalk;
+      let death = null, fatal = null; // how the run ended: the fatal cell and what it was
+      if (L.end !== 'c') {
+        fatal = L.fatal ? L.moves[L.moves.length - 1] : null;
+        const c = L.death || (fatal ? { x: w.snake[0].x + DIR_VECTORS[fatal].x, y: w.snake[0].y + DIR_VECTORS[fatal].y } : null);
+        const why = !fatal ? 'ended through the debug menu (no fatal move)'
+          : (c.x < 0 || c.y < 0 || c.x >= GRID_WIDTH || c.y >= GRID_HEIGHT) ? 'hit the outer wall'
+          : L.obs.indexOf(cellId(c.x, c.y)) >= 0 ? 'hit an obstacle' : 'ran into its own body';
+        death = { x: c ? c.x : -1, y: c ? c.y : -1, why };
+        out.push('');
+        out.push('HOW IT ENDED: ' + why + (fatal ? ', moving ' + dirName(DIR_VECTORS[fatal]) : '') + (c ? ' into (' + c.x + ',' + c.y + ')' : '') +
+          ' | snake length ' + w.snake.length + ' | last 20 moves: ' + L.moves.slice(-20) + ' (U up, D down, L left, R right; the last one is the fatal move)');
+      }
+      out.push('');
+      out.push('FOOD PLACEMENTS ON LEVEL ' + L.lv + ' (the hardness decides how awkward a spot may be: 0 generous, 0.5 random, 1 hard; the first is at move 0):');
+      foods.forEach((f, i) => {
+        const last = i === foods.length - 1;
+        out.push('  #' + (i + 1) + ' placed at move ' + f.tick + ' at (' + f.x + ',' + f.y + '): ' + f.note + ' | ' +
+          (f.eaten !== null ? 'eaten after ' + (f.eaten - f.tick) + ' moves' : (L.end === 'c' ? 'the level ended' : last ? 'NOT eaten: the run ended with this food on the board' : 'not eaten')));
+      });
+      if (L.end !== 'c') {
+        out.push('');
+        out.push(withRunState(w, L, fatal ? death : null, () => buildBoardDump('run export: the moment before the fatal move')));
+      }
+      out.push('');
+      const json = JSON.stringify(data);
+      out.push('RECORDING (' + json.length + ' characters, the complete run): ' + json);
+      return out.join('\n');
     }
 
     // --- the player ---
@@ -5144,6 +5235,16 @@
     });
     rpExitBtn.addEventListener('click', () => { exitReplay(); rpExitBtn.blur(); });
     watchReplayBtn.addEventListener('click', () => { watchReplayBtn.blur(); if (replayLast) startReplay(replayLast); });
+    // "Copy run" (#95): the last run as one text block on the clipboard, to paste into a chat
+    function flashCopyLabel(key) { copyRunBtn.textContent = t(key); setTimeout(() => { copyRunBtn.textContent = t('runCopy'); }, 2000); }
+    copyRunBtn.addEventListener('click', () => {
+      copyRunBtn.blur();
+      if (!replayLast) return;
+      let text = null;
+      try { text = buildRunExport(replayLast); } catch (e) { console.error('run export failed', e); }
+      if (!text) { flashCopyLabel('runCopyFail'); return; }
+      copyText(text).then(ok => { if (!ok) console.log(text); flashCopyLabel(ok ? 'runCopied' : 'runCopyFail'); });
+    });
 
     function restartGame() {
       initGame();
@@ -6136,6 +6237,13 @@
       applyUnlockChange();
       return 'Best level is now ' + stats.bestLevel + ' (' + unlockedIds().length + ' of ' + Object.keys(UNLOCKS).length + ' items unlocked)';
     }
+    // Chance of a bonus gem per regular food eaten, in percent (0-100). Lasts until the page is reloaded; it is not saved.
+    function debugSetBonusChance(percent) {
+      const p = Number(percent);
+      if (!Number.isFinite(p)) return 'Type a percentage 0-100';
+      FOOD_CONFIG.bonusChance = Math.max(0, Math.min(100, p)) / 100;
+      return 'Bonus gem chance is now ' + Math.round(FOOD_CONFIG.bonusChance * 1000) / 10 + '% per food eaten';
+    }
     // Kill the snake as if it hit the wall: needs a running game
     function debugKillSnake() {
       if (!gameRunning) return 'No game running: start one first';
@@ -6221,6 +6329,14 @@
       const killBtn = mk('button', btnCss + 'margin-left:4px;', 'Kill snake'); killBtn.type = 'button';
       act(killBtn, () => say(debugKillSnake()));
       g3.append(lcBtn, killBtn);
+
+      row('Bonus gem chance (% per food eaten)');
+      const b1 = panel.lastChild;
+      const chanceIn = mk('input', inCss + 'width:56px;'); chanceIn.type = 'number'; chanceIn.min = '0'; chanceIn.max = '100'; chanceIn.step = '1';
+      chanceIn.value = String(Math.round(FOOD_CONFIG.bonusChance * 1000) / 10); chanceIn.title = '0-100; 100 = a gem after every food (when none is on the board)';
+      const chanceBtn = mk('button', btnCss + 'margin-left:4px;', 'Set'); chanceBtn.type = 'button';
+      act(chanceBtn, () => { say(debugSetBonusChance(parseFloat(chanceIn.value))); chanceIn.value = String(Math.round(FOOD_CONFIG.bonusChance * 1000) / 10); });
+      b1.append(chanceIn, chanceBtn);
 
       row('Unlocks (best level reached)');
       const u1 = panel.lastChild;

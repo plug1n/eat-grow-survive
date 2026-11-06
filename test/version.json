@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "38e9d6f7d24c52c2f09999c8b48e0bf7fbdb3d54",
-    "short":  "38e9d6f",
-    "subject":  "Unlocks: one every second level, a bigger announcement and a Game Over summary",
-    "published":  "2026-11-05T22:39:37Z",
+    "sha":  "4a99805d7d246206197eb7ec0c09f0e1293dd75d",
+    "short":  "4a99805",
+    "subject":  "Handover: volatile state moves to a pinned issue and status.ps1",
+    "published":  "2026-11-06T08:35:47Z",
     "issues":  [
                    19,
                    46,
@@ -24,6 +24,10 @@
                    88,
                    89,
                    90,
-                   91
+                   91,
+                   92,
+                   94,
+                   95,
+                   96
                ]
 }
