@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "09f03d82a3eb625790260f91b4559216425bad0a",
-    "short":  "09f03d8",
-    "subject":  "Start: back to the original 3-2-1 timing; the first food of a level is always ahead of the snake",
-    "published":  "2026-11-06T18:05:20Z",
+    "sha":  "a0105fd75af029d5e4234326d026e568c76e3672",
+    "short":  "a0105fd",
+    "subject":  "E-mail guard: keep the user\u0027s real address out of commits, pushes, the public repo and agent commands",
+    "published":  "2026-11-06T18:39:13Z",
     "issues":  [
                    19,
                    46,
@@ -41,6 +41,7 @@
                    108,
                    109,
                    110,
-                   114
+                   114,
+                   115
                ]
 }
