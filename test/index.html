@@ -24,12 +24,14 @@
     body[data-theme="lava"]   { background: radial-gradient(ellipse at 50% 100%, #4a140a 0%, #0d0403 75%) fixed; }
     body[data-theme="winter"] { background: linear-gradient(180deg, #16385e 0%, #07111f 100%) fixed; }
     body[data-theme="lcd"]    { background: linear-gradient(180deg, #2b3a14 0%, #121909 100%) fixed; }
+    body[data-theme="chess"]  { background: radial-gradient(ellipse at 50% 0%, #5b3294 0%, #2a1650 55%, #150a2b 100%) fixed; }
     body[data-theme="neon"]   { background: radial-gradient(ellipse at 50% 0%, #34105e 0%, #0b0a24 50%, #04040e 100%) fixed; }
     body[data-theme="desert"] #gameCanvas { border-color: #c98a3a; box-shadow: 0 0 30px rgba(255, 170, 70, 0.30); }
     body[data-theme="candy"]  #gameCanvas { border-color: #ff7ac8; box-shadow: 0 0 30px rgba(255, 120, 200, 0.35); }
     body[data-theme="lava"]   #gameCanvas { border-color: #ff6a1a; box-shadow: 0 0 34px rgba(255, 90, 20, 0.45); }
     body[data-theme="winter"] #gameCanvas { border-color: #8fd0ff; box-shadow: 0 0 30px rgba(150, 210, 255, 0.35); }
     body[data-theme="lcd"]    #gameCanvas { border-color: #8bac0f; box-shadow: 0 0 26px rgba(155, 188, 15, 0.30); }
+    body[data-theme="chess"]  #gameCanvas { border-color: #f2c14e; box-shadow: 0 0 28px rgba(255, 205, 100, 0.40), 0 0 60px rgba(190, 140, 255, 0.25); }
     body[data-theme="neon"]   #gameCanvas { border-color: #19e6ff; box-shadow: 0 0 28px rgba(0, 229, 255, 0.45), 0 0 64px rgba(255, 61, 242, 0.20); }
     body[data-theme="forest"] #gameCanvas { border-color: #2f7a4a; box-shadow: 0 0 30px rgba(120, 255, 160, 0.28); }
     body[data-theme="space"]  #gameCanvas { border-color: #4b3fa8; box-shadow: 0 0 30px rgba(140, 120, 255, 0.35); }
@@ -496,6 +498,7 @@
     .lang-switch button:hover { border-color: #00ff88; color: #00ff88; }
     .lang-switch button.active { background: #00ff88; border-color: #00ff88; color: #1a1a2e; }
     .intro-link {
+      white-space: nowrap;
       background: transparent;
       border: none;
       color: #a0a0a0;
@@ -579,9 +582,23 @@
       font-size: 1rem;
       font-weight: bold;
       border-radius: 4px;
+      white-space: nowrap; /* a button's text never wraps */
     }
     .intro-next:hover { background: #44ff99; }
     .intro-hint { color: #666; font-size: 0.75rem; }
+    .intro-side { display: contents; } /* (a plain wrapper: in a tall window the children lay out as before) */
+    /* A short, wide window (a phone on its side, #116): the tall column of screen + text + buttons does not fit and its top and bottom were cut off,
+       so the screen sits on the left and the text and the buttons on the right. --scr is the screen's width: as wide as the height allows. */
+    @media (orientation: landscape) and (max-height: 600px) {
+      .intro { --scr: min(54vw, calc((100dvh - 5rem) * 1.6)); flex-direction: row; flex-wrap: wrap; align-content: center; justify-content: center; gap: 0.5rem 1rem; padding: 0.5rem 1rem; overflow: auto; }
+      .intro-top { flex: 0 0 100%; width: 100%; max-width: 900px; }
+      .intro-screen { flex: none; width: var(--scr); border-width: 3px; }
+      .intro-side { display: flex; flex-direction: column; justify-content: space-between; gap: 0.5rem; flex: 1 1 8rem; min-width: 0; max-width: 26rem; height: calc(var(--scr) / 1.6); }
+      .intro-text { width: auto; flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0.5rem 0.8rem; font-size: 0.95rem; line-height: 1.35; border-width: 2px; }
+      .intro-bottom { width: auto; flex: none; }
+      .intro-next { padding: 0.45rem 1rem; }
+      .intro-hint { flex: none; }
+    }
     /* ---- Settings drawer ---- */
     #drawerBackdrop {
       position: fixed;
@@ -1105,12 +1122,14 @@
       </div>
     </div>
     <div class="intro-screen"><canvas id="introCanvas" width="160" height="100"></canvas></div>
-    <div class="intro-text" id="introText" aria-live="polite"></div>
-    <div class="intro-bottom">
-      <div class="intro-dots" id="introDots" role="group" data-i18n-aria="introDotsAria" aria-label="Intro pages"></div>
-      <button type="button" class="intro-next" id="introNext"></button>
+    <div class="intro-side">
+      <div class="intro-text" id="introText" aria-live="polite"></div>
+      <div class="intro-bottom">
+        <div class="intro-dots" id="introDots" role="group" data-i18n-aria="introDotsAria" aria-label="Intro pages"></div>
+        <button type="button" class="intro-next" id="introNext"></button>
+      </div>
+      <div class="intro-hint" id="introHint"></div>
     </div>
-    <div class="intro-hint" id="introHint"></div>
   </div>
 
   <script>
@@ -1224,6 +1243,7 @@
         legendFood_winter: 'Ornament — {n} points',
         legendFood_lcd: 'Apple — {n} points',
         legendFood_neon: 'Energy cell — {n} points',
+        legendFood_chess: 'Pawn — {n} points',
         legendBonus_classic: 'Bonus gem — {n} points, time-limited',
         legendBonus_forest: 'Magic leaf — {n} points, time-limited',
         legendBonus_space: 'Bonus star — {n} points, time-limited',
@@ -1234,6 +1254,7 @@
         legendBonus_winter: 'Ice crystal — {n} points, time-limited',
         legendBonus_lcd: 'Heart — {n} points, time-limited',
         legendBonus_neon: 'Hologram crystal — {n} points, time-limited',
+        legendBonus_chess: 'Golden queen — {n} points, time-limited',
         watchIntro: '▶ Watch intro',
         customizeTitle: 'Customize the game',
         newsTitle: "What's new",
@@ -1266,6 +1287,7 @@
         theme_winter: 'Winter',
         theme_lcd: 'Retro LCD',
         theme_neon: 'Neon Grid',
+        theme_chess: 'Chess',
         grid_checker: 'Checker',
         grid_lines: 'Lines',
         grid_dots: 'Dots',
@@ -1319,6 +1341,7 @@
         unlockMsg_theme_lava: 'The floor is lava. Literally.',
         unlockMsg_theme_lcd: 'Pixels from the old days. Press start on your memories.',
         unlockMsg_theme_neon: 'Welcome to the grid. Try not to get deleted.',
+        unlockMsg_theme_chess: 'The snake plays chess now. It is not very good at it.',
         unlockMsg_pattern_solid: 'Plain and proud. No stripes, no fuss.',
         unlockMsg_pattern_striped: 'Stripes make you look faster. Science says so.',
         unlockMsg_grid_lines: 'Straight lines for straight thinking.',
@@ -1393,6 +1416,7 @@
         legendFood_winter: 'Julekugle — {n} point',
         legendFood_lcd: 'Æble — {n} point',
         legendFood_neon: 'Energicelle — {n} point',
+        legendFood_chess: 'Bonde — {n} point',
         legendBonus_classic: 'Bonusædelsten — {n} point, tidsbegrænset',
         legendBonus_forest: 'Magisk blad — {n} point, tidsbegrænset',
         legendBonus_space: 'Bonusstjerne — {n} point, tidsbegrænset',
@@ -1403,6 +1427,7 @@
         legendBonus_winter: 'Iskrystal — {n} point, tidsbegrænset',
         legendBonus_lcd: 'Hjerte — {n} point, tidsbegrænset',
         legendBonus_neon: 'Hologramkrystal — {n} point, tidsbegrænset',
+        legendBonus_chess: 'Gylden dronning — {n} point, tidsbegrænset',
         watchIntro: '▶ Se intro',
         customizeTitle: 'Tilpas spillet',
         newsTitle: 'Nyt i spillet',
@@ -1435,6 +1460,7 @@
         theme_winter: 'Vinter',
         theme_lcd: 'Retro-skærm',
         theme_neon: 'Neongitter',
+        theme_chess: 'Skak',
         grid_checker: 'Skakternet',
         grid_lines: 'Linjer',
         grid_dots: 'Prikker',
@@ -1488,6 +1514,7 @@
         unlockMsg_theme_lava: 'Gulvet er lava. Helt bogstaveligt.',
         unlockMsg_theme_lcd: 'Pixels fra gamle dage. Tryk start på dine minder.',
         unlockMsg_theme_neon: 'Velkommen til gitteret. Prøv ikke at blive slettet.',
+        unlockMsg_theme_chess: 'Slangen spiller skak nu. Den er ikke så god til det.',
         unlockMsg_pattern_solid: 'Enkel og stolt. Ingen striber, ingen postyr.',
         unlockMsg_pattern_striped: 'Striber gør dig hurtigere. Det siger videnskaben.',
         unlockMsg_grid_lines: 'Lige linjer til lige tanker.',
@@ -1584,6 +1611,12 @@
           wall: [['You froze at the edge.', 'Du frøs fast ved kanten.'], ['Frozen solid against the wall.', 'Frosset fast mod væggen.']],
           obstacle: [['Into the pine. Cold.', 'Ind i grantræet. Koldt.'], ['Snow joke: you hit a tree.', 'Ingen spøg: du ramte et træ.'], ['A snowy pine had the last word.', 'En snedækket gran fik det sidste ord.']],
           body: [['You froze to your own tail.', 'Du frøs fast til din egen hale.']],
+        } },
+      chess: { word: ['Royal', 'Konge'], opener: ['The Opening', 'Åbningen'],
+        deaths: {
+          wall: [['Illegal move: the edge of the board.', 'Ulovligt træk: brættets kant.'], ['Off the board!', 'Ud over brættet!']],
+          obstacle: [['Rook takes snake.', 'Tårn slår slange.'], ['Oops! A castle was in the way.', 'Hov! Et slot stod i vejen.'], ['Captured!', 'Slået!']],
+          body: [['Self-check. Checkmate!', 'Selvskak. Skakmat!'], ['Stalemate with your own tail.', 'Pat med din egen hale.'], ['You tied yourself in a royal knot.', 'Du bandt dig i en kongelig knude.']],
         } },
       neon: { word: ['Neon', 'Neon'], opener: ['Neon Grid', 'Neongitter'],
         deaths: {
@@ -1706,7 +1739,9 @@
           'The level screen is now a receipt: what each bonus item paid and why. The moves pill is gone.',
           'A new theme, Neon Grid, unlocks at level 44: hologram cubes, energy cells and a glowing snake.',
           'A quick second turn is no longer lost, and the first food of a level is always ahead of you. Pause: Space, P or Esc.',
-          'Forest and Ocean are free from the start, so three themes are ready to use.'
+          'Forest and Ocean are free from the start, so three themes are ready to use.',
+          'The intro now fits a phone held sideways.',
+          'New theme: Chess, unlocked at level 8, with smiling pawns, a golden queen and rooks as walls.'
         ],
         da: [
           'Spillet åbner nu med en retro-opstartsskærm. Klik eller tryk på en tast, så spiller introen med lyd fra allerførste scene.',
@@ -1728,7 +1763,9 @@
           'Banekortet er nu en kvittering: hvad hver bonus gav, og hvorfor. Trækpillen er væk.',
           'Et nyt tema, Neongitter, låses op på niveau 44: hologramkuber, energiceller og en glødende slange.',
           'Et hurtigt andet drej går ikke tabt, og første mad på en bane er altid foran dig. Pause: mellemrum, P eller Esc.',
-          'Skov og Hav er gratis fra start, så tre temaer er klar til brug.'
+          'Skov og Hav er gratis fra start, så tre temaer er klar til brug.',
+          'Introen passer nu på en telefon, der holdes på langs.',
+          'Nyt tema: Skak, låses op på niveau 8, med smilende bønder, en gylden dronning og tårne som mure.'
         ] },
       { id: 2,
         en: [
@@ -1764,6 +1801,7 @@
     const UNLOCKS = {
       'color:blue':      { type: 'level', value: 2 },
       'pattern:solid':   { type: 'level', value: 6 },
+      'theme:chess':     { type: 'level', value: 8 },
       'grid:lines':      { type: 'level', value: 10 },
       'theme:desert':    { type: 'level', value: 12 },
       'color:orange':    { type: 'level', value: 14 },
@@ -1922,7 +1960,7 @@
       },
       colors: { // the fog's colour per theme (light for the misty / hazy ones)
         default: '#03060d', classic: '#02050b', forest: '#031208', space: '#000008', ocean: '#021a2e',
-        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f', neon: '#02020c',
+        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f', neon: '#02020c', chess: '#2a1648',
       },
     };
     const FOG_KEY = 'snake_fog';
@@ -4399,6 +4437,74 @@
           ctx.beginPath(); ctx.moveTo(cx, cy - 10); ctx.lineTo(cx + 6.5, cy); ctx.lineTo(cx, cy + 10); ctx.lineTo(cx - 6.5, cy); ctx.closePath(); ctx.stroke();
           ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.fillRect(cx - 3, cy - 5, 1.6, 4); // the sheen
           ctx.fillStyle = '#00e5ff'; ctx.fillRect(cx + 7, cy - 9, 2, 2); ctx.fillRect(cx - 9, cy + 7, 2, 2); // two stray data bits
+        },
+      },
+      chess: { // Chess (#117, a 10-year-old's idea): lilac and cream squares, twinkling stars, rooks as walls, a smiling pawn as food, a golden queen as the bonus
+        fx: { colors: ['#ffd84a', '#ff7cc8', '#ffffff', '#b9a2ff'], shape: 'star', gravity: 0.03 },
+        build(g) {
+          for (let y = 0; y < 20; y++) for (let x = 0; x < 20; x++) { // a 20 x 20 board of cream and lilac squares
+            const light = (x + y) % 2 === 0;
+            const sq = g.createLinearGradient(x * 20, y * 20, x * 20 + 20, y * 20 + 20);
+            sq.addColorStop(0, light ? '#fff6e6' : '#d5c4fa'); sq.addColorStop(1, light ? '#f6e8d0' : '#bfa8f0');
+            g.fillStyle = sq; g.fillRect(x * 20, y * 20, 20, 20);
+          }
+          const r = mulberry32(117);
+          g.fillStyle = 'rgba(255, 255, 255, 0.55)'; // a few tiny sparkles painted into the squares
+          for (let i = 0; i < 40; i++) { g.fillRect(Math.floor(r() * 400), Math.floor(r() * 400), 1.5, 1.5); }
+        },
+        animate(now) { // stars that twinkle on the board
+          for (let i = 0; i < 9; i++) {
+            const x = 22 + ((i * 131) % 360), y = 18 + ((i * 197) % 366);
+            const a = 0.5 + 0.5 * Math.sin(now / 420 + i * 1.7), sz = 2.5 + 2.5 * a;
+            ctx.strokeStyle = (i % 3 === 0 ? 'rgba(255, 190, 70, ' : 'rgba(255, 255, 255, ') + (0.15 + 0.55 * a).toFixed(2) + ')';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(x - sz, y); ctx.lineTo(x + sz, y); ctx.moveTo(x, y - sz); ctx.lineTo(x, y + sz); ctx.stroke();
+          }
+        },
+        obstacle(ox, oy, id) { // a rook (a little castle); they alternate plum and ivory, so a row of them looks like a wall
+          const dark = id % 2 === 0;
+          const fill = dark ? '#6a3fa8' : '#ffdcec', edge = dark ? '#2f1858' : '#6b3fa0'; // (the light ones are blush pink with a firm outline, so they show on the cream squares)
+          ctx.fillStyle = fill; ctx.strokeStyle = edge; ctx.lineWidth = dark ? 1.1 : 1.3;
+          ctx.fillRect(ox + 3, oy + 15, 14, 3); ctx.strokeRect(ox + 3.5, oy + 15.5, 13, 2.5); // the base
+          ctx.fillRect(ox + 5, oy + 8, 10, 7.5); ctx.strokeRect(ox + 5.5, oy + 8.5, 9, 7);       // the tower
+          ctx.fillRect(ox + 4, oy + 5.5, 12, 3); ctx.strokeRect(ox + 4.5, oy + 6, 11, 2.5);       // the platform
+          for (let i = 0; i < 3; i++) { ctx.fillRect(ox + 4 + i * 4.4, oy + 2.5, 3.2, 3.4); ctx.strokeRect(ox + 4.5 + i * 4.4, oy + 3, 2.2, 2.6); } // the battlements
+          ctx.fillStyle = dark ? 'rgba(255, 255, 255, 0.28)' : 'rgba(255, 255, 255, 0.9)'; ctx.fillRect(ox + 6.5, oy + 9, 1.4, 5); // a shine
+          ctx.fillStyle = dark ? '#ffd84a' : '#b78cf0'; ctx.fillRect(ox + 9.2, oy + 10.5, 1.6, 2.6); // a little window
+        },
+        food(cx, cy) { // a pawn with a smiling face
+          ctx.save();
+          ctx.shadowColor = 'rgba(70, 30, 120, 0.5)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+          ctx.fillStyle = '#fffaf0'; ctx.strokeStyle = '#6b3fa0'; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.ellipse(cx, cy + 6.6, 6.4, 2.3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 4.2, cy + 5.2); ctx.quadraticCurveTo(cx - 2.2, cy - 0.5, cx - 1.6, cy - 1.8); ctx.lineTo(cx + 1.6, cy - 1.8); ctx.quadraticCurveTo(cx + 2.2, cy - 0.5, cx + 4.2, cy + 5.2); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(cx, cy - 4.2, 4.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.restore();
+          ctx.fillStyle = '#3a1f5c'; // the face
+          ctx.beginPath(); ctx.arc(cx - 1.8, cy - 4.8, 0.95, 0, Math.PI * 2); ctx.arc(cx + 1.8, cy - 4.8, 0.95, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = 'rgba(255, 110, 160, 0.65)';
+          ctx.beginPath(); ctx.arc(cx - 3, cy - 3.2, 1, 0, Math.PI * 2); ctx.arc(cx + 3, cy - 3.2, 1, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#3a1f5c'; ctx.lineWidth = 0.9;
+          ctx.beginPath(); ctx.arc(cx, cy - 3.6, 1.6, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+        },
+        bonus(cx, cy) { // a golden queen with a crown, jewels, a smile and sparkles
+          ctx.save();
+          ctx.shadowColor = '#ffc933'; ctx.shadowBlur = 12;
+          const g = ctx.createLinearGradient(cx, cy - 10, cx, cy + 9);
+          g.addColorStop(0, '#fff2a8'); g.addColorStop(0.5, '#ffcf3a'); g.addColorStop(1, '#d98c10');
+          ctx.fillStyle = g; ctx.strokeStyle = '#9a5a08'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.ellipse(cx, cy + 7, 6.6, 2.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); // base
+          ctx.beginPath(); ctx.moveTo(cx - 4.6, cy + 6); ctx.quadraticCurveTo(cx - 2.6, cy + 0.5, cx - 2, cy - 1); ctx.lineTo(cx + 2, cy - 1); ctx.quadraticCurveTo(cx + 2.6, cy + 0.5, cx + 4.6, cy + 6); ctx.closePath(); ctx.fill(); ctx.stroke(); // gown
+          ctx.restore();
+          ctx.fillStyle = '#fff1c8'; ctx.strokeStyle = '#9a5a08'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(cx, cy - 3, 3.8, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); // face
+          ctx.fillStyle = '#ffcf3a'; // crown
+          ctx.beginPath(); ctx.moveTo(cx - 4.6, cy - 5.2); ctx.lineTo(cx - 5.2, cy - 10); ctx.lineTo(cx - 2.4, cy - 7.4); ctx.lineTo(cx, cy - 10.6); ctx.lineTo(cx + 2.4, cy - 7.4); ctx.lineTo(cx + 5.2, cy - 10); ctx.lineTo(cx + 4.6, cy - 5.2); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#ff4fa3'; ctx.beginPath(); ctx.arc(cx - 5.2, cy - 10.4, 1, 0, Math.PI * 2); ctx.arc(cx, cy - 11, 1, 0, Math.PI * 2); ctx.arc(cx + 5.2, cy - 10.4, 1, 0, Math.PI * 2); ctx.fill(); // jewels
+          ctx.fillStyle = '#3a1f5c'; ctx.beginPath(); ctx.arc(cx - 1.5, cy - 3.3, 0.8, 0, Math.PI * 2); ctx.arc(cx + 1.5, cy - 3.3, 0.8, 0, Math.PI * 2); ctx.fill();
+          ctx.strokeStyle = '#3a1f5c'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(cx, cy - 2.4, 1.4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; // two sparkles
+          ctx.beginPath(); ctx.moveTo(cx + 7, cy - 2); ctx.lineTo(cx + 10, cy - 2); ctx.moveTo(cx + 8.5, cy - 3.5); ctx.lineTo(cx + 8.5, cy - 0.5); ctx.moveTo(cx - 9, cy + 3); ctx.lineTo(cx - 7, cy + 3); ctx.moveTo(cx - 8, cy + 2); ctx.lineTo(cx - 8, cy + 4); ctx.stroke();
         },
       },
     };

@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "a0105fd75af029d5e4234326d026e568c76e3672",
-    "short":  "a0105fd",
-    "subject":  "E-mail guard: keep the user\u0027s real address out of commits, pushes, the public repo and agent commands",
-    "published":  "2026-11-06T18:39:13Z",
+    "sha":  "fad0b331d6ce1ffc2576cb5eaef6dbbfc187cfda",
+    "short":  "fad0b33",
+    "subject":  "Tools keep temporary files in the project\u0027s temp/ folder; two check fixes",
+    "published":  "2026-11-06T21:04:49Z",
     "issues":  [
                    19,
                    46,
@@ -42,6 +42,11 @@
                    109,
                    110,
                    114,
-                   115
+                   115,
+                   116,
+                   117,
+                   118,
+                   119,
+                   120
                ]
 }
