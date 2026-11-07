@@ -2,11 +2,12 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "d637429460b3b8f80b64c0b088ff242370d6c73f",
-    "short":  "d637429",
-    "subject":  "Tombstone and ghost after a death",
-    "published":  "2026-11-07T08:33:22Z",
+    "sha":  "0db5f372c401aa1e3caf8360cd7b5a481b2758df",
+    "short":  "0db5f37",
+    "subject":  "Friendly crash screen with a Reload button",
+    "published":  "2026-11-07T08:45:53Z",
     "issues":  [
-                   37
+                   37,
+                   81
                ]
 }

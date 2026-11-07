@@ -1133,6 +1133,61 @@
   </div>
 
   <script>
+    // ===== Crash screen (#81) =====
+    // If the script throws, the player gets a small friendly box with a Reload button instead of a frozen page. This block comes
+    // FIRST and depends on nothing below it (its own texts, inline styles), so it also works when the error happens during start-up.
+    // It must never throw itself and shows at most once per page load. Saved data is in storage already, so a reload loses nothing.
+    const CRASH_TEXT = {
+      en: { title: 'Something went wrong', body: 'The game hit a problem. Your scores and settings are safe. Reload to continue.', button: 'Reload' },
+      da: { title: 'Noget gik galt', body: 'Spillet stødte på et problem. Dine scores og indstillinger er gemt. Genindlæs for at fortsætte.', button: 'Genindlæs' },
+    };
+    // Which problems count. Harmless ones are ignored: a browser refusing audio, fullscreen, clipboard or play() rejects a promise
+    // with a DOMException; layout-observer notices; errors from other origins or browser extensions (no error object, no file).
+    function crashCounts(kind, info) {
+      info = info || {};
+      if (kind === 'rejection') {
+        const r = info.reason;
+        if (r === undefined || r === null) return false;
+        if (typeof DOMException !== 'undefined' && r instanceof DOMException) return false;
+        return true;
+      }
+      if (/ResizeObserver loop/i.test(String(info.message || ''))) return false;
+      if (!info.error && (!info.filename || /^Script error\.?$/i.test(String(info.message || '')))) return false;
+      return true;
+    }
+    let crashShown = false;
+    function showCrash(err) {
+      if (crashShown) return false;
+      crashShown = true;
+      try {
+        let l = 'en';
+        try { l = lang === 'da' ? 'da' : 'en'; } catch (e) { l = (navigator.language || '').toLowerCase().startsWith('da') ? 'da' : 'en'; } // `lang` may not exist yet
+        const tx = CRASH_TEXT[l];
+        const css = (el, s) => { el.style.cssText = s; return el; };
+        const wrap = css(document.createElement('div'), 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,0.75);font-family:"Courier New",monospace;');
+        wrap.id = 'crashScreen'; wrap.setAttribute('role', 'alertdialog');
+        const box = css(document.createElement('div'), 'width:min(380px,100%);max-height:90vh;overflow:auto;box-sizing:border-box;padding:18px;text-align:center;color:#e8f0ff;background:#0b1220;border:2px solid #ff6b6b;border-radius:10px;');
+        const h = css(document.createElement('div'), 'font-size:20px;font-weight:bold;color:#ff8a8a;margin-bottom:10px;'); h.textContent = tx.title;
+        const p = css(document.createElement('div'), 'font-size:14px;line-height:1.4;margin-bottom:14px;'); p.textContent = tx.body;
+        const b = css(document.createElement('button'), 'font:inherit;font-weight:bold;font-size:15px;padding:8px 18px;color:#0b1220;background:#00ff88;border:0;border-radius:6px;cursor:pointer;');
+        b.type = 'button'; b.textContent = tx.button; b.onclick = () => location.reload();
+        box.append(h, p, b);
+        let debug = false;
+        try { debug = new URLSearchParams(location.search).get('debug') !== null; } catch (e) { /* ignore */ }
+        if (debug && err) { // with ?debug the error itself is shown (English only)
+          const pre = css(document.createElement('pre'), 'margin:14px 0 0;text-align:left;white-space:pre-wrap;word-break:break-word;font-size:11px;color:#ffb3b3;');
+          pre.textContent = String(err && err.stack ? err.stack : err);
+          box.append(pre);
+        }
+        wrap.append(box);
+        document.body.append(wrap);
+        try { b.focus(); } catch (e) { /* ignore */ }
+      } catch (e) { /* the crash screen itself must never throw */ }
+      return true;
+    }
+    window.addEventListener('error', (ev) => { if (crashCounts('error', ev)) showCrash(ev.error || ev.message); });
+    window.addEventListener('unhandledrejection', (ev) => { if (crashCounts('rejection', ev)) showCrash(ev.reason); });
+
     const canvas = document.getElementById('gameCanvas');
     let ctx = canvas.getContext('2d'); // briefly swapped when rendering the legend icons
     const GRID_SIZE = 20;
@@ -1720,10 +1775,12 @@
     const CHANGELOG = [
       { id: 4,
         en: [
-          'After you die, a tombstone pops up where you fell and a ghost rises from it. Press any key to skip it.'
+          'After you die, a tombstone pops up where you fell and a ghost rises from it. Press any key to skip it.',
+          'If the game ever hits a problem, you now get a friendly message with a Reload button. Your scores and settings are kept.'
         ],
         da: [
-          'Når du dør, popper en gravsten op, hvor du faldt, og et spøgelse svæver op fra den. Tryk på en tast for at springe over.'
+          'Når du dør, popper en gravsten op, hvor du faldt, og et spøgelse svæver op fra den. Tryk på en tast for at springe over.',
+          'Hvis spillet nogensinde støder på et problem, får du nu en venlig besked med en Genindlæs-knap. Dine scores og indstillinger bliver gemt.'
         ] },
       { id: 3,
         en: [
@@ -7140,6 +7197,10 @@
       const killBtn = mk('button', btnCss + 'margin-left:4px;', 'Kill snake'); killBtn.type = 'button';
       act(killBtn, () => say(debugKillSnake()));
       g3.append(lcBtn, killBtn);
+      const g3b = row();
+      const crashBtn = mk('button', btnCss, 'Throw test error'); crashBtn.type = 'button'; crashBtn.title = 'throws a real uncaught error to show the crash screen (#81); it shows once per page load';
+      act(crashBtn, () => { setTimeout(() => { throw new Error('Test error from the debug menu'); }, 0); say('Error thrown'); });
+      g3b.append(crashBtn);
 
       // Bonus gem spawn (#92): timer (a gap of moves) or meal (a chance per food eaten). Applies at once, not saved.
       row('Bonus gem: when does it appear?');
