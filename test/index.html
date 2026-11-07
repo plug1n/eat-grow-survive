@@ -1718,6 +1718,13 @@
     // that is later parked or reverted is removed again. The player's "last release seen" is stored; the red dot shows
     // on the gear (and in the drawer) until the panel has been opened for the newest release, for everyone.
     const CHANGELOG = [
+      { id: 4,
+        en: [
+          'After you die, a tombstone pops up where you fell and a ghost rises from it. Press any key to skip it.'
+        ],
+        da: [
+          'Når du dør, popper en gravsten op, hvor du faldt, og et spøgelse svæver op fra den. Tryk på en tast for at springe over.'
+        ] },
       { id: 3,
         en: [
           'The game now opens with a retro boot screen. Click or press any key, and the intro plays with sound from its very first scene.',
@@ -5217,6 +5224,42 @@
       }
     }
 
+    // The tombstone and the ghost after a death (#37): the intro's joke, drawn on the effects layer where the head died.
+    // The stone pops up, then a ghost rises from it with the intro's "woo" and fades. `tomb` is null when nothing shows.
+    const TOMB_RISE_MS = 350;  // the stone pops up
+    const TOMB_MS = 1300;      // the whole moment, then the Game Over box
+    let tomb = null;
+    function drawTomb(now) {
+      if (!tomb) return;
+      const age = now - tomb.t0;
+      if (age >= TOMB_MS) { tomb = null; return; }
+      const rise = Math.min(1, age / TOMB_RISE_MS), x = tomb.x, base = tomb.y, h = 24 * rise, top = base - h;
+      fxCtx.save();
+      fxCtx.fillStyle = '#8a96a8'; // the stone: a body with a rounded top, a light edge and a dark outline
+      fxCtx.strokeStyle = '#2a3342'; fxCtx.lineWidth = 1.5;
+      fxCtx.beginPath();
+      fxCtx.moveTo(x - 9, base); fxCtx.lineTo(x - 9, top + 8); fxCtx.quadraticCurveTo(x - 9, top, x, top);
+      fxCtx.quadraticCurveTo(x + 9, top, x + 9, top + 8); fxCtx.lineTo(x + 9, base); fxCtx.closePath();
+      fxCtx.fill(); fxCtx.stroke();
+      fxCtx.fillStyle = '#b4bfd6'; fxCtx.fillRect(x - 7, top + 4, 2, Math.max(0, h - 6));
+      if (rise > 0.9) {
+        fxCtx.fillStyle = '#2a3342'; fxCtx.font = 'bold 8px "Courier New", monospace';
+        fxCtx.textAlign = 'center'; fxCtx.textBaseline = 'middle';
+        fxCtx.fillText('RIP', x, base - 13);
+      }
+      if (age > TOMB_RISE_MS) { // the ghost drifts up, wobbles and fades
+        const k = (age - TOMB_RISE_MS) / (TOMB_MS - TOMB_RISE_MS);
+        const gx = x + Math.sin(k * 9) * 3, gy = top - 6 - k * 34;
+        fxCtx.globalAlpha = Math.max(0, 1 - k * k);
+        fxCtx.fillStyle = '#ffffff';
+        fxCtx.beginPath(); fxCtx.arc(gx, gy, 7, Math.PI, 0); fxCtx.lineTo(gx + 7, gy + 9);
+        fxCtx.lineTo(gx + 3.5, gy + 6); fxCtx.lineTo(gx, gy + 9); fxCtx.lineTo(gx - 3.5, gy + 6); fxCtx.lineTo(gx - 7, gy + 9);
+        fxCtx.closePath(); fxCtx.fill();
+        fxCtx.fillStyle = '#141e32'; fxCtx.fillRect(gx - 3.5, gy - 2, 2, 3); fxCtx.fillRect(gx + 1.5, gy - 2, 2, 3);
+      }
+      fxCtx.restore();
+    }
+
     function kickFx() { // make sure the effects loop is running
       if (fxRaf === null) { fxLast = performance.now(); fxRaf = requestAnimationFrame(fxFrame); }
     }
@@ -5251,7 +5294,8 @@
       fxCtx.globalAlpha = 1;
       drawCountdownFx(now);
       drawFloats(dt);
-      if (particles.length || countdownAnim || rings.length || floats.length) {
+      drawTomb(now);
+      if (particles.length || countdownAnim || rings.length || floats.length || tomb) {
         fxRaf = requestAnimationFrame(fxFrame);
       } else {
         fxRaf = null;
@@ -5263,6 +5307,7 @@
       particles = [];
       rings = [];
       floats = [];
+      tomb = null;
       fxCtx.clearRect(0, 0, BOARD_LOGICAL, BOARD_LOGICAL);
     }
 
@@ -5427,10 +5472,37 @@
         if (popped < n) {
           requestAnimationFrame(frame);
         } else {
-          setTimeout(() => { dying = false; done(); }, 550); // let the last particles fade
+          setTimeout(() => playTombstone(cells[0], () => { dying = false; done(); }), 550); // let the last particles fade
         }
       };
       requestAnimationFrame(frame);
+    }
+
+    // The tombstone and ghost after the crumble (#37); then done() runs. A key press or click skips it (done() then runs
+    // after the event, so the same key press cannot also act on the Game Over box that appears: gotcha 38).
+    function playTombstone(headCell, done) {
+      const x = Math.min(Math.max(headCell.x * GRID_SIZE + GRID_SIZE / 2, 16), BOARD_LOGICAL - 16);
+      const y = Math.max(headCell.y * GRID_SIZE + GRID_SIZE, 34);
+      tomb = { x, y, t0: performance.now() };
+      kickFx();
+      const mine = tomb;
+      let finished = false, timer = null;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        document.removeEventListener('keydown', onKey, true);
+        document.removeEventListener('pointerdown', onPress, true);
+        if (tomb === mine) tomb = null;
+        done();
+      };
+      const skip = () => setTimeout(finish, 0);
+      const onKey = (e) => { if (!e.repeat && !['Shift', 'Control', 'Alt', 'Meta', 'Tab'].includes(e.key)) skip(); };
+      const onPress = () => skip();
+      document.addEventListener('keydown', onKey, true);
+      document.addEventListener('pointerdown', onPress, true);
+      setTimeout(() => { if (!finished && tomb === mine) sfx.ghost(); }, TOMB_RISE_MS); // the "woo" as the ghost starts to rise
+      timer = setTimeout(finish, TOMB_MS);
     }
 
     function endGame() {
