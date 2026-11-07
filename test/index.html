@@ -25,6 +25,7 @@
     body[data-theme="winter"] { background: linear-gradient(180deg, #16385e 0%, #07111f 100%) fixed; }
     body[data-theme="lcd"]    { background: linear-gradient(180deg, #2b3a14 0%, #121909 100%) fixed; }
     body[data-theme="chess"]  { background: radial-gradient(ellipse at 50% 0%, #5b3294 0%, #2a1650 55%, #150a2b 100%) fixed; }
+    body[data-theme="bear"]   { background: radial-gradient(ellipse at 50% 0%, #8a5524 0%, #4a2c12 55%, #20120a 100%) fixed; }
     body[data-theme="neon"]   { background: radial-gradient(ellipse at 50% 0%, #34105e 0%, #0b0a24 50%, #04040e 100%) fixed; }
     body[data-theme="desert"] #gameCanvas { border-color: #c98a3a; box-shadow: 0 0 30px rgba(255, 170, 70, 0.30); }
     body[data-theme="candy"]  #gameCanvas { border-color: #ff7ac8; box-shadow: 0 0 30px rgba(255, 120, 200, 0.35); }
@@ -32,6 +33,7 @@
     body[data-theme="winter"] #gameCanvas { border-color: #8fd0ff; box-shadow: 0 0 30px rgba(150, 210, 255, 0.35); }
     body[data-theme="lcd"]    #gameCanvas { border-color: #8bac0f; box-shadow: 0 0 26px rgba(155, 188, 15, 0.30); }
     body[data-theme="chess"]  #gameCanvas { border-color: #f2c14e; box-shadow: 0 0 28px rgba(255, 205, 100, 0.40), 0 0 60px rgba(190, 140, 255, 0.25); }
+    body[data-theme="bear"]   #gameCanvas { border-color: #f2b632; box-shadow: 0 0 28px rgba(255, 196, 70, 0.40), 0 0 60px rgba(150, 90, 30, 0.30); }
     body[data-theme="neon"]   #gameCanvas { border-color: #19e6ff; box-shadow: 0 0 28px rgba(0, 229, 255, 0.45), 0 0 64px rgba(255, 61, 242, 0.20); }
     body[data-theme="forest"] #gameCanvas { border-color: #2f7a4a; box-shadow: 0 0 30px rgba(120, 255, 160, 0.28); }
     body[data-theme="space"]  #gameCanvas { border-color: #4b3fa8; box-shadow: 0 0 30px rgba(140, 120, 255, 0.35); }
@@ -1330,6 +1332,7 @@
         legendFood_winter: 'Ornament — {n} points',
         legendFood_lcd: 'Apple — {n} points',
         legendFood_neon: 'Energy cell — {n} points',
+        legendFood_bear: 'Bee — {n} points',
         legendFood_chess: 'Pawn — {n} points',
         legendBonus_classic: 'Bonus gem — {n} points, time-limited',
         legendBonus_forest: 'Magic leaf — {n} points, time-limited',
@@ -1341,6 +1344,7 @@
         legendBonus_winter: 'Ice crystal — {n} points, time-limited',
         legendBonus_lcd: 'Heart — {n} points, time-limited',
         legendBonus_neon: 'Hologram crystal — {n} points, time-limited',
+        legendBonus_bear: 'Beehive — {n} points, time-limited',
         legendBonus_chess: 'Golden queen — {n} points, time-limited',
         watchIntro: '▶ Watch intro',
         customizeTitle: 'Customize the game',
@@ -1379,6 +1383,7 @@
         theme_winter: 'Winter',
         theme_lcd: 'Retro LCD',
         theme_neon: 'Neon Grid',
+        theme_bear: 'Bear and Bees',
         theme_chess: 'Chess',
         grid_checker: 'Checker',
         grid_lines: 'Lines',
@@ -1437,6 +1442,7 @@
         unlockMsg_theme_lava: 'The floor is lava. Literally.',
         unlockMsg_theme_lcd: 'Pixels from the old days. Press start on your memories.',
         unlockMsg_theme_neon: 'Welcome to the grid. Try not to get deleted.',
+        unlockMsg_theme_bear: 'The snake met a bear. They agreed not to talk about the honey.',
         unlockMsg_theme_chess: 'The snake plays chess now. It is not very good at it.',
         unlockMsg_pattern_solid: 'Plain and proud. No stripes, no fuss.',
         unlockMsg_pattern_striped: 'Stripes make you look faster. Science says so.',
@@ -1519,6 +1525,7 @@
         legendFood_winter: 'Julekugle — {n} point',
         legendFood_lcd: 'Æble — {n} point',
         legendFood_neon: 'Energicelle — {n} point',
+        legendFood_bear: 'Bi — {n} point',
         legendFood_chess: 'Bonde — {n} point',
         legendBonus_classic: 'Bonusædelsten — {n} point, tidsbegrænset',
         legendBonus_forest: 'Magisk blad — {n} point, tidsbegrænset',
@@ -1530,6 +1537,7 @@
         legendBonus_winter: 'Iskrystal — {n} point, tidsbegrænset',
         legendBonus_lcd: 'Hjerte — {n} point, tidsbegrænset',
         legendBonus_neon: 'Hologramkrystal — {n} point, tidsbegrænset',
+        legendBonus_bear: 'Bikube — {n} point, tidsbegrænset',
         legendBonus_chess: 'Gylden dronning — {n} point, tidsbegrænset',
         watchIntro: '▶ Se intro',
         customizeTitle: 'Tilpas spillet',
@@ -1568,6 +1576,7 @@
         theme_winter: 'Vinter',
         theme_lcd: 'Retro-skærm',
         theme_neon: 'Neongitter',
+        theme_bear: 'Bjørn og bier',
         theme_chess: 'Skak',
         grid_checker: 'Skakternet',
         grid_lines: 'Linjer',
@@ -1626,6 +1635,7 @@
         unlockMsg_theme_lava: 'Gulvet er lava. Helt bogstaveligt.',
         unlockMsg_theme_lcd: 'Pixels fra gamle dage. Tryk start på dine minder.',
         unlockMsg_theme_neon: 'Velkommen til gitteret. Prøv ikke at blive slettet.',
+        unlockMsg_theme_bear: 'Slangen mødte en bjørn. De blev enige om ikke at tale om honningen.',
         unlockMsg_theme_chess: 'Slangen spiller skak nu. Den er ikke så god til det.',
         unlockMsg_pattern_solid: 'Enkel og stolt. Ingen striber, ingen postyr.',
         unlockMsg_pattern_striped: 'Striber gør dig hurtigere. Det siger videnskaben.',
@@ -1729,6 +1739,12 @@
           wall: [['Illegal move: the edge of the board.', 'Ulovligt træk: brættets kant.'], ['Off the board!', 'Ud over brættet!']],
           obstacle: [['Rook takes snake.', 'Tårn slår slange.'], ['Oops! A castle was in the way.', 'Hov! Et slot stod i vejen.'], ['Captured!', 'Slået!']],
           body: [['Self-check. Checkmate!', 'Selvskak. Skakmat!'], ['Stalemate with your own tail.', 'Pat med din egen hale.'], ['You tied yourself in a royal knot.', 'Du bandt dig i en kongelig knude.']],
+        } },
+      bear: { word: ['Bear', 'Bjørne'], opener: ['Honey Tree', 'Honningtræet'],
+        deaths: {
+          wall: [['You bumped into the edge of the picture.', 'Du bumpede ind i tegningens kant.'], ['End of the page!', 'Enden på papiret!']],
+          obstacle: [['Barking up the wrong tree.', 'Gøede op ad det forkerte træ.'], ['The tree won this round.', 'Træet vandt den runde.'], ['Ouch! Right into a log.', 'Av! Lige ind i en træstamme.']],
+          body: [['A bear hug from your own tail!', 'Et bjørnekram fra din egen hale!'], ['Oh bee-have! You ate your own tail.', 'Åh nej! Du spiste din egen hale.'], ['What a bear of a problem.', 'Sikke en bjørnetjeneste.']],
         } },
       neon: { word: ['Neon', 'Neon'], opener: ['Neon Grid', 'Neongitter'],
         deaths: {
@@ -1837,7 +1853,8 @@
           'Game Over has a new Share link. On a phone it opens the share sheet; elsewhere it copies your score and the game link.',
           'While you play, the record box shows the next score on the list to beat, with a quiet blip each time you pass a place.',
           'New accessibility settings in Settings: Motion (Auto, Calm, Full), High contrast and a colour-blind mode.',
-          'New Stats button in Settings: games, best and average score, foods, gems, time played and how you died. It counts runs from now on.'
+          'New Stats button in Settings: games, best and average score, foods, gems, time played and how you died. It counts runs from now on.',
+          'New theme from a drawing by a child: Bear and Bees, level 4. Striped bees to eat, a golden beehive and tree logs as walls.'
         ],
         da: [
           'Når du dør, popper en gravsten op, hvor du faldt, og et spøgelse svæver op fra den. Tryk på en tast for at springe over.',
@@ -1845,7 +1862,8 @@
           'Game Over har et nyt Del-link. På telefon åbner det delingsarket; ellers kopierer det din score og linket til spillet.',
           'Mens du spiller, viser rekordfeltet den næste score på listen, du skal slå, med et stille bip, hver gang du passerer en plads.',
           'Nye indstillinger for tilgængelighed: Bevægelse (Auto, Rolig, Fuld), Høj kontrast og en farveblind-tilstand.',
-          'Ny Statistik-knap i indstillinger: spil, bedste og gennemsnitlig score, mad, ædelsten, spilletid og hvordan du døde. Tæller fra nu af.'
+          'Ny Statistik-knap i indstillinger: spil, bedste og gennemsnitlig score, mad, ædelsten, spilletid og hvordan du døde. Tæller fra nu af.',
+          'Nyt tema efter en børnetegning: Bjørn og bier, låses op på bane 4. Stribede bier at spise, en gylden bikube og træstammer som vægge.'
         ] },
       { id: 3,
         en: [
@@ -1929,6 +1947,7 @@
     // Pacing: one unlock every second level up to level 34, a theme every fourth level or so, Retro LCD the finale at 40.
     const UNLOCKS = {
       'color:blue':      { type: 'level', value: 2 },
+      'theme:bear':      { type: 'level', value: 4 },
       'pattern:solid':   { type: 'level', value: 6 },
       'theme:chess':     { type: 'level', value: 8 },
       'grid:lines':      { type: 'level', value: 10 },
@@ -2127,7 +2146,7 @@
       },
       colors: { // the fog's colour per theme (light for the misty / hazy ones)
         default: '#03060d', classic: '#02050b', forest: '#031208', space: '#000008', ocean: '#021a2e',
-        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f', neon: '#02020c', chess: '#2a1648',
+        desert: '#f0e0b0', candy: '#2b0a2a', lava: '#1c0600', winter: '#e6f0fa', lcd: '#0f380f', neon: '#02020c', chess: '#2a1648', bear: '#2a1a0c',
       },
     };
     const FOG_KEY = 'snake_fog';
@@ -4713,7 +4732,82 @@
           ctx.beginPath(); ctx.moveTo(cx + 7, cy - 2); ctx.lineTo(cx + 10, cy - 2); ctx.moveTo(cx + 8.5, cy - 3.5); ctx.lineTo(cx + 8.5, cy - 0.5); ctx.moveTo(cx - 9, cy + 3); ctx.lineTo(cx - 7, cy + 3); ctx.moveTo(cx - 8, cy + 2); ctx.lineTo(cx - 8, cy + 4); ctx.stroke();
         },
       },
+      bear: { // Bear and Bees (#124, from a child's marker drawing): cream paper with grass and daisies, tree logs as walls, a striped bee as food, a golden beehive as the bonus
+        fx: { colors: ['#ffcf3a', '#f2a81d', '#fff1a8', '#8b5a2b'], shape: 'circle', gravity: 0.1 },
+        build(g) {
+          for (let y = 0; y < 20; y++) for (let x = 0; x < 20; x++) { // drawing paper in two very close creams
+            g.fillStyle = (x + y) % 2 === 0 ? '#f8f1d8' : '#f2e9c9'; g.fillRect(x * 20, y * 20, 20, 20);
+          }
+          const r = mulberry32(124);
+          g.lineCap = 'round';
+          g.strokeStyle = '#8fbf5a'; g.lineWidth = 1.3; // little marker tufts of grass
+          for (let i = 0; i < 36; i++) {
+            const x = 8 + r() * 384, y = 10 + r() * 380;
+            g.beginPath(); g.moveTo(x, y); g.lineTo(x - 2.2, y - 4.5); g.moveTo(x, y); g.lineTo(x, y - 5.5); g.moveTo(x, y); g.lineTo(x + 2.2, y - 4.5); g.stroke();
+          }
+          for (let i = 0; i < 9; i++) { // a few daisies
+            const x = 14 + r() * 372, y = 14 + r() * 372;
+            g.fillStyle = 'rgba(255, 255, 255, 0.95)'; g.strokeStyle = 'rgba(120, 90, 40, 0.55)'; g.lineWidth = 0.7;
+            for (let k = 0; k < 5; k++) { const a = k * 1.2566; g.beginPath(); g.arc(x + Math.cos(a) * 2.6, y + Math.sin(a) * 2.6, 1.9, 0, Math.PI * 2); g.fill(); g.stroke(); }
+            g.fillStyle = '#f2b632'; g.beginPath(); g.arc(x, y, 1.5, 0, Math.PI * 2); g.fill();
+          }
+          g.fillStyle = 'rgba(150, 110, 60, 0.20)'; // a trail of bear paw prints
+          [[70, 330], [100, 296], [76, 262], [108, 228]].forEach(([x, y], i) => {
+            g.beginPath(); g.ellipse(x, y, 7, 6, 0, 0, Math.PI * 2); g.fill();
+            for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x - 7.5 + k * 5, y - 9 - (k === 1 || k === 2 ? 2 : 0), 2.3, 0, Math.PI * 2); g.fill(); }
+          });
+          g.save(); g.globalAlpha = 0.24; // the bear itself, peeking from the corner (a faint watermark under the game)
+          const bx = 356, by = 358;
+          g.fillStyle = '#7a4a2b'; g.beginPath(); g.arc(bx - 17, by - 17, 8, 0, Math.PI * 2); g.arc(bx + 17, by - 17, 8, 0, Math.PI * 2); g.arc(bx, by, 23, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#d9a86a'; g.beginPath(); g.ellipse(bx, by + 8, 11, 8, 0, 0, Math.PI * 2); g.fill();
+          g.fillStyle = '#2a1608'; g.beginPath(); g.ellipse(bx, by + 3, 4, 3, 0, 0, Math.PI * 2); g.arc(bx - 9, by - 5, 2.6, 0, Math.PI * 2); g.arc(bx + 9, by - 5, 2.6, 0, Math.PI * 2); g.fill();
+          g.restore();
+        },
+        obstacle(ox, oy, id) { // a piece of tree: a dark log with bark lines, now and then a knot or a leaf; they alternate two browns
+          const alt = id % 2 === 0;
+          ctx.fillStyle = alt ? '#5c3a22' : '#6e4b2f'; ctx.strokeStyle = '#1e120a'; ctx.lineWidth = 1.5;
+          bearRoundRect(ox + 1.5, oy + 1.5, 17, 17, 4.5); ctx.fill(); ctx.stroke();
+          ctx.strokeStyle = alt ? '#8a6544' : '#9a7650'; ctx.lineWidth = 1.2; ctx.lineCap = 'round'; // bark
+          ctx.beginPath(); ctx.moveTo(ox + 6, oy + 5); ctx.lineTo(ox + 6, oy + 12); ctx.moveTo(ox + 11, oy + 8); ctx.lineTo(ox + 11, oy + 16); ctx.moveTo(ox + 14.5, oy + 5); ctx.lineTo(ox + 14.5, oy + 9); ctx.stroke();
+          if (id % 5 === 0) { ctx.fillStyle = '#2b1a0e'; ctx.beginPath(); ctx.ellipse(ox + 9, oy + 10, 2.6, 3.2, 0, 0, Math.PI * 2); ctx.fill(); } // a knot
+          if (id % 7 === 0) { ctx.fillStyle = '#5fb04a'; ctx.strokeStyle = '#1e120a'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.ellipse(ox + 15, oy + 4, 3.2, 1.8, -0.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); } // a leaf
+        },
+        food(cx, cy) { // a little striped bee with wings and a face, as in the drawing
+          ctx.save();
+          ctx.translate(cx, cy + 1.5); ctx.rotate(-0.3);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)'; ctx.strokeStyle = '#1e120a'; ctx.lineWidth = 1; // the wings
+          ctx.beginPath(); ctx.ellipse(-1.5, -5.4, 2.6, 3.5, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.ellipse(2.9, -5.2, 2.4, 3.3, 0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.ellipse(0, 0, 7.4, 5, 0, 0, Math.PI * 2); // the body
+          ctx.fillStyle = '#ffd23f'; ctx.fill();
+          ctx.save(); ctx.clip(); ctx.fillStyle = '#1e120a'; ctx.fillRect(-2.4, -7, 2.5, 14); ctx.fillRect(2.4, -7, 2.5, 14); ctx.restore(); // the stripes
+          ctx.beginPath(); ctx.ellipse(0, 0, 7.4, 5, 0, 0, Math.PI * 2); ctx.strokeStyle = '#1e120a'; ctx.lineWidth = 1.4; ctx.stroke();
+          ctx.fillStyle = '#1e120a'; ctx.beginPath(); ctx.moveTo(7.2, -0.9); ctx.lineTo(9.8, 0); ctx.lineTo(7.2, 0.9); ctx.closePath(); ctx.fill(); // the stinger
+          ctx.beginPath(); ctx.arc(-4.9, -1.3, 0.95, 0, Math.PI * 2); ctx.fill(); // the face: an eye and a smile
+          ctx.strokeStyle = '#1e120a'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.arc(-5.3, 0.6, 1.3, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
+          ctx.restore();
+        },
+        bonus(cx, cy) { // a golden beehive in bands, with a dark entrance and a string to the tree
+          ctx.save();
+          ctx.shadowColor = '#ffc933'; ctx.shadowBlur = 12;
+          ctx.strokeStyle = '#5a3a24'; ctx.lineWidth = 1.3; ctx.beginPath(); ctx.moveTo(cx, cy - 9.6); ctx.lineTo(cx, cy - 13); ctx.stroke(); // the string
+          [[-9.5, 8, 5], [-5, 12, 5], [-0.5, 15.5, 5.5], [4.5, 12, 5]].forEach(([top, w, h]) => { // [top, width, height] of each band
+            const gr = ctx.createLinearGradient(cx, cy + top, cx, cy + top + h);
+            gr.addColorStop(0, '#fff3b0'); gr.addColorStop(1, '#ffd24a');
+            ctx.fillStyle = gr; ctx.strokeStyle = '#7a4b12'; ctx.lineWidth = 1.2;
+            bearRoundRect(cx - w / 2, cy + top, w, h, 2.6); ctx.fill(); ctx.stroke();
+          });
+          ctx.restore();
+          ctx.fillStyle = '#2a1608'; ctx.beginPath(); ctx.arc(cx, cy + 1.2, 2.9, 0, Math.PI * 2); ctx.fill(); // the entrance
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(cx - 6, cy - 4.2, 1.6, 2.2); // a shine
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; // two sparkles
+          ctx.beginPath(); ctx.moveTo(cx + 8, cy - 4); ctx.lineTo(cx + 11, cy - 4); ctx.moveTo(cx + 9.5, cy - 5.5); ctx.lineTo(cx + 9.5, cy - 2.5); ctx.moveTo(cx - 10, cy + 5); ctx.lineTo(cx - 8, cy + 5); ctx.moveTo(cx - 9, cy + 4); ctx.lineTo(cx - 9, cy + 6); ctx.stroke();
+        },
+      },
     };
+    function bearRoundRect(x, y, w, h, r) { // a rounded rectangle path (the Bear and Bees theme)
+      ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    }
 
     const THEME_KEY = 'snake_theme';
     const GRID_STYLES = ['checker', 'lines', 'dots', 'none'];
