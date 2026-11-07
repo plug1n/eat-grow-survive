@@ -318,6 +318,9 @@
     .news-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .news-head h3 { flex: 1 1 0; min-width: 0; color: #00ff88; font-size: 1.15rem; }
     .news-body { overflow-y: auto; display: grid; gap: 14px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; }
+    .stat-grid dt { color: #a0a0a0; } .stat-grid dd { margin: 0; color: #00ff88; text-align: right; font-weight: bold; }
+    .stat-note { color: #6f84a3; font-size: 0.78rem; line-height: 1.35; }
     .news-release h4 { color: #e0e0e0; font-size: 0.95rem; margin-bottom: 4px; }
     .news-release ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; line-height: 1.35; }
     .news-dot { display: none; width: 9px; height: 9px; margin-left: 8px; border-radius: 50%; background: #ff4d4d; box-shadow: 0 0 6px #ff4d4d; }
@@ -703,6 +706,16 @@
     #zoomOptions    { grid-template-columns: repeat(4, 1fr); }
     #fogOptions     { grid-template-columns: repeat(4, 1fr); }
     #touchOptions   { grid-template-columns: repeat(3, 1fr); }
+    #motionOptions  { grid-template-columns: repeat(3, 1fr); }
+    #contrastOptions, #cbOptions { grid-template-columns: repeat(2, 1fr); }
+    /* High contrast (#21): black panels, white text and borders; the board gets white outlines from the script */
+    body[data-contrast="high"] .hud-slot, body[data-contrast="high"] .overlay, body[data-contrast="high"] .drawer { background: #000; border-color: #fff; }
+    body[data-contrast="high"] .hud-label, body[data-contrast="high"] .option-label, body[data-contrast="high"] .option-note { color: #fff; }
+    body[data-contrast="high"] #gameCanvas { border-color: #fff; }
+    body[data-contrast="high"] .pattern-btn { border-color: #fff; color: #fff; }
+    body[data-contrast="high"] .pattern-btn.active { background: #fff; color: #000; }
+    /* Calm motion chosen in the settings (the media query only covers the device setting) */
+    body[data-motion="reduced"] *, body[data-motion="reduced"] *::before, body[data-motion="reduced"] *::after { transition: none !important; animation: none !important; }
     #dpadSideOptions { grid-template-columns: repeat(2, 1fr); }
     .option-note { font-size: 0.72rem; color: #6f84a3; line-height: 1.3; }
     .swatch {
@@ -959,7 +972,7 @@
             <button onclick="restartGame()" data-i18n="playAgain">Play Again</button>
             <button type="button" id="watchReplayBtn" class="secondary" data-i18n="replayWatch">▶ Watch replay</button>
           </div>
-          <div class="hs-extra"><button type="button" id="copyRunBtn" class="link-btn" data-i18n="runCopy">📋 Copy run</button></div>
+          <div class="hs-extra"><button type="button" id="shareScoreBtn" class="link-btn" data-i18n="shareScore">📤 Share</button><button type="button" id="copyRunBtn" class="link-btn" data-i18n="runCopy">📋 Copy run</button></div>
         </div>
         <div class="overlay hs-overlay" id="highScoreOverlay" role="dialog" aria-modal="true" aria-labelledby="hsTitle">
           <h2 id="hsTitle" data-i18n="hsTitle">NEW HIGH SCORE!</h2>
@@ -1079,6 +1092,15 @@
       <span class="option-note" data-i18n="fogNote">Applies from your next run. Every setting has its own leaderboard.</span>
     </div>
     <div class="option-row">
+      <span class="option-label" data-i18n="a11yMotionLabel" data-fit>Motion</span>
+      <div class="option-group" id="motionOptions"></div>
+      <span class="option-label" data-i18n="a11yContrastLabel" data-fit>Contrast</span>
+      <div class="option-group" id="contrastOptions"></div>
+      <span class="option-label" data-i18n="a11yColorsLabel" data-fit>Colours</span>
+      <div class="option-group" id="cbOptions"></div>
+      <span class="option-note" data-i18n="a11yNote">Auto follows your device's reduce-motion setting. Colour-blind mode gives the snake blue and rings the food.</span>
+    </div>
+    <div class="option-row">
       <span class="option-label" data-i18n="musicVolLabel" data-fit>Music volume</span>
       <div class="vol-row">
         <input type="range" id="musicVol" min="0" max="100" step="5" value="100" data-i18n-aria="musicVolLabel" aria-label="Music volume">
@@ -1091,6 +1113,9 @@
         <input type="range" id="sfxVol" min="0" max="100" step="5" value="100" data-i18n-aria="sfxVolLabel" aria-label="Effects volume">
         <span class="vol-val" id="sfxVolVal">100%</span>
       </div>
+    </div>
+    <div class="option-row">
+      <button type="button" class="toggle-btn" id="statsBtn" aria-haspopup="dialog" data-i18n="statsOpen" data-fit>Stats</button>
     </div>
     <div class="option-row">
       <button type="button" class="toggle-btn" id="newsBtn" aria-haspopup="dialog"><span id="newsBtnLabel" data-i18n="newsOpen" data-fit>What's new</span><span class="news-dot" id="newsDot"></span></button>
@@ -1269,6 +1294,13 @@
         hudGoal: 'GOAL',
         hudScore: 'SCORE',
         hudBest: '🏆 RECORD',
+        a11yMotionLabel: 'Motion', a11yContrastLabel: 'Contrast', a11yColorsLabel: 'Colours',
+        a11y_motion_auto: 'Auto', a11y_motion_reduced: 'Calm', a11y_motion_full: 'Full',
+        a11y_contrast_normal: 'Normal', a11y_contrast_high: 'High',
+        a11y_cb_off: 'Normal', a11y_cb_on: 'Colour-blind',
+        a11yNote: "Auto follows your device's reduce-motion setting. Colour-blind mode gives the snake blue and rings the food.",
+        hudNext: '🎯 NEXT',
+        hudNextTip: 'The next score on the list to beat: {n} to go',
         minSpeedTip: 'Minimum speed on this level: {m}',
         speed: 'Speed:',
         fullscreenTip: 'Fullscreen (F)',
@@ -1314,6 +1346,11 @@
         customizeTitle: 'Customize the game',
         newsTitle: "What's new",
         newsOpen: "What's new",
+        statsOpen: 'Stats', statsTitle: 'Your stats', statsNone: 'No runs yet. Play a game and your numbers show up here.',
+        statsGames: 'Games played', statsBest: 'Best score', statsAvg: 'Average score', statsLevel: 'Best level reached',
+        statsFoods: 'Foods eaten', statsGems: 'Bonus gems eaten', statsMoves: 'Moves made', statsTime: 'Time played', statsLongest: 'Longest snake',
+        statsWall: 'Died on the wall', statsObstacle: 'Died on an obstacle', statsBody: 'Died on own tail',
+        statsNote: 'Foods, gems, moves, time, length and deaths count only runs played since this was added ({n} of {m} runs).',
         newsRelease: 'Version {n}',
         pauseHintTouch: 'Tap here to resume',
         startPressTouch: 'Swipe on the board or tap an arrow to start',
@@ -1377,6 +1414,10 @@
         runCopy: '📋 Copy run',
         runCopied: '✔ Copied!',
         runCopyFail: 'Copy failed: see the console',
+        shareScore: '📤 Share',
+        shareCopied: '✔ Copied!',
+        shareFail: 'Could not share',
+        shareText: 'I scored {s} points on level {l} in Eat. Grow. Survive. Can you beat that?',
         runUnlocks: 'Unlocked this run: {names}',
         gemTally: 'Bonus gems: {n} worth {p} points',
         invFood: 'Food ×{n}', invBonus: 'Bonus {n}', invFresh: 'fresh', invStreak: 'streak', invTidy: 'tidy', invMore: '{n} more bonus',
@@ -1442,6 +1483,13 @@
         hudGoal: 'MÅL',
         hudScore: 'POINT',
         hudBest: '🏆 REKORD',
+        a11yMotionLabel: 'Bevægelse', a11yContrastLabel: 'Kontrast', a11yColorsLabel: 'Farver',
+        a11y_motion_auto: 'Auto', a11y_motion_reduced: 'Rolig', a11y_motion_full: 'Fuld',
+        a11y_contrast_normal: 'Normal', a11y_contrast_high: 'Høj',
+        a11y_cb_off: 'Normal', a11y_cb_on: 'Farveblind',
+        a11yNote: 'Auto følger enhedens indstilling for mindre bevægelse. Farveblind-tilstand gør slangen blå og sætter ringe om maden.',
+        hudNext: '🎯 NÆSTE',
+        hudNextTip: 'Næste score på listen, du skal slå: {n} igen',
         minSpeedTip: 'Mindste hastighed på dette niveau: {m}',
         speed: 'Hastighed:',
         fullscreenTip: 'Fuldskærm (F)',
@@ -1487,6 +1535,11 @@
         customizeTitle: 'Tilpas spillet',
         newsTitle: 'Nyt i spillet',
         newsOpen: 'Nyt i spillet',
+        statsOpen: 'Statistik', statsTitle: 'Din statistik', statsNone: 'Ingen spil endnu. Spil en omgang, så dukker tallene op her.',
+        statsGames: 'Spil spillet', statsBest: 'Bedste score', statsAvg: 'Gennemsnitlig score', statsLevel: 'Bedste bane nået',
+        statsFoods: 'Mad spist', statsGems: 'Bonusædelsten spist', statsMoves: 'Træk lavet', statsTime: 'Spilletid', statsLongest: 'Længste slange',
+        statsWall: 'Døde på væggen', statsObstacle: 'Døde på en forhindring', statsBody: 'Døde på egen hale',
+        statsNote: 'Mad, ædelsten, træk, tid, længde og dødsårsager tæller kun spil fra efter, at dette blev tilføjet ({n} af {m} spil).',
         newsRelease: 'Version {n}',
         pauseHintTouch: 'Tryk her for at fortsætte',
         startPressTouch: 'Stryg på banen eller tryk på en pil for at starte',
@@ -1550,6 +1603,10 @@
         runCopy: '📋 Kopier forløb',
         runCopied: '✔ Kopieret!',
         runCopyFail: 'Kopiering fejlede: se konsollen',
+        shareScore: '📤 Del',
+        shareCopied: '✔ Kopieret!',
+        shareFail: 'Kunne ikke dele',
+        shareText: 'Jeg fik {s} point på bane {l} i Spis. Voks. Overlev. Kan du slå det?',
         runUnlocks: 'Låst op i dette forløb: {names}',
         gemTally: 'Bonusædelsten: {n} til {p} point',
         invFood: 'Mad ×{n}', invBonus: 'Bonus {n}', invFresh: 'frisk', invStreak: 'række', invTidy: 'effektiv', invMore: '{n} flere bonus',
@@ -1776,11 +1833,19 @@
       { id: 4,
         en: [
           'After you die, a tombstone pops up where you fell and a ghost rises from it. Press any key to skip it.',
-          'If the game ever hits a problem, you now get a friendly message with a Reload button. Your scores and settings are kept.'
+          'If the game ever hits a problem, you now get a friendly message with a Reload button. Your scores and settings are kept.',
+          'Game Over has a new Share link. On a phone it opens the share sheet; elsewhere it copies your score and the game link.',
+          'While you play, the record box shows the next score on the list to beat, with a quiet blip each time you pass a place.',
+          'New accessibility settings in Settings: Motion (Auto, Calm, Full), High contrast and a colour-blind mode.',
+          'New Stats button in Settings: games, best and average score, foods, gems, time played and how you died. It counts runs from now on.'
         ],
         da: [
           'Når du dør, popper en gravsten op, hvor du faldt, og et spøgelse svæver op fra den. Tryk på en tast for at springe over.',
-          'Hvis spillet nogensinde støder på et problem, får du nu en venlig besked med en Genindlæs-knap. Dine scores og indstillinger bliver gemt.'
+          'Hvis spillet nogensinde støder på et problem, får du nu en venlig besked med en Genindlæs-knap. Dine scores og indstillinger bliver gemt.',
+          'Game Over har et nyt Del-link. På telefon åbner det delingsarket; ellers kopierer det din score og linket til spillet.',
+          'Mens du spiller, viser rekordfeltet den næste score på listen, du skal slå, med et stille bip, hver gang du passerer en plads.',
+          'Nye indstillinger for tilgængelighed: Bevægelse (Auto, Rolig, Fuld), Høj kontrast og en farveblind-tilstand.',
+          'Ny Statistik-knap i indstillinger: spil, bedste og gennemsnitlig score, mad, ædelsten, spilletid og hvordan du døde. Tæller fra nu af.'
         ] },
       { id: 3,
         en: [
@@ -1943,7 +2008,45 @@
       if (lang === 'pseudo') return release.en.map(s => s + ' ' + '·'.repeat(Math.ceil(s.length * 0.45))); // stress language: ~45% longer
       return release.en;
     }
+    // ===== Stats (#12): numbers over every recorded run, shown in the same panel as "What's new" =====
+    let panelMode = 'news'; // what the panel shows: 'news' (the changelog) or 'stats'
+    function computeStats(list) {
+      const s = { games: list.length, best: 0, avg: 0, bestLevel: Math.max(0, (stats && stats.bestLevel) || 0), foods: 0, gems: 0, moves: 0, ms: 0, longest: 0, detailed: 0, causes: { wall: 0, obstacle: 0, body: 0 } };
+      let sum = 0;
+      for (const r of list) {
+        sum += r.score; if (r.score > s.best) s.best = r.score;
+        if (r.lv === undefined) continue; // a run from before the details were recorded
+        s.detailed++;
+        s.bestLevel = Math.max(s.bestLevel, r.lv);
+        s.foods += r.fd || 0; s.gems += r.gm || 0; s.moves += r.mv || 0; s.ms += r.ms || 0; s.longest = Math.max(s.longest, r.ln || 0);
+        if (RUN_CAUSES.includes(r.ct)) s.causes[r.ct]++;
+      }
+      s.avg = s.games ? Math.round(sum / s.games) : 0;
+      return s;
+    }
+    function formatDuration(ms) {
+      const sec = Math.round(ms / 1000);
+      if (sec < 60) return sec + ' s';
+      const min = Math.floor(sec / 60);
+      return min < 60 ? min + ' min' : Math.floor(min / 60) + ' h ' + String(min % 60).padStart(2, '0') + ' min';
+    }
+    function renderStats() {
+      newsBody.textContent = '';
+      const s = computeStats(runs), num = (n) => Number(n).toLocaleString(lang === 'da' ? 'da-DK' : 'en-US');
+      if (!s.games) { const p = document.createElement('p'); p.className = 'stat-note'; p.textContent = t('statsNone'); newsBody.appendChild(p); return; }
+      const rows = [
+        ['statsGames', num(s.games)], ['statsBest', num(s.best)], ['statsAvg', num(s.avg)], ['statsLevel', num(s.bestLevel)],
+        ['statsFoods', num(s.foods)], ['statsGems', num(s.gems)], ['statsMoves', num(s.moves)], ['statsTime', formatDuration(s.ms)],
+        ['statsLongest', num(s.longest)], ['statsWall', num(s.causes.wall)], ['statsObstacle', num(s.causes.obstacle)], ['statsBody', num(s.causes.body)],
+      ];
+      const dl = document.createElement('dl'); dl.className = 'stat-grid';
+      for (const [k, v] of rows) { const dt = document.createElement('dt'); dt.textContent = t(k); const dd = document.createElement('dd'); dd.textContent = v; dl.appendChild(dt); dl.appendChild(dd); }
+      newsBody.appendChild(dl);
+      if (s.detailed < s.games) { const p = document.createElement('p'); p.className = 'stat-note'; p.textContent = t('statsNote', { n: s.detailed, m: s.games }); newsBody.appendChild(p); }
+    }
     function renderNews() {
+      newsTitleEl.textContent = t(panelMode === 'stats' ? 'statsTitle' : 'newsTitle');
+      if (panelMode === 'stats') { renderStats(); return; }
       newsBody.textContent = '';
       for (const r of CHANGELOG) {
         const box = document.createElement('div'); box.className = 'news-release';
@@ -2031,12 +2134,20 @@
     function parseFogPreset(v) { return FOG_PRESETS.includes(v) ? v : 'off'; }
     let fogPreset = 'off'; // the setting (drawer). It applies from the NEXT run (see latchFog)
     try { fogPreset = parseFogPreset(store.getItem(FOG_KEY)); } catch (e) { /* ignore */ }
+    // ===== Accessibility settings (#21): motion, contrast, colour-blind-safe colours (saved; each applies at once) =====
+    const A11Y = { motion: ['auto', 'reduced', 'full'], contrast: ['normal', 'high'], cb: ['off', 'on'] };
+    const A11Y_KEYS = { motion: 'snake_motion', contrast: 'snake_contrast', cb: 'snake_cb' };
+    const a11y = { motion: 'auto', contrast: 'normal', cb: 'off' }; // motion: auto follows the device's "reduce motion" setting
+    try { for (const k of Object.keys(A11Y)) { const v = store.getItem(A11Y_KEYS[k]); if (A11Y[k].includes(v)) a11y[k] = v; } } catch (e) { /* ignore */ }
+    const CB_SNAKE = { bright: [86, 180, 233], dark: [0, 114, 178] }; // the snake's palette in colour-blind mode: sky blue and blue (Okabe-Ito)
     let runFog = fogPreset; // the preset of the current (or next) run: what is drawn and which leaderboard counts
     function fogNew() { return { seen: new Uint8Array(GRID_WIDTH * GRID_HEIGHT), moves: 0, loss: 0 }; }
     const fogLive = fogNew(); // the live game's fog state (a replay has its own)
     let replayFog = null;     // set by the replay player while a replay is open: { fs, preset }
 
     // The leaderboard of one preset: runs saved before fog existed (no `fog` field) count as "off"
+    const RUN_EXTRAS = [['lv', 99], ['fd', 1e6], ['gm', 1e5], ['mv', 1e7], ['ms', 1e10], ['ln', 400]];
+    const RUN_CAUSES = ['wall', 'obstacle', 'body'];
     function normalizeRuns(data) {
       if (!Array.isArray(data)) return [];
       return data.filter(r => r && Number.isFinite(r.score)).map(r => {
@@ -2044,6 +2155,9 @@
         const ini = cleanInitials(r.initials);
         if (ini) run.initials = ini;
         if (FOG_PRESETS.includes(r.fog) && r.fog !== 'off') run.fog = r.fog;
+        // what the run was like (#12; runs from before that have none of it): level reached, foods, gems, moves, play time (ms), final length, cause of death
+        for (const [k, max] of RUN_EXTRAS) { const v = r[k]; if (Number.isFinite(v) && v >= 0 && v <= max) run[k] = Math.floor(v); }
+        if (RUN_CAUSES.includes(r.ct)) run.ct = r.ct;
         return run;
       });
     }
@@ -2106,9 +2220,27 @@
       updateBestRecord();
     }
 
+    // The record slot of the status strip. While a run is on it shows the NEXT score to beat (#77: the lowest entry above the
+    // running score on this board's top 10, which is the 10th place when the player is below it); at #1, or between runs, the record.
+    let rivalOn = false; // true from the first start of a run until it ends
+    function rivalTarget(s) {
+      const above = topScores().filter(r => r.score > s);
+      return above.length ? above[above.length - 1] : null;
+    }
+    function entriesAhead(s) { return topScores().filter(r => r.score > s).length; }
     function updateBestRecord() {
       const best = topScores()[0];
-      bestEl.textContent = best ? (best.initials || '???') + ' ' + best.score : '—';
+      const rival = rivalOn && !replayActive ? rivalTarget(score) : null;
+      if (rival) {
+        bestEl.textContent = (rival.initials || '???') + ' ' + rival.score;
+        bestEl.title = t('hudNextTip', { n: rival.score - score });
+        hudBestLabel.textContent = t('hudNext');
+        fitText(hudBestLabel);
+      } else {
+        bestEl.textContent = best ? (best.initials || '???') + ' ' + best.score : '—';
+        bestEl.title = '';
+        updateFogLabels(); // the label goes back to "RECORD" (or the fog setting's name)
+      }
       fitText(bestEl);
     }
 
@@ -2155,6 +2287,8 @@
     const howtoLabel = document.getElementById('howtoLabel');
     const newsEl = document.getElementById('news');
     const newsBody = document.getElementById('newsBody');
+    const newsTitleEl = document.getElementById('newsTitle');
+    const statsBtn = document.getElementById('statsBtn');
     const newsClose = document.getElementById('newsClose');
     const newsBtn = document.getElementById('newsBtn');
     const newsDot = document.getElementById('newsDot');
@@ -2180,6 +2314,7 @@
     const countdownNum = document.getElementById('countdownNum');
     const watchReplayBtn = document.getElementById('watchReplayBtn');
     const copyRunBtn = document.getElementById('copyRunBtn');
+    const shareScoreBtn = document.getElementById('shareScoreBtn');
     const replayBanner = document.getElementById('replayBanner');
     const replayBar = document.getElementById('replayBar');
     const rpPlayBtn = document.getElementById('rpPlay');
@@ -2355,6 +2490,7 @@
       speed()      { beep(900, 0, 0.03, 'square', 0.05); },
       tick()       { beep(660, 0, 0.07, 'square', 0.06); },
       go()         { beep(990, 0, 0.12, 'square', 0.07); },
+      rank()       { beep(880, 0, 0.05, 'triangle', 0.05); beep(1175, 0.05, 0.07, 'triangle', 0.05); }, // a quiet blip when the score passes a place on the list (#77)
       levelUp()    { [392, 523, 659, 784, 1047].forEach((f, i) => beep(f, i * 0.1, 0.14, 'square', 0.07)); },
       // The robot voice saying "You are number one" (see speakSequence)
       voiceNumberOne(delay = 0) {
@@ -2658,6 +2794,7 @@
     let level = 1;
     let levelFoods = 0;
     let levelMoves = 0, runMoves = 0;          // moves (ticks) this level / this run (#102)
+    let runFoods = 0, runMs = 0;               // regular foods eaten and play time (ms, moves x step length) in this run (#12)
     let foodPar = 0, levelPar = 0, levelFoodPts = 0, levelEff = 1; // par = shortest path to each food when it appeared (#103)
     let levelGemList = [];   // per gem eaten this level: { worth, fresh, streak, eff }, for the receipt on the level screen (#109)
     let levelPage = 'invoice', invoiceShown = 99, invoiceRows = 0, invoiceTimer = null; // which page of the level screen, and the receipt's line-by-line reveal
@@ -2766,7 +2903,7 @@
       levelFoods = 0;
       levelGems = 0; levelGemPts = 0; levelGemList = []; levelPage = 'invoice'; clearInvoiceTimer();
       levelMoves = 0; levelPar = 0; levelFoodPts = 0; levelEff = 1;
-      if (lv === 1) { runGems = 0; runGemPts = 0; runMoves = 0; } // (a debug jump to level 1 also starts the gem tally afresh)
+      if (lv === 1) { runGems = 0; runGemPts = 0; runMoves = 0; runFoods = 0; runMs = 0; } // (a debug jump to level 1 also starts the gem tally afresh)
       levelGoal = targetFor(lv);
       obstacleSet = generateObstacles(lv);
       speedLevel = Math.max(speedLevel, minSpeedFor(lv));
@@ -2932,6 +3069,7 @@
     let recordBeaten = false; // true once this game's score has passed the best recorded run (the fanfare plays once)
     function initGame() {
       score = 0;
+      rivalOn = false;
       runUnlocks = [];
       recordBeaten = false;
       deathLineRef = null;
@@ -2984,9 +3122,12 @@
     }
 
     function addScore(points, goalFoods = 0) { // goalFoods: how many foods this counts towards the level goal (1 for regular food, 0 for a bonus gem, #99)
+      const aheadBefore = entriesAhead(score);
       score += points;
-      levelFoods += goalFoods;
+      levelFoods += goalFoods; runFoods += goalFoods;
       updateScore();
+      const aheadNow = entriesAhead(score);
+      if (aheadNow > 0 && aheadNow < aheadBefore) sfx.rank(); // passed someone on the list (passing #1 is the fanfare below)
       // Passing the best recorded run: fanfare, once per game (needs an existing #1 to beat)
       if (!recordBeaten) {
         const best = topScores()[0];
@@ -3266,6 +3407,7 @@
       if (gameStarted || gameRunning) return;
       gameStarted = true;
       gameRunning = true;
+      rivalOn = true; updateBestRecord(); // the strip now shows the next score to beat (#77)
       startOverlay.style.display = 'none';
       if (!runSpeedSaved) { // the speed this run starts at becomes the suggestion for the next run
         runSpeedSaved = true;
@@ -3518,7 +3660,7 @@
         snake.pop();
       }
       recTick++; // replay recording: this tick is complete
-      levelMoves++; runMoves++; // (#102)
+      levelMoves++; runMoves++; runMs += currentInterval(); // (#102, #12)
       fogStep(fogLive, runFog, level, head, ate); // fog of war: count the move, look around from the new position
 
       // ---- Draw everything ----
@@ -4746,6 +4888,7 @@
 
     // Colours used for the snake: the chosen colour, unless the theme forces its own palette (Retro LCD)
     function snakePalette() {
+      if (a11y.cb === 'on') return CB_SNAKE; // colour-blind mode: one palette that stays apart from the foods in every theme (#21)
       return THEMES[look.theme].snake || SNAKE_COLORS[look.color];
     }
 
@@ -4948,6 +5091,14 @@
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', on);
       });
+      [['motion', 'motionOptions'], ['contrast', 'contrastOptions'], ['cb', 'cbOptions']].forEach(([group, boxId]) => {
+        document.querySelectorAll('#' + boxId + ' button').forEach(b => {
+          b.textContent = t('a11y_' + group + '_' + b.dataset.value);
+          const on = b.dataset.value === a11y[group];
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', on);
+        });
+      });
       document.querySelectorAll('#fogOptions button').forEach(b => {
         b.textContent = t('fog_' + b.dataset.value);
         b.title = t('fogTip_' + b.dataset.value);
@@ -5091,6 +5242,18 @@
         b.addEventListener('click', () => { setFogPreset(id); b.blur(); });
         fogBox.appendChild(b);
       }
+      // Accessibility (#21): Motion (Auto / Calm / Full), Contrast (Normal / High), Colours (Normal / Colour-blind)
+      [['motion', 'motionOptions'], ['contrast', 'contrastOptions'], ['cb', 'cbOptions']].forEach(([group, boxId]) => {
+        const box = document.getElementById(boxId);
+        for (const id of A11Y[group]) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pattern-btn';
+          b.dataset.value = id;
+          b.addEventListener('click', () => { setA11y(group, id); b.blur(); });
+          box.appendChild(b);
+        }
+      });
       // option buttons are fixed-size slots: their text shrinks to fit (theme names may use two lines)
       document.querySelectorAll('.pattern-btn').forEach(b => {
         b.dataset.fit = b.closest('#themeOptions') ? 'wrap' : '';
@@ -5209,6 +5372,39 @@
       if (food) drawFood(food.x, food.y);
       if (specialFood) drawSpecialFood(specialFood);
       if (cells.length) drawSnake(cells);
+      drawAccessMarks(cells, F, head);
+    }
+
+    // Outlines for high contrast and rings for colour-blind mode (#21), drawn last so they sit on top in every theme.
+    // A dark line under a light one keeps them visible on both pale (Desert, Winter) and dark themes.
+    function drawAccessMarks(cells, F, head) {
+      const hc = a11y.contrast === 'high', cb = a11y.cb === 'on';
+      if (!hc && !cb) return;
+      const G = GRID_SIZE;
+      ctx.save();
+      ctx.lineJoin = 'round';
+      const box = (x, y, w, h, color) => {
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)'; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
+        ctx.strokeStyle = color; ctx.lineWidth = 1.4; ctx.strokeRect(x, y, w, h);
+      };
+      const ring = (cell, r, color, dash) => {
+        const cx = cell.x * G + G / 2, cy = cell.y * G + G / 2;
+        ctx.setLineDash(dash || []);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.85)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      };
+      if (hc) {
+        for (const id of obstacleSet) {
+          const gx = id % GRID_WIDTH, gy = Math.floor(id / GRID_WIDTH);
+          if (F && head && fogVisibility(F, gx, gy, head) <= 0.04) continue; // fog still hides what it hides
+          box(gx * G + 1, gy * G + 1, G - 2, G - 2, '#ffffff');
+        }
+        for (const c of cells) box(c.x * G + 2, c.y * G + 2, G - 4, G - 4, '#ffffff');
+      }
+      if (food && food.x >= 0) ring(food, 9.5, cb ? '#E69F00' : '#ffffff'); // orange: easy to tell from the blue snake for every kind of colour blindness
+      if (specialFood) ring(specialFood, 9.5, cb ? '#F0E442' : '#ffffff', [3, 2]); // the bonus food: a dashed yellow ring
+      ctx.restore();
     }
 
     // The status strip above the board (level, goal progress, score) and the minimum-speed note
@@ -5220,13 +5416,28 @@
       progressFill.style.width = (levelGoal > 0 ? Math.round((100 * shown) / levelGoal) : 0) + '%';
       updateSpeedDisplay(); // also refreshes the minimum-speed tooltip for this level
       [scoreEl, hudLevelEl, progressText].forEach(fitText);
+      updateBestRecord(); // (the next score to beat follows the running score, #77)
     }
 
     // ===== Visual effects: particles, screen shake, death animation =====
     const fxCanvas = document.getElementById('fxCanvas'); // transparent layer on top of the board
     const fxCtx = fxCanvas.getContext('2d');
-    const REDUCED_MOTION = typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches; // respect the OS setting
+    // Calm motion (no shake, particles, count-down animation): the Motion setting, which in Auto follows the device's setting (#21)
+    const MOTION_QUERY = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    function motionReduced() { return a11y.motion === 'reduced' || (a11y.motion === 'auto' && !!(MOTION_QUERY && MOTION_QUERY.matches)); }
+    let REDUCED_MOTION = motionReduced();
+    function applyA11y() { // the three settings take effect: the body carries them for the CSS, the motion flag for the script
+      REDUCED_MOTION = motionReduced();
+      try { document.body.dataset.motion = REDUCED_MOTION ? 'reduced' : 'full'; document.body.dataset.contrast = a11y.contrast; document.body.dataset.cb = a11y.cb; } catch (e) { /* ignore */ }
+    }
+    function setA11y(group, id) {
+      if (!A11Y[group] || !A11Y[group].includes(id)) return;
+      a11y[group] = id;
+      try { store.setItem(A11Y_KEYS[group], id); } catch (e) { /* ignore */ }
+      applyA11y();
+      refreshCustomizer(); renderSnakePreview(); draw();
+    }
+    applyA11y();
     let particles = [];
     let fxRaf = null;
     let fxLast = 0;
@@ -5564,6 +5775,7 @@
 
     function endGame() {
       gameRunning = false;
+      rivalOn = false; // the record comes back in the status strip
       updatePlayMode();
       if (rafId !== null) cancelAnimationFrame(rafId);
       rafId = null;
@@ -5580,12 +5792,15 @@
       const rank = board.filter(r => r.score >= score).length + 1;
       const run = { score: score, date: new Date().toISOString() };
       if (runFog !== 'off') run.fog = runFog;
+      run.lv = level; run.fd = runFoods; run.gm = runGems; run.mv = runMoves; run.ms = Math.round(runMs); run.ln = snake.length; // (#12)
+      const dc = deathInfo && DEATH_CAUSES[deathInfo.why]; if (RUN_CAUSES.includes(dc)) run.ct = dc;
       runs.push(run);
       lastRun = run;
       saveRuns();
       recFinish(run); // keep the replay of this run (and of the best run)
       watchReplayBtn.style.display = replayLast ? '' : 'none'; // no recording, no "Watch replay" button
       copyRunBtn.style.display = replayLast ? '' : 'none';     // (nor "Copy run")
+      shareScoreBtn.style.display = score > 0 ? '' : 'none';   // (a 0-point run is not worth sharing)
       renderScoreboard();
       lastRank = rank;
       lastRunTotal = board.length + 1;
@@ -6045,6 +6260,26 @@
       try { text = buildRunExport(replayLast); } catch (e) { console.error('run export failed', e); }
       if (!text) { flashCopyLabel('runCopyFail'); return; }
       copyText(text).then(ok => { if (!ok) console.log(text); flashCopyLabel(ok ? 'runCopied' : 'runCopyFail'); });
+    });
+
+    // "Share" (#31): the score as a short text. A phone's share sheet when the browser has one, else the clipboard.
+    const SHARE_URL = 'https://plug1n.github.io/eat-grow-survive/'; // always the real game, also when shared from the test page or a file
+    function buildShareText() { return t('shareText', { s: score, l: level }); }
+    function flashShareLabel(key) { shareScoreBtn.textContent = t(key); setTimeout(() => { shareScoreBtn.textContent = t('shareScore'); }, 2000); }
+    // Returns 'shared' (the share sheet took it), 'cancelled' (the player closed the sheet), 'copied' or 'failed'.
+    async function shareScoreNow() {
+      const text = buildShareText();
+      if (typeof navigator.share === 'function') {
+        try { await navigator.share({ text: text, url: SHARE_URL }); return 'shared'; }
+        catch (e) { if (e && e.name === 'AbortError') return 'cancelled'; /* any other error: copy instead */ }
+      }
+      const ok = await copyText(text + ' ' + SHARE_URL);
+      return ok ? 'copied' : 'failed';
+    }
+    shareScoreBtn.addEventListener('click', async () => {
+      shareScoreBtn.blur();
+      const r = await shareScoreNow();
+      if (r === 'copied' || r === 'failed') flashShareLabel(r === 'copied' ? 'shareCopied' : 'shareFail');
     });
 
     function restartGame() {
@@ -6970,6 +7205,82 @@
       return lines.join('\n');
     }
 
+    // Load a pasted board dump back into the game (#24). Takes the whole text of a dump (the "state JSON:" line is used) or just
+    // that JSON. Returns { ok, error, state }: nothing is changed when the text is not a valid, consistent board.
+    function parseBoardDump(text) {
+      const bad = (error) => ({ ok: false, error });
+      let src = String(text || '');
+      const at = src.lastIndexOf('state JSON:');
+      if (at >= 0) src = src.slice(at + 'state JSON:'.length);
+      src = src.trim();
+      if (!src) return bad('Nothing to load: paste a board dump (the B key in debug mode, or the board in a run export)');
+      const first = src.indexOf('{');
+      if (first < 0) return bad('No state JSON found in the text');
+      let depth = 0, inStr = false, esc = false, last = -1; // the object ends where its braces balance (a run export has more JSON after it)
+      for (let i = first; i < src.length; i++) {
+        const ch = src[i];
+        if (inStr) { if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false; continue; }
+        if (ch === '"') inStr = true; else if (ch === '{') depth++; else if (ch === '}') { depth--; if (depth === 0) { last = i; break; } }
+      }
+      if (last < 0) return bad('The state JSON is not complete (a closing brace is missing)');
+      let s;
+      try { s = JSON.parse(src.slice(first, last + 1)); } catch (e) { return bad('The state JSON could not be read: ' + e.message); }
+      if (!s || typeof s !== 'object') return bad('The state JSON is not an object');
+      const inB = (x, y) => Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 && x < GRID_WIDTH && y < GRID_HEIGHT;
+      const cell = (p) => Array.isArray(p) && inB(p[0], p[1]);
+      const lv = Number(s.level);
+      if (!Number.isInteger(lv) || lv < 1 || lv > 99) return bad('level must be a whole number from 1 to 99');
+      if (!Array.isArray(s.snake) || s.snake.length < 1 || !s.snake.every(cell)) return bad('snake must be a list of cells inside the board');
+      if (!Array.isArray(s.obstacles) || !s.obstacles.every(cell)) return bad('obstacles must be a list of cells inside the board');
+      const ids = new Set(s.obstacles.map(p => cellId(p[0], p[1])));
+      const body = new Set();
+      for (const p of s.snake) { const id = cellId(p[0], p[1]); if (body.has(id)) return bad('the snake overlaps itself at (' + p[0] + ',' + p[1] + ')'); if (ids.has(id)) return bad('the snake is inside an obstacle at (' + p[0] + ',' + p[1] + ')'); body.add(id); }
+      for (let i = 1; i < s.snake.length; i++) if (Math.abs(s.snake[i][0] - s.snake[i - 1][0]) + Math.abs(s.snake[i][1] - s.snake[i - 1][1]) !== 1) return bad('the snake is not connected between segment ' + (i - 1) + ' and ' + i);
+      if (s.food !== null && s.food !== undefined) {
+        if (!cell(s.food)) return bad('food must be a cell inside the board, or null');
+        const id = cellId(s.food[0], s.food[1]); if (ids.has(id) || body.has(id)) return bad('the food is on an obstacle or on the snake');
+      }
+      if (s.specialFood !== null && s.specialFood !== undefined) {
+        if (!cell(s.specialFood)) return bad('specialFood must be [x, y, movesLeft], or null');
+        const id = cellId(s.specialFood[0], s.specialFood[1]); if (ids.has(id) || body.has(id)) return bad('the bonus food is on an obstacle or on the snake');
+      }
+      let dir = s.direction;
+      if (!(dir && Math.abs(dir.x) + Math.abs(dir.y) === 1 && Number.isInteger(dir.x) && Number.isInteger(dir.y))) {
+        dir = s.snake.length > 1 ? { x: s.snake[0][0] - s.snake[1][0], y: s.snake[0][1] - s.snake[1][1] } : { x: 1, y: 0 }; // the way the head points
+      }
+      return { ok: true, state: {
+        level: lv, score: Math.max(0, Math.floor(Number(s.score) || 0)), levelFoods: Math.max(0, Math.floor(Number(s.levelFoods) || 0)),
+        levelGoal: Number.isFinite(Number(s.levelGoal)) && Number(s.levelGoal) > 0 ? Math.floor(Number(s.levelGoal)) : null,
+        speedLevel: Number.isFinite(Number(s.speedLevel)) ? Math.round(Number(s.speedLevel)) : null,
+        direction: { x: dir.x, y: dir.y },
+        snake: s.snake.map(p => ({ x: p[0], y: p[1] })),
+        food: s.food ? { x: s.food[0], y: s.food[1] } : null,
+        specialFood: s.specialFood ? { x: s.specialFood[0], y: s.specialFood[1], timer: Math.max(1, Math.floor(Number(s.specialFood[2]) || 30)) } : null,
+        obstacles: ids,
+      } };
+    }
+    // Put the loaded board in place: the level's start box is showing, so the game waits for a key, then plays on from this position.
+    function debugLoadDump(text) {
+      const r = parseBoardDump(text);
+      if (!r.ok) return 'Not loaded: ' + r.error;
+      if (replayActive) return 'Not loaded: close the replay first';
+      const s = r.state;
+      if (introActive) endIntro();
+      setupLevel(s.level);
+      obstacleSet = new Set(s.obstacles);
+      snake = s.snake;
+      direction = { x: s.direction.x, y: s.direction.y }; nextDirection = { x: s.direction.x, y: s.direction.y }; dirQueue = [];
+      if (s.levelGoal) levelGoal = s.levelGoal;
+      levelFoods = s.levelFoods; score = s.score;
+      if (s.speedLevel !== null) speedLevel = Math.min(10, Math.max(minSpeedFor(s.level), s.speedLevel));
+      clearSpecialFood();
+      if (s.food) { food = s.food; foodPar = 0; } else { food = { x: -1, y: -1 }; }
+      if (s.specialFood) { specialFood = { x: s.specialFood.x, y: s.specialFood.y, timer: s.specialFood.timer, life: s.specialFood.timer, par: 0, warn: 0 }; specialFoodTimer = s.specialFood.timer; }
+      deathInfo = null;
+      updateStartOverlay(); updateSpeedDisplay(); updateScore(); draw();
+      return 'Loaded level ' + s.level + ': snake of ' + snake.length + ', ' + obstacleSet.size + ' obstacles. Press a key to play on from here';
+    }
+
     let debugBadge = null;
     function debugMessage(msg) {
       if (!debugBadge) {
@@ -7201,6 +7512,14 @@
       const crashBtn = mk('button', btnCss, 'Throw test error'); crashBtn.type = 'button'; crashBtn.title = 'throws a real uncaught error to show the crash screen (#81); it shows once per page load';
       act(crashBtn, () => { setTimeout(() => { throw new Error('Test error from the debug menu'); }, 0); say('Error thrown'); });
       g3b.append(crashBtn);
+
+      // Load a pasted board dump (#24): paste the dump text (or just its "state JSON" line) and press Load
+      row('Load a pasted board dump:');
+      const dumpIn = mk('textarea', inCss + 'width:210px;height:46px;display:block;resize:vertical;font-size:10px;');
+      dumpIn.placeholder = 'paste the board dump here'; dumpIn.title = 'the text from the B key, or the board in a run export';
+      const dumpBtn = mk('button', btnCss + 'margin-top:4px;', 'Load board'); dumpBtn.type = 'button';
+      act(dumpBtn, () => say(debugLoadDump(dumpIn.value)));
+      const g3c = row(); g3c.append(dumpIn, dumpBtn);
 
       // Bonus gem spawn (#92): timer (a gap of moves) or meal (a chance per food eaten). Applies at once, not saved.
       row('Bonus gem: when does it appear?');
@@ -7558,22 +7877,24 @@
 
     // "What's new": opened from the drawer (the drawer closes first). Opening it counts as seeing the newest release.
     let newsOpen = false;
-    function setNews(open) {
+    function setNews(open, mode) {
       newsOpen = open;
       newsEl.hidden = !open;
+      if (open) panelMode = mode === 'stats' ? 'stats' : 'news';
       if (open) {
         if (drawerOpen) setDrawer(false);
         autoPause(); // like the drawer: a running game pauses while the player reads
         renderNews();
-        try { if (CHANGELOG.length) store.setItem(NEWS_KEY, String(CHANGELOG[0].id)); } catch (e) { /* ignore */ }
+        if (panelMode === 'news') { try { if (CHANGELOG.length) store.setItem(NEWS_KEY, String(CHANGELOG[0].id)); } catch (e) { /* ignore */ } } // (reading the stats is not reading the news)
         updateNewsDot();
         refitAll();
         newsClose.focus();
       } else {
-        newsBtn.blur();
+        newsBtn.blur(); statsBtn.blur();
       }
     }
     newsBtn.addEventListener('click', () => setNews(true));
+    statsBtn.addEventListener('click', () => setNews(true, 'stats'));
     newsClose.addEventListener('click', () => setNews(false));
     newsEl.addEventListener('click', (e) => { if (e.target === newsEl) setNews(false); }); // a click on the dark area closes it
 

@@ -2,12 +2,17 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "0db5f372c401aa1e3caf8360cd7b5a481b2758df",
-    "short":  "0db5f37",
-    "subject":  "Friendly crash screen with a Reload button",
-    "published":  "2026-11-07T08:45:53Z",
+    "sha":  "b7ff72f6dec9ae4838efe5e036d2481c04821bda",
+    "short":  "b7ff72f",
+    "subject":  "Probe that clicks through the stats, accessibility, share and rival features",
+    "published":  "2026-11-07T09:23:44Z",
     "issues":  [
+                   12,
+                   21,
+                   24,
+                   31,
                    37,
+                   77,
                    81
                ]
 }
