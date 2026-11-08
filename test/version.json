@@ -2,14 +2,15 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "74b719014587278a37cfbe220a678e7fe4c179f6",
-    "short":  "74b7190",
-    "subject":  "Theme facts after the level, instant receipt skip, easier-to-spot clover",
-    "published":  "2026-11-08T19:53:47Z",
+    "sha":  "b924f4452ddd13e8b5b3bedf0d0f58674279e9f5",
+    "short":  "b924f44",
+    "subject":  "Draw the level\u0027s obstacles from a cached layer (about 2.5x faster frames)",
+    "published":  "2026-11-08T22:50:24Z",
     "issues":  [
                    12,
                    21,
                    24,
+                   27,
                    31,
                    37,
                    77,
@@ -41,6 +42,7 @@
                    156,
                    157,
                    158,
-                   159
+                   159,
+                   160
                ]
 }

@@ -6879,6 +6879,35 @@
       THEMES[look.theme].obstacle(ox, oy, id || 0);
     }
 
+    // The obstacles of the current level painted once onto their own transparent canvas (#27). It is rebuilt when the
+    // level's obstacle set is replaced (every level start, restore and replay assigns a NEW Set; nothing edits one in
+    // place), when the theme changes or when the board's resolution changes. OBSTACLE_CACHE = false draws them the old way.
+    let OBSTACLE_CACHE = true;
+    let obsLayer = null, obsLayerSet = null, obsLayerTheme = null, obsLayerScale = 0;
+    const OBS_LAYER_STATE = ['fillStyle', 'strokeStyle', 'lineWidth', 'lineCap', 'lineJoin', 'miterLimit', 'lineDashOffset', 'globalAlpha',
+      'shadowBlur', 'shadowColor', 'shadowOffsetX', 'shadowOffsetY', 'font', 'textAlign', 'textBaseline'];
+    function obstacleLayer() {
+      if (obsLayer && obsLayerSet === obstacleSet && obsLayerTheme === look.theme && obsLayerScale === renderScale) return obsLayer;
+      if (!obsLayer) obsLayer = document.createElement('canvas');
+      const px = Math.max(1, Math.round(BOARD_LOGICAL * renderScale));
+      obsLayer.width = obsLayer.height = px; // (also clears it)
+      const g = obsLayer.getContext('2d');
+      g.setTransform(renderScale, 0, 0, renderScale, 0, 0); // paint at the real resolution, like the theme background
+      // Some obstacle painters stroke without setting every line property and so inherit what the board's canvas holds
+      // when they run (e.g. a round lineCap from the snake, Neon's lineWidth): copy that state so the layer looks the same.
+      for (const k of OBS_LAYER_STATE) g[k] = ctx[k];
+      g.setLineDash(ctx.getLineDash());
+      const boardCtx = ctx;
+      try {
+        ctx = g; // the theme painters draw on `ctx`
+        for (const id of obstacleSet) drawObstacle((id % GRID_WIDTH) * GRID_SIZE, Math.floor(id / GRID_WIDTH) * GRID_SIZE, id);
+      } finally {
+        ctx = boardCtx;
+      }
+      obsLayerSet = obstacleSet; obsLayerTheme = look.theme; obsLayerScale = renderScale;
+      return obsLayer;
+    }
+
     function drawFood(fx, fy) {
       // every theme draws its own regular food (apple, berries, comet, shell, ...)
       THEMES[look.theme].food(fx * GRID_SIZE + GRID_SIZE / 2, fy * GRID_SIZE + GRID_SIZE / 2);
@@ -7461,7 +7490,10 @@
 
       const F = fogView();
       const head = snake.length ? snake[0] : null;
-      for (const id of obstacleSet) {
+      // Without fog the obstacles look the same every frame: paint them once per level, theme and resolution and copy
+      // that layer (#27). Fog fades each obstacle by its distance to the head, so fogged levels still draw them one by one.
+      if (!F && OBSTACLE_CACHE) ctx.drawImage(obstacleLayer(), 0, 0, BOARD_LOGICAL, BOARD_LOGICAL);
+      else for (const id of obstacleSet) {
         const gx = id % GRID_WIDTH, gy = Math.floor(id / GRID_WIDTH);
         const v = F && head ? fogVisibility(F, gx, gy, head) : 1; // hidden obstacles are simply not drawn
         if (v <= 0.04) continue;
