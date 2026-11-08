@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "fde926bd09d3d0628846aa992947cddacda033c5",
-    "short":  "fde926b",
-    "subject":  "Holiday themes: tests for every holiday\u0027s dates, probe for hidden buttons, docs, changelog, theme sheet tool",
-    "published":  "2026-11-07T23:32:53Z",
+    "sha":  "74b719014587278a37cfbe220a678e7fe4c179f6",
+    "short":  "74b7190",
+    "subject":  "Theme facts after the level, instant receipt skip, easier-to-spot clover",
+    "published":  "2026-11-08T19:53:47Z",
     "issues":  [
                    12,
                    21,
@@ -39,6 +39,8 @@
                    154,
                    155,
                    156,
-                   157
+                   157,
+                   158,
+                   159
                ]
 }

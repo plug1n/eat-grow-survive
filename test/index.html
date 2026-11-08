@@ -280,7 +280,9 @@
       align-items: center;
       gap: 8px;
     }
-    .speed-ctl { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 6px; color: #a0a0a0; font-size: 0.8rem; }
+    /* (#158: with the 💡 button the bar got tight; the speed control keeps its size and "How to play" gives way instead, its label fits itself) */
+    #bottombar > #howtoToggle { flex: 0 1 170px; min-width: 96px; }
+    .speed-ctl { flex: 0 0 auto; min-width: 0; display: flex; align-items: center; gap: 6px; color: #a0a0a0; font-size: 0.8rem; }
     .speed-label { flex: none; width: 6.6em; text-align: right; }
     .speed-display {
       flex: none;
@@ -364,6 +366,10 @@
     .news-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .news-head h3 { flex: 1 1 0; min-width: 0; color: #00ff88; font-size: 1.15rem; }
     .news-body { overflow-y: auto; display: grid; gap: 14px; }
+    /* the facts panel (#158): the same card as on the level screen, with "Another fact" and the Disable learning checkbox under it */
+    .trivia-card { margin: 0; text-align: center; font-size: 0.95rem; animation: none; }
+    .trivia-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .trivia-row .fact-off { font-size: 0.8rem; margin: 0; }
     .stat-grid { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; }
     .stat-grid dt { color: #a0a0a0; } .stat-grid dd { margin: 0; color: #00ff88; text-align: right; font-weight: bold; }
     .stat-note { color: #6f84a3; font-size: 0.78rem; line-height: 1.35; }
@@ -482,7 +488,7 @@
     /* Play mode (see updatePlayMode in the script): while the snake moves, only the status strip and the pause button stay
        usable on a touch screen; the rest is hidden (not removed, so nothing moves) and returns when the game is not running. */
     .touch.playing .topbar-actions, .touch.playing .speed-ctl, .touch.playing #soundBtn,
-    .touch.playing #howtoToggle, .touch.playing #howtoPanel { visibility: hidden; }
+    .touch.playing #howtoToggle, .touch.playing #triviaBtn, .touch.playing #howtoPanel { visibility: hidden; }
     .touch.playing #pauseBtn { border-color: #00ff88; }
     /* A phone upright: the board runs nearly edge to edge (the width is what limits it) */
     @media (pointer: coarse) and (max-width: 560px) {
@@ -721,7 +727,7 @@
     .invoice { width: 100%; text-align: left; font-size: 0.78em; line-height: 1.3; cursor: pointer; }
     .inv-box { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 0.5em 0.7em; }
     .inv-row { display: flex; align-items: center; gap: 0.4em; white-space: nowrap;
-      --on: clamp(0, calc(var(--shown, 99) - var(--i, 0) + 1), 1); opacity: var(--on); transform: translateY(calc((1 - var(--on)) * 6px)); transition: opacity 0.25s, transform 0.25s; }
+      --on: clamp(0, calc(var(--shown, 99) - var(--i, 0) + 1), 1); opacity: var(--on); transform: translateY(calc((1 - var(--on)) * 6px)); transition: opacity var(--inv-fade, 0.25s), transform var(--inv-fade, 0.25s); } /* --inv-fade: 0s after a skip (#159) */
     .inv-row > span:first-child { display: inline-flex; align-items: center; gap: 0.35em; }
     .inv-dots { flex: 1; min-width: 6px; height: 0; align-self: center; border-bottom: 1px dotted rgba(255, 255, 255, 0.3); }
     .inv-r { color: #dfe8ff; }
@@ -738,6 +744,34 @@
     @keyframes unlock-glow { 50% { box-shadow: 0 0 26px rgba(255, 210, 63, 0.95); } }
     @keyframes unlock-shimmer { to { background-position: -200% 0; } }
     @media (prefers-reduced-motion: reduce) { .unlock-card, .unlock-head { animation: none; } }
+    /* "Did you know?" (#158): a calm card after the receipt and the unlock, with a small AI badge (the facts are AI-written) */
+    .fact-card { position: relative; width: 100%; box-sizing: border-box; margin: 0.4em 0; padding: 0.5em 0.7em; border: 2px solid #44d7ff; border-radius: 0.6em;
+      background: rgba(68, 215, 255, 0.08); animation: fact-in 0.35s ease-out both; }
+    .fact-head { display: flex; align-items: center; justify-content: center; gap: 0.5em; font-weight: bold; letter-spacing: 0.05em; color: #44d7ff; font-size: 1.05em; }
+    .ai-badge { flex: none; font-size: 0.65em; font-weight: bold; letter-spacing: 0.05em; line-height: 1; padding: 0.25em 0.4em; border-radius: 0.35em;
+      color: #0b1530; background: linear-gradient(135deg, #44d7ff, #b98cff); cursor: help; }
+    /* the ✕ in the corner (playtest: the Start button alone did not read as "close"): it does the same as the button. The user's choice "I" from
+       the options sheet (screenshots 176-177): a round glass orb in a dark rim with a cyan halo, about 20% outside the card's corner. */
+    .overlay .fact-close { position: absolute; margin: 0; min-width: 0; padding: 0; top: calc(-0.4em - 2px); right: calc(-0.4em - 2px); width: 2em; /* (-2px: the card's border) */ height: 2em; box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center; font-family: inherit; font-size: 1em; font-weight: bold; line-height: 1; cursor: pointer;
+      border-radius: 50%; color: #0b1530; border: 0.2em solid #0b1530;
+      background: radial-gradient(circle at 35% 30%, #e8fbff 0%, #7fe6ff 22%, #19a9d6 60%, #0a5a80 100%);
+      box-shadow: 0 0 0 0.13em #44d7ff, 0 0 0.8em rgba(68, 215, 255, 0.8), 0 0.2em 0.4em rgba(0, 0, 0, 0.6);
+      transition: transform 0.12s, box-shadow 0.12s; }
+    .overlay .fact-close::before { content: ""; position: absolute; inset: -9px; border-radius: 50%; } /* a bigger, invisible target for a finger */
+    .overlay .fact-close:hover { background: radial-gradient(circle at 35% 30%, #ffffff 0%, #a6efff 25%, #2fbbe6 60%, #0a5a80 100%); transform: scale(1.08);
+      box-shadow: 0 0 0 0.13em #7fe6ff, 0 0 1.1em rgba(68, 215, 255, 1), 0 0.2em 0.4em rgba(0, 0, 0, 0.6); }
+    .overlay .fact-close:active { transform: scale(0.95); }
+    .overlay .fact-close:focus-visible { outline: 2px solid #ffffff; outline-offset: 3px; }
+    .fact-head { padding: 0 1.8em; } /* room for the ✕ so the heading never runs under it */
+    .fact-theme { flex: none; font-size: 0.8em; font-style: italic; color: #ffd84a; margin: 0.15em 0; }
+    .fact-text { margin: 0.3em 0; font-size: 0.95em; line-height: 1.3; color: #ffffff; }
+    .fact-off { display: inline-flex; align-items: center; justify-content: center; gap: 0.45em; font-size: 0.75em; color: #8aa0c0; cursor: pointer; margin-top: 0.2em; }
+    .fact-off input { width: 1.15em; height: 1.15em; margin: 0; accent-color: #44d7ff; cursor: pointer; }
+    .option-row > .fact-off { font-size: 0.85rem; color: #cfe0ff; justify-self: center; }
+    @keyframes fact-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .fact-card { animation: none; } }
+    body[data-motion="reduced"] .fact-card { animation: none; }
     /* the "All random" switch (#87): label left, pill right; on = the multi-coloured Random gradient */
     .switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .switch { position: relative; flex: none; width: 46px; height: 26px; padding: 0; border-radius: 13px; cursor: pointer;
@@ -1053,6 +1087,14 @@
           <p id="levelDoneMsg" data-i18n="levelDoneMsg">Next level is harder: more obstacles and a higher minimum speed.</p>
           <div id="levelInvoice" class="invoice" onclick="finishInvoice()" style="display:none"></div>
           <div class="unlock-cards" id="levelUnlocks" style="display:none"></div>
+          <!-- "Did you know?" (#158): the last page of the level screen, one fact about the theme; the checkbox is the same setting as in the drawer -->
+          <div class="fact-card" id="levelFact" style="display:none">
+            <button type="button" class="fact-close" id="factClose" onclick="levelAdvance()" data-i18n-aria="closeTip" aria-label="Close">✕</button>
+            <div class="fact-head"><span data-i18n="factHead">Did you know?</span><span class="ai-badge" data-i18n-title="factAiTip" data-i18n-aria="factAiTip" role="img" aria-label="AI">AI</span></div>
+            <div class="fact-theme" id="factTheme" data-fit="wrap"></div>
+            <p class="fact-text" id="factText"></p>
+            <label class="fact-off"><input type="checkbox" id="factOffBox"><span data-i18n="factOff">Disable learning</span></label>
+          </div>
           <button id="levelNextBtn" onclick="levelAdvance()">Next Level</button>
           <div class="hint" data-i18n="levelHint">or press Enter</div>
         </div>
@@ -1100,6 +1142,7 @@
       </div>
       <button type="button" class="icon-btn" id="soundBtn"></button>
       <button type="button" class="icon-btn" id="pauseBtn">⏸</button>
+      <button type="button" class="icon-btn" id="triviaBtn" data-i18n-title="triviaOpen" data-i18n-aria="triviaOpen" aria-label="Did you know?">💡</button>
       <button type="button" class="toggle-btn" id="howtoToggle" aria-expanded="false" aria-controls="howtoPanel"><span id="howtoLabel" data-fit></span></button>
     </footer>
   </div>
@@ -1155,6 +1198,10 @@
       <span class="option-label" data-i18n="a11yColorsLabel" data-fit>Colours</span>
       <div class="option-group" id="cbOptions"></div>
       <span class="option-note" data-i18n="a11yNote">Auto follows your device's reduce-motion setting. Colour-blind mode gives the snake blue and rings the food.</span>
+    </div>
+    <div class="option-row">
+      <span class="option-label" data-i18n="factHead" data-fit>Did you know?</span>
+      <label class="fact-off"><input type="checkbox" id="factOffDrawer"><span data-i18n="factOff">Disable learning</span></label>
     </div>
     <div class="option-row">
       <span class="option-label" data-i18n="musicVolLabel" data-fit>Music volume</span>
@@ -1567,6 +1614,12 @@
         invFood: 'Food ×{n}', invBonus: 'Bonus {n}', invFresh: 'fresh', invStreak: 'streak', invTidy: 'tidy', invMore: '{n} more bonus',
         invRoute: 'Route: {n} moves, shortest {par} ({e}% tidy)', invTotal: 'LEVEL TOTAL', invScore: 'Score', invStreakNext: 'Keep it up: bonus items pay +{p}% next level',
         levelContinue: 'Continue',
+        factHead: 'Did you know?',
+        triviaOpen: 'Did you know? Read a fact about this theme',
+        triviaNext: 'Another fact',
+        factOff: 'Disable learning',
+        factAiTip: 'These facts were written by an AI and checked against sources, but a mistake can slip through.',
+        factNewTheme: 'New theme: {name}',
         unlockMsg_color_blue: 'Your snake turns blue when it holds its breath.',
         unlockMsg_color_orange: 'Now it looks like a very large, very hungry carrot.',
         unlockMsg_color_purple: 'Royal purple. The apples bow as you pass.',
@@ -1849,6 +1902,12 @@
         invFood: 'Mad ×{n}', invBonus: 'Bonus {n}', invFresh: 'frisk', invStreak: 'række', invTidy: 'effektiv', invMore: '{n} flere bonus',
         invRoute: 'Rute: {n} træk, korteste {par} ({e}% effektiv)', invTotal: 'BANETOTAL', invScore: 'Point', invStreakNext: 'Bliv ved: bonus giver +{p}% på næste bane',
         levelContinue: 'Fortsæt',
+        factHead: 'Vidste du?',
+        triviaOpen: 'Vidste du? Læs et faktum om dette tema',
+        triviaNext: 'Et faktum mere',
+        factOff: 'Slå læring fra',
+        factAiTip: 'Disse fakta er skrevet af en AI og tjekket mod kilder, men en fejl kan smutte igennem.',
+        factNewTheme: 'Nyt tema: {name}',
         unlockMsg_color_blue: 'Din slange bliver blå, når den holder vejret.',
         unlockMsg_color_orange: 'Nu ligner den en meget stor, meget sulten gulerod.',
         unlockMsg_color_purple: 'Kongelig lilla. Æblerne nejer, når du kommer forbi.',
@@ -1920,6 +1979,8 @@
     //   deaths   OPTIONAL lines for the Game Over screen, per cause: wall (the outer wall), obstacle, body (its own body). A theme can have as many
     //            or as few lines as it has puns; a cause it does not list uses the shared DEATH_LINES below. A line is picked at random and never
     //            the same twice in a row.
+    //   facts    "Did you know?" facts (#158): NOT written here but in THEME_FACTS right below this object, which attaches them as
+    //            THEME_TEXT[theme].facts. A theme without facts simply shows no fact page; a test requires five for every theme.
     // A test fails if a theme in THEMES has no entry here, so a new theme cannot be forgotten.
     const THEME_TEXT = {
       classic: { word: null, opener: ['Open Field', 'Åben mark'],
@@ -2122,6 +2183,251 @@
           body: [['You spun into your own tail.', 'Du snurrede ind i din egen hale.'], ['You ate your own tail. No gelt for you.', 'Du spiste din egen hale. Ingen gelt.']],
         } },
     };
+    // "Did you know?" facts (#158): five per theme, [English, Danish], at most 140 characters each, no markup. AI-written, so every fact was
+    // checked against a source (the sources are listed on #158); keep that rule for new or changed facts. They are attached to THEME_TEXT below
+    // (THEME_TEXT[theme].facts), so a theme's words and its facts are found together; they sit in one block of their own so the whole list is easy
+    // to review and to source-check.
+    const THEME_FACTS = {
+      classic: [ // Classic has no subject of its own: its facts are about real snakes
+        ['Snakes smell with their tongue. The forked tip carries scents to a special organ in the roof of the mouth.', 'Slanger lugter med tungen. Den kløftede spids fører duftene hen til et særligt organ i ganen.'],
+        ['Snakes have no eyelids. A clear scale covers each eye, so they sleep with their eyes open.', 'Slanger har ingen øjenlåg. Et gennemsigtigt skæl dækker hvert øje, så de sover med åbne øjne.'],
+        ["Snakes don't unhinge their jaws. A stretchy band joins the two halves of the lower jaw, so the mouth opens wide.", 'Slanger går ikke af led i kæben. Et elastisk bånd holder underkæbens to halvdele sammen, så munden kan gabe vidt.'],
+        ['Denmark has just two wild snakes: the grass snake and the adder. The adder is the only venomous one.', 'Danmark har kun to vilde slanger: snogen og hugormen. Hugormen er den eneste giftige.'],
+        ['The reticulated python is the longest snake in the world. It can grow longer than 6 metres, longer than a car.', 'Netpythonen er verdens længste slange. Den kan blive over 6 meter lang, længere end en bil.'],
+      ],
+      forest: [
+        ['Most trees team up with fungi in the soil. The fungi help the roots drink water, and the tree pays them with sugar.', 'De fleste træer samarbejder med svampe i jorden. Svampene skaffer rødderne vand, og træet betaler med sukker.'],
+        ['A mushroom is only the fruit of a fungus. The fungus itself is a web of thin threads hidden in the soil or in wood.', 'Den svamp, du ser, er kun svampens frugt. Selve svampen er et net af tynde tråde i jorden eller i træ.'],
+        ['One of the biggest living things on Earth is a honey fungus in Oregon, USA, spread under almost 10 km² of forest.', 'Et af Jordens største levende væsener er en honningsvamp i Oregon i USA. Den breder sig under næsten 10 km² skov.'],
+        ['Some bristlecone pines in California are more than 4,800 years old: older than the pyramids of Giza.', 'Nogle børstekogle-fyrretræer i Californien er over 4.800 år gamle. De er ældre end pyramiderne i Giza.'],
+        ['In Danish folklore the elf maidens (ellepiger) of the woods are beautiful from the front, but hollow at the back.', 'I dansk folketro er skovens ellepiger smukke forfra, men bagfra er de hule.'],
+      ],
+      space: [
+        ['Light from the Sun takes about 8 minutes to reach the Earth.', 'Lyset fra Solen er omkring 8 minutter om at nå Jorden.'],
+        ['A day on Venus is longer than its year: it turns once in 243 Earth days but goes round the Sun in 225.', 'Et døgn på Venus er længere end dens år: den drejer én gang rundt på 243 jorddøgn, men kredser om Solen på 225.'],
+        ['Space is silent. Sound needs air or water to travel through, and space is almost empty.', 'Rummet er lydløst. Lyd skal have luft eller vand at bevæge sig i, og rummet er næsten tomt.'],
+        ['Footprints from the Moon landings can last millions of years: there is no wind or rain to wipe them away.', 'Fodsporene fra månelandingerne kan holde i millioner af år: der er hverken vind eller regn til at viske dem ud.'],
+        ['Jupiter is so big that all the other planets of the solar system would fit inside it.', 'Jupiter er så stor, at alle solsystemets andre planeter kunne være inden i den.'],
+      ],
+      ocean: [
+        ['The ocean covers about 71% of the Earth and holds about 97% of all its water.', 'Havet dækker omkring 71 % af Jorden og rummer omkring 97 % af alt dens vand.'],
+        ['Corals are animals, not plants. They are cousins of jellyfish and sea anemones.', 'Koraller er dyr, ikke planter. De er i familie med vandmænd og søanemoner.'],
+        ['The blue whale is the biggest animal known to have ever lived, bigger than any dinosaur.', 'Blåhvalen er det største dyr, man kender, der nogensinde har levet, større end nogen dinosaur.'],
+        ['The deepest spot in the ocean is almost 11 km down. Mount Everest would fit with over 2 km to spare.', 'Havets dybeste sted ligger næsten 11 km nede. Mount Everest kunne være der med over 2 km til overs.'],
+        ['An octopus has three hearts and blue blood. Its blood carries oxygen with copper instead of iron.', 'En blæksprutte har tre hjerter og blåt blod. Blodet bærer ilt med kobber i stedet for jern.'],
+      ],
+      desert: [
+        ['A desert is a place with very little rain or snow, not a hot place. The biggest desert in the world is Antarctica.', 'En ørken er et sted med meget lidt regn eller sne, ikke et varmt sted. Verdens største ørken er Antarktis.'],
+        ['The Sahara is almost as big as the whole United States.', 'Sahara er næsten lige så stor som hele USA.'],
+        ['Only about a quarter of the Sahara is sand. Most of it is rock and gravel plains.', 'Kun omkring en fjerdedel af Sahara er sand. Det meste er klipper og grussletter.'],
+        ["A camel's hump stores fat, not water. The fat gives it energy when food is hard to find.", 'Kamelens pukkel er et lager af fedt, ikke vand. Fedtet giver energi, når der er lidt mad.'],
+        ['The Atacama Desert in Chile is so dry that NASA tests its Mars rovers there.', 'Atacamaørkenen i Chile er så tør, at NASA tester sine Mars-robotbiler der.'],
+      ],
+      candy: [
+        ['Machine-spun cotton candy was invented in 1897 by a candy maker and a dentist.', 'Maskinspundet candyfloss blev opfundet i 1897 af en konditor og en tandlæge.'],
+        ['Chocolate is made from cacao beans, which grow in big pods on the cacao tree.', 'Chokolade laves af kakaobønner, som vokser i store frugter på kakaotræet.'],
+        ['The Maya and the Aztecs drank chocolate as a bitter, spicy drink, long before anyone made it sweet.', 'Mayaerne og aztekerne drak chokolade som en bitter, krydret drik, længe før nogen gjorde den sød.'],
+        ['Gummy bears were invented in Bonn, Germany, in 1922.', 'Vingummibamser blev opfundet i Bonn i Tyskland i 1922.'],
+        ['Salty liquorice gets its sharp taste from salmiak (ammonium chloride). It is most loved in the Nordic countries.', 'Saltlakrids får sin skarpe smag fra salmiak (ammoniumklorid). Den er mest elsket i Norden.'],
+      ],
+      lava: [
+        ['Molten rock is called magma while it is under the ground, and lava when it comes out.', 'Smeltet sten hedder magma, mens den er under jorden, og lava, når den kommer op.'],
+        ['Fresh lava is about 700 to 1,200 °C. That is many times hotter than a kitchen oven.', 'Frisk lava er omkring 700 til 1.200 °C. Det er mange gange varmere end en ovn i køkkenet.'],
+        ['The biggest volcano in the solar system is Olympus Mons on Mars, about 2.5 times as tall as Mount Everest.', 'Solsystemets største vulkan er Olympus Mons på Mars. Den er omkring to en halv gang så høj som Mount Everest.'],
+        ['Pumice is a volcanic rock so full of air bubbles that it can float on water.', 'Pimpsten er en vulkansk sten, der er så fuld af luftbobler, at den kan flyde på vand.'],
+        ['Iceland is one big volcano workshop: it sits right on the crack where two plates of the Earth pull apart.', 'Island er ét stort vulkanværksted: øen ligger lige på sprækken, hvor to af Jordens plader trækker sig fra hinanden.'],
+      ],
+      winter: [
+        ['Snowflakes have six sides or six arms, because of the way water molecules fit together when they freeze.', 'Snefnug har seks sider eller seks arme. Det skyldes måden, vandets molekyler passer sammen på, når de fryser.'],
+        ['Ice is clear, but snow looks white because light bounces off its many tiny ice crystals.', 'Is er gennemsigtig, men sne ser hvid ud, fordi lyset kastes tilbage fra dens mange små iskrystaller.'],
+        ['Ice is lighter than water. That is why lakes freeze from the top, and fish can live in the water below.', 'Is er lettere end vand. Derfor fryser søer fra oven, og fiskene kan leve i vandet nedenunder.'],
+        ['The coldest temperature ever measured at a weather station was −89.2 °C, at Vostok Station in Antarctica in 1983.', 'Den koldeste temperatur, der er målt på en vejrstation, er −89,2 °C på Vostok-stationen i Antarktis i 1983.'],
+        ['A polar bear has black skin under its fur. The black skin soaks up the warmth of the sun.', 'En isbjørn har sort hud under pelsen. Den sorte hud suger solens varme til sig.'],
+      ],
+      chess: [
+        ['Chess comes from an Indian game called chaturanga, about 1,500 years old.', 'Skak stammer fra et indisk spil, der hed chaturanga, og som er omkring 1.500 år gammelt.'],
+        ['The queen used to be a weak piece that moved only one square. She became the strongest piece about 500 years ago.', 'Dronningen var engang en svag brik, der kun gik ét felt. Hun blev den stærkeste brik for omkring 500 år siden.'],
+        ['Stalemate: if the player to move has no legal move but is not in check, the game is a draw.', 'Pat: Hvis den, der skal trække, ikke har et lovligt træk, men ikke står i skak, ender spillet uafgjort.'],
+        ['Castling is the only move where you move two of your pieces at once: the king and a rook.', 'Rokade er det eneste træk, hvor man flytter to af sine brikker på én gang: kongen og et tårn.'],
+        ['There are more possible games of chess than there are atoms in the whole known universe.', 'Der findes flere mulige skakpartier, end der er atomer i hele det kendte univers.'],
+      ],
+      moto: [
+        ['The Daimler Reitwagen from 1885 is often called the first petrol motorcycle. Its frame was made of wood.', 'Daimlers Reitwagen fra 1885 kaldes ofte den første motorcykel med benzinmotor. Rammen var lavet af træ.'],
+        ['To turn at speed, a rider pushes the handlebar the "wrong" way for a moment. It is called countersteering.', 'For at dreje ved høj fart skubber man et øjeblik styret den "forkerte" vej. Det hedder modstyring.'],
+        ['Riders often greet each other with a low wave of the left hand. The right hand stays on the throttle.', 'Motorcyklister hilser tit på hinanden med en lav vinken med venstre hånd. Den højre bliver på gashåndtaget.'],
+        ['In MotoGP races, riders lean their bikes over as far as about 65 degrees in the corners.', 'I MotoGP-løb lægger kørerne motorcyklen ned i omkring 65 grader i svingene.'],
+        ['The motorcycle speed record is over 600 km/h. It was set in 2010 on the Bonneville salt flats in the USA.', 'Fartrekorden for motorcykler er over 600 km/t. Den blev sat i 2010 på saltsletten Bonneville i USA.'],
+      ],
+      kinder: [
+        ['Friedrich Fröbel opened a play school for small children in Germany in 1837 and named it Kindergarten in 1840.', 'Friedrich Fröbel åbnede en legeskole for små børn i Tyskland i 1837 og kaldte den Kindergarten i 1840.'],
+        ['Kindergarten is German for "children\'s garden". English borrowed the German word.', 'Kindergarten er tysk og betyder "børnehave". Englænderne lånte det tyske ord.'],
+        ['English has 26 letters in its alphabet. Danish has 29: Æ, Ø and Å come at the end.', 'Det engelske alfabet har 26 bogstaver. Det danske har 29: Æ, Ø og Å kommer til sidst.'],
+        ['Most children have 20 milk teeth and start to lose them when they are about six years old.', 'De fleste børn har 20 mælketænder og begynder at miste dem, når de er omkring seks år.'],
+        ['A rainbow always has its colours in the same order: red on the outside and violet on the inside.', 'En regnbue har altid farverne i samme rækkefølge: rød yderst og violet inderst.'],
+      ],
+      fastfood: [
+        ['The hamburger is named after the German city of Hamburg.', 'Hamburgeren er opkaldt efter den tyske by Hamborg.'],
+        ['In the 1830s, tomato ketchup was sold in the USA as a medicine, even as pills.', 'I 1830\'erne blev tomatketchup solgt som medicin i USA, endda som piller.'],
+        ['Potatoes came to Europe from South America in the 1500s. Before that there were no French fries anywhere.', 'Kartofler kom til Europa fra Sydamerika i 1500-tallet. Før da fandtes der ingen pommes frites nogen steder.'],
+        ['The sandwich is named after the Earl of Sandwich, an English nobleman from the 1700s.', 'Sandwichen er opkaldt efter jarlen af Sandwich, en engelsk adelsmand fra 1700-tallet.'],
+        ['The first fizzy sodas were sold in pharmacies, where people bought them as health drinks.', 'De første sodavand blev solgt på apoteker, hvor folk købte dem som sunde drikke.'],
+      ],
+      bear: [
+        ['A honeybee makes only about one twelfth of a teaspoon of honey in its whole life.', 'En honningbi laver kun omkring en tolvtedel af en teskefuld honning i hele sit liv.'],
+        ['Bees dance to tell each other where the flowers are. The direction of the waggle dance points the way.', 'Bier danser for at fortælle hinanden, hvor blomsterne er. Logredansens retning viser vejen.'],
+        ['A bee has five eyes: two big ones on the sides and three small ones on top of its head.', 'En bi har fem øjne: to store i siderne og tre små oven på hovedet.'],
+        ['Mother bears give birth in their winter den. The tiny cubs drink milk and grow while the snow lies outside.', 'Bjørnemødre føder deres unger i vinterhulen. De små unger drikker mælk og vokser, mens sneen ligger udenfor.'],
+        ["A black bear's sense of smell is thought to be about seven times better than a bloodhound's.", 'Man regner med, at en sortbjørn lugter omkring syv gange bedre end en blodhund.'],
+      ],
+      neon: [
+        ['Pure neon gas glows red-orange. The other colours in "neon" signs come from other gases or coloured glass.', 'Ren neongas lyser rødorange. De andre farver i "neonskilte" kommer fra andre gasser eller farvet glas.'],
+        ['Neon was discovered in London in 1898 by the chemists William Ramsay and Morris Travers.', 'Neon blev opdaget i London i 1898 af kemikerne William Ramsay og Morris Travers.'],
+        ['The name neon comes from the Greek word neos, which means "new".', 'Navnet neon kommer af det græske ord neos, der betyder "ny".'],
+        ['The first neon lamps were shown in Paris in 1910 by the French inventor Georges Claude.', 'De første neonlamper blev vist frem i Paris i 1910 af den franske opfinder Georges Claude.'],
+        ['Neon is one of the most common elements in the universe, but only about 18 millionths of the air on Earth.', 'Neon er et af universets mest almindelige grundstoffer, men kun omkring 18 milliontedele af Jordens luft.'],
+      ],
+      lcd: [
+        ['LCD stands for liquid crystal display.', 'LCD står for liquid crystal display, altså en skærm med flydende krystaller.'],
+        ['Liquid crystals were discovered in 1888 by the Austrian botanist Friedrich Reinitzer, in a substance from carrots.', 'Flydende krystaller blev opdaget i 1888 af den østrigske botaniker Friedrich Reinitzer i et stof fra gulerødder.'],
+        ["An LCD makes no light of its own. Old handheld games had a mirror behind the screen, so you played in daylight.", 'En LCD-skærm laver ikke selv lys. Gamle håndholdte spil havde et spejl bag skærmen, så man spillede i dagslys.'],
+        ['Old LCD games could only show shapes printed in fixed places on screen, so the figures jumped from spot to spot.', 'Gamle LCD-spil kunne kun vise figurer trykt på faste pladser på skærmen, så figurerne hoppede fra sted til sted.'],
+        ['Pocket calculators were among the first things with an LCD screen, in the 1970s.', 'Lommeregnere var blandt de første ting med LCD-skærm, i 1970\'erne.'],
+      ],
+      unicorn: [
+        ['The unicorn is the national animal of Scotland.', 'Enhjørningen er Skotlands nationaldyr.'],
+        ['In the Middle Ages, narwhal tusks were sold as unicorn horns and cost a fortune.', 'I middelalderen blev narhvalens stødtand solgt som enhjørningens horn og kostede en formue.'],
+        ["A narwhal's tusk is really a long tooth. It can grow to about 3 metres.", 'Narhvalens stødtand er i virkeligheden en lang tand. Den kan blive omkring 3 meter lang.'],
+        ['The Danish coronation chair at Rosenborg Castle is partly made of narwhal tusk, long said to be unicorn horn.', 'Kroningsstolen på Rosenborg Slot er delvis lavet af narhvaltand. I mange år kaldte man det enhjørningehorn.'],
+        ['A unicorn-like animal is the most common picture on seals from the Indus Valley, made over 4,000 years ago.', 'Et enhjørningeagtigt dyr er det mest almindelige billede på segl fra Indusdalen, lavet for over 4.000 år siden.'],
+      ],
+      birthday: [
+        ['The tune of "Happy Birthday to You" comes from a song for school children from 1893, "Good Morning to All".', 'Melodien til "Happy Birthday to You" stammer fra en sang til skolebørn fra 1893, "Good Morning to All".'],
+        ['In Denmark it is a tradition to put out Danish flags for a birthday, on the table and in the garden.', 'I Danmark er det tradition at sætte dannebrogsflag frem til en fødselsdag, på bordet og i haven.'],
+        ['With just 23 people in a room, the chance that two of them share a birthday is better than 50%.', 'Med bare 23 personer i et rum er chancen for, at to af dem har fødselsdag samme dag, over 50 %.'],
+        ['People born on 29 February only get their real birthday date in leap years, about once every four years.', 'Folk, der er født den 29. februar, har kun deres rigtige fødselsdato i skudår, cirka hvert fjerde år.'],
+        ['The oldest person whose age was proven, Jeanne Calment from France, lived to be 122 years old.', 'Det ældste menneske, hvis alder er bevist, Jeanne Calment fra Frankrig, blev 122 år gammel.'],
+      ],
+      christmas: [
+        ['In Denmark, whoever finds the whole almond in the rice pudding (risalamande) wins a small present.', 'I Danmark vinder den, der finder den hele mandel i risalamanden, en lille gave: mandelgaven.'],
+        ['On Christmas Eve, Danes hold hands and walk around the Christmas tree while they sing carols.', 'Juleaften holder danskerne hinanden i hånden og går rundt om juletræet, mens de synger julesange.'],
+        ['The first Christmas seal in the world was made in Denmark in 1904, to raise money for sick children.', 'Verdens første julemærke blev lavet i Danmark i 1904 for at samle penge ind til syge børn.'],
+        ['In Danish folklore the farm nisse wants a bowl of rice porridge with butter on Christmas Eve, or he plays tricks.', 'I dansk folketro vil gårdnissen have en skål risengrød med smør juleaften, ellers laver han ballade.'],
+        ['The word advent comes from Latin adventus, which means "arrival".', 'Ordet advent kommer af det latinske adventus, der betyder "ankomst".'],
+      ],
+      newyear: [
+        ['At midnight on New Year\'s Eve many Danes jump off a chair to "jump into the new year".', 'Ved midnat nytårsaften hopper mange danskere ned fra en stol for at "hoppe ind i det nye år".'],
+        ['Danes watch the monarch\'s New Year speech on TV at 6 pm on 31 December.', 'Danskerne ser regentens nytårstale i fjernsynet klokken 18 den 31. december.'],
+        ['Kransekage, a tower of almond rings, is a Danish New Year treat.', 'Kransekage, et tårn af marcipanringe, er en dansk nytårsspise.'],
+        ['The first place to welcome the new year is in Kiribati in the Pacific Ocean, 14 hours ahead of London.', 'Det første sted, der fejrer nytår, er Kiribati i Stillehavet, 14 timer foran London.'],
+        ['An old Danish New Year custom is to smash old plates against the front doors of friends and family.', 'En gammel dansk nytårsskik er at smadre gamle tallerkener mod venners og families hoveddøre.'],
+      ],
+      fastelavn: [
+        ['Fastelavn is seven weeks before Easter, just before the fast of Lent begins.', 'Fastelavn ligger syv uger før påske, lige før fasten begynder.'],
+        ['Children dress up and go from door to door singing "Fastelavn er mit navn" to get buns, sweets or coins.', 'Børn klæder sig ud og går fra dør til dør og synger "Fastelavn er mit navn" for at få boller, slik eller penge.'],
+        ['By tradition, whoever knocks out the bottom is cat queen, and whoever knocks down the last bit is cat king.', 'Efter traditionen bliver den, der slår bunden ud, kattedronning, og den, der slår sidste stykke ned, kattekonge.'],
+        ['On Fastelavn morning, children may wake their parents with a fastelavnsris: twigs decorated with paper and sweets.', 'Fastelavnsmorgen kan børnene vække deres forældre med et fastelavnsris: grene pyntet med papir og slik.'],
+        ['The word fastelavn comes from Low German and means "the evening before the fast".', 'Ordet fastelavn kommer fra nedertysk og betyder "aftenen før fasten".'],
+      ],
+      easter: [
+        ['Easter is the first Sunday after the first full moon of spring, so it moves between 22 March and 25 April.', 'Påskedag er den første søndag efter forårets første fuldmåne, så den flytter sig mellem 22. marts og 25. april.'],
+        ['A gækkebrev is a Danish cut-paper letter with a riddle, signed with dots. Can\'t guess the sender? You owe an egg.', 'Et gækkebrev er et klippebrev med et vers, underskrevet med prikker. Gætter man ikke afsenderen, skylder man et æg.'],
+        ['The Easter bunny comes from Germany, where children were told that a hare brought the eggs.', 'Påskeharen kommer fra Tyskland, hvor man fortalte børnene, at en hare kom med æggene.'],
+        ['In Ukraine, Easter eggs called pysanky are decorated with patterns drawn in wax and then dyed.', 'I Ukraine pynter man påskeæg, der hedder pysanky, med mønstre tegnet i voks, før de farves.'],
+        ['Easter Island in the Pacific got its name because a Dutch explorer arrived there on Easter Sunday in 1722.', 'Påskeøen i Stillehavet fik sit navn, fordi en hollandsk opdagelsesrejsende kom dertil påskedag i 1722.'],
+      ],
+      sankthans: [
+        ['Danes light bonfires on Sankt Hans Eve, 23 June, the evening before the feast of St John the Baptist.', 'Danskerne tænder bål sankthansaften den 23. juni, aftenen før Johannes Døberens fødselsdag.'],
+        ['A witch figure is put on the bonfire and, as the story goes, flies off to the Brocken mountain in Germany.', 'En heks sættes på bålet og flyver ifølge historien til Bloksbjerg i Tyskland.'],
+        ['The Midsummer song "Vi elsker vort land" was written by Holger Drachmann in 1885.', 'Midsommervisen "Vi elsker vort land" blev skrevet af Holger Drachmann i 1885.'],
+        ['Midsummer is close to the longest day of the year, the summer solstice around 21 June.', 'Sankthans ligger tæt på årets længste dag, sommersolhverv omkring den 21. juni.'],
+        ['In the far north of Norway and Sweden, the sun does not set at all around Midsummer. It is called the midnight sun.', 'Langt mod nord i Norge og Sverige går solen slet ikke ned omkring sankthans. Det kaldes midnatssol.'],
+      ],
+      halloween: [
+        ['Halloween comes from Samhain, an old Celtic festival that marked the end of summer.', 'Halloween stammer fra samhain, en gammel keltisk fest, der markerede sommerens afslutning.'],
+        ['The name Halloween comes from All Hallows\' Eve, the evening before All Saints\' Day on 1 November.', 'Navnet halloween kommer af All Hallows\' Eve, aftenen før allehelgensdag den 1. november.'],
+        ['The first jack-o\'-lanterns in Ireland were carved from turnips, not pumpkins.', 'De første græskarlygter i Irland blev skåret ud af majroer, ikke græskar.'],
+        ['A pumpkin is a fruit: it grows from a flower and is full of seeds.', 'Et græskar er en frugt: det vokser frem af en blomst og er fuldt af kerner.'],
+        ['Spiders are not insects. Spiders have eight legs, and insects have six.', 'Edderkopper er ikke insekter. Edderkopper har otte ben, og insekter har seks.'],
+      ],
+      mortensaften: [
+        ['Mortensaften is the evening before St Martin\'s Day on 11 November. Danes eat roast duck or goose.', 'Mortensaften er aftenen før Mortens dag den 11. november. Danskerne spiser andesteg eller gåsesteg.'],
+        ['The legend says Martin hid among geese so he would not be made a bishop, but their cackling gave him away.', 'Legenden siger, at Morten gemte sig blandt gæs for ikke at blive biskop, men gæssenes skræppen afslørede ham.'],
+        ['St Martin was a Roman soldier who cut his cloak in two to share it with a freezing beggar.', 'Sankt Morten var en romersk soldat, der skar sin kappe over for at dele den med en frysende tigger.'],
+        ['Martin Luther got his name because he was baptised on St Martin\'s Day, 11 November 1483.', 'Martin Luther fik sit navn, fordi han blev døbt på Mortens dag, den 11. november 1483.'],
+        ['In Germany and the Netherlands, children walk through the streets with lanterns on St Martin\'s evening.', 'I Tyskland og Holland går børn gennem gaderne med lygter Mortens aften.'],
+      ],
+      valentine: [
+        ['Valentine\'s Day on 14 February is named after Saint Valentine, a Christian martyr from Rome.', 'Valentinsdag den 14. februar er opkaldt efter Sankt Valentin, en kristen martyr fra Rom.'],
+        ['Valentine\'s Day only became common in Denmark in the 1990s.', 'Valentinsdag blev først almindelig i Danmark i 1990\'erne.'],
+        ['A real heart looks nothing like ♥. It is about the size of your fist.', 'Et rigtigt hjerte ligner slet ikke ♥. Det er omtrent på størrelse med din knytnæve.'],
+        ['In the old "language of flowers", a red rose means love.', 'I det gamle "blomstersprog" betyder en rød rose kærlighed.'],
+        ['A poem by Geoffrey Chaucer from the 1380s is one of the first to link Valentine\'s Day with love.', 'Et digt af Geoffrey Chaucer fra 1380\'erne er et af de første, der forbinder valentinsdag med kærlighed.'],
+      ],
+      grundlov: [
+        ['Denmark\'s first constitution was signed by King Frederik VII on 5 June 1849.', 'Danmarks første grundlov blev underskrevet af kong Frederik 7. den 5. juni 1849.'],
+        ['The constitution of 1849 ended absolute monarchy: the king no longer ruled alone.', 'Grundloven fra 1849 gjorde en ende på enevælden: kongen regerede ikke længere alene.'],
+        ['Danish women got the right to vote for parliament on 5 June 1915.', 'Danske kvinder fik stemmeret til Folketinget den 5. juni 1915.'],
+        ['5 June is also Father\'s Day in Denmark.', 'Den 5. juni er også fars dag i Danmark.'],
+        ['The constitution of today is from 1953. That year a new law also let a woman inherit the throne.', 'Den grundlov, vi har i dag, er fra 1953. Samme år gjorde en ny lov det muligt for en kvinde at arve tronen.'],
+      ],
+      mothersday: [
+        ['In Denmark, Mother\'s Day is on the second Sunday in May.', 'I Danmark er mors dag den anden søndag i maj.'],
+        ['Anna Jarvis started the modern Mother\'s Day in the USA in 1908, in memory of her own mother.', 'Anna Jarvis startede den moderne mors dag i USA i 1908 til minde om sin egen mor.'],
+        ['In the UK, Mothering Sunday is in March or early April, three weeks before Easter.', 'I Storbritannien er Mothering Sunday i marts eller starten af april, tre uger før påske.'],
+        ['The carnation is the traditional flower of Mother\'s Day.', 'Nelliken er mors dags traditionelle blomst.'],
+        ['In Thailand, Mother\'s Day is on 12 August, the birthday of Queen Sirikit.', 'I Thailand er mors dag den 12. august, dronning Sirikits fødselsdag.'],
+      ],
+      lucia: [
+        ['Lucia is on 13 December. In the old calendar that was the longest night of the year.', 'Lucia er den 13. december. I den gamle kalender var det årets længste nat.'],
+        ['The name Lucia comes from the Latin word lux, which means "light".', 'Navnet Lucia kommer af det latinske ord lux, der betyder "lys".'],
+        ['Saint Lucia was a young Christian woman from Syracuse in Sicily, who lived around the year 300.', 'Sankta Lucia var en ung kristen kvinde fra Syrakus på Sicilien, som levede omkring år 300.'],
+        ['The Lucia procession came to Denmark from Sweden in 1944, as a bit of light during the dark war years.', 'Luciaoptoget kom til Danmark fra Sverige i 1944 som lidt lys i de mørke krigsår.'],
+        ['The Lucia tune is Italian: "Santa Lucia" is an old boat song from Naples.', 'Luciamelodien er italiensk: "Santa Lucia" er en gammel bådsang fra Napoli.'],
+      ],
+      thanksgiving: [
+        ['US Thanksgiving is on the fourth Thursday of November. Canada\'s is on the second Monday of October.', 'Thanksgiving i USA er den fjerde torsdag i november. I Canada er den anden mandag i oktober.'],
+        ['The famous harvest feast of 1621 between the Pilgrims and the Wampanoag people lasted three days.', 'Den berømte høstfest i 1621 mellem pilgrimmene og wampanoag-folket varede tre dage.'],
+        ['Abraham Lincoln made Thanksgiving a national holiday in 1863.', 'Abraham Lincoln gjorde thanksgiving til nationaldag i 1863.'],
+        ['Sarah Josepha Hale, who wrote "Mary Had a Little Lamb", fought for years to make Thanksgiving a national holiday.', 'Sarah Josepha Hale, der skrev "Mary Had a Little Lamb", kæmpede i årevis for at gøre thanksgiving til nationaldag.'],
+        ['Every year the US President "pardons" a turkey, which then gets to live on a farm.', 'Hvert år "benåder" den amerikanske præsident en kalkun, som så får lov at leve på en gård.'],
+      ],
+      chinese: [
+        ['Chinese New Year falls on a new moon between 21 January and 20 February.', 'Kinesisk nytår falder på en nymåne mellem 21. januar og 20. februar.'],
+        ['Every year has one of 12 animals. 2026 is the Year of the Horse.', 'Hvert år har et af 12 dyr. 2026 er Hestens år.'],
+        ['Children get red envelopes with money in them for good luck.', 'Børn får røde kuverter med penge i, som skal bringe held.'],
+        ['A legend tells of Nian, a monster that is scared away by the colour red and loud noise. Hence the firecrackers.', 'En legende fortæller om Nian, et uhyre, der skræmmes væk af farven rød og høje brag. Derfor fyrværkeriet.'],
+        ['The trips home for the New Year are the biggest yearly migration of people in the world: billions of journeys.', 'Rejserne hjem til nytår er verdens største årlige folkevandring: flere milliarder rejser.'],
+      ],
+      stpatrick: [
+        ['St Patrick\'s Day on 17 March honours the patron saint of Ireland.', 'Sankt Patricks dag den 17. marts fejrer Irlands skytshelgen.'],
+        ['Patrick was not Irish. He was born in Britain and taken to Ireland as a slave when he was young.', 'Patrick var ikke irer. Han blev født i Britannien og ført til Irland som slave, da han var ung.'],
+        ['Legend says Patrick drove the snakes out of Ireland, but there had been no snakes there since the Ice Age.', 'Legenden siger, at Patrick jog slangerne ud af Irland, men der havde ikke været slanger der siden istiden.'],
+        ['The colour first linked with St Patrick was blue. Green came later.', 'Den farve, man først forbandt med Sankt Patrick, var blå. Grøn kom senere.'],
+        ['Since 1962 the city of Chicago has dyed its river green for St Patrick\'s Day.', 'Siden 1962 har Chicago farvet sin flod grøn til Sankt Patricks dag.'],
+      ],
+      diwali: [
+        ['Diwali, the festival of lights, is celebrated by Hindus, Sikhs and Jains, and by some Buddhists.', 'Diwali, lysets fest, fejres af hinduer, sikher og jainister og af nogle buddhister.'],
+        ['The name comes from the Sanskrit word dipavali, which means "row of lights".', 'Navnet kommer af sanskritordet dipavali, der betyder "række af lys".'],
+        ['At Diwali people light small clay oil lamps called diyas.', 'Til diwali tænder man små olielamper af ler, der hedder diyas.'],
+        ['Rangoli are colourful patterns on the floor, made from coloured powder, rice or flower petals.', 'Rangoli er farverige mønstre på gulvet, lavet af farvet pulver, ris eller blomsterblade.'],
+        ['Diwali lasts five days and falls in October or November.', 'Diwali varer fem dage og falder i oktober eller november.'],
+      ],
+      eid: [
+        ['Eid al-Fitr marks the end of Ramadan, the month when Muslims fast from dawn to sunset.', 'Eid al-fitr markerer afslutningen på ramadanen, den måned, hvor muslimer faster fra daggry til solnedgang.'],
+        ['Eid al-Fitr means "the festival of breaking the fast".', 'Eid al-fitr betyder "festen for fastens afslutning".'],
+        ['Eid starts when the new crescent moon is seen, so its date comes about 11 days earlier each year.', 'Eid begynder, når den nye månesegl ses, så datoen kommer omkring 11 dage tidligere hvert år.'],
+        ['Before the Eid prayer, Muslims give a gift of food or money to people in need, called zakat al-fitr.', 'Før eid-bønnen giver muslimer en gave af mad eller penge til mennesker i nød. Det hedder zakat al-fitr.'],
+        ['In Turkey, Eid al-Fitr is also called the Sugar Feast, because of all the sweets people share.', 'I Tyrkiet kaldes eid al-fitr også sukkerfesten på grund af alt det søde, man deler.'],
+      ],
+      hanukkah: [
+        ['Hanukkah lasts eight days. Each evening one more candle is lit on the menorah.', 'Hanukka varer otte dage. Hver aften tændes ét lys mere i lysestagen, menoraen.'],
+        ['The ninth candle, the shamash ("helper"), is used to light the others.', 'Det niende lys, shamash ("hjælperen"), bruges til at tænde de andre.'],
+        ['Hanukkah remembers how the Temple in Jerusalem was made holy again, over 2,000 years ago.', 'Hanukka minder om, hvordan templet i Jerusalem blev indviet igen for over 2.000 år siden.'],
+        ['At Hanukkah people eat food fried in oil, like potato pancakes (latkes) and doughnuts (sufganiyot).', 'Til hanukka spiser man mad stegt i olie, som kartoffelpandekager (latkes) og donuts (sufganiyot).'],
+        ['A dreidel is a spinning top with four sides. Children play with it for sweets or coins at Hanukkah.', 'En dreidel er en snurretop med fire sider. Børn leger med den om slik eller mønter til hanukka.'],
+      ],
+    };
+    for (const [theme, facts] of Object.entries(THEME_FACTS)) if (THEME_TEXT[theme]) THEME_TEXT[theme].facts = facts;
     // Death lines every theme can fall back on, per cause: [English, Danish]
     const DEATH_LINES = {
       wall: [['You hit the wall.', 'Du ramte væggen.'], ["You've reached the end of the road.", 'Du er nået til vejs ende.'], ['You met the edge of the world.', 'Du mødte verdens ende.']],
@@ -2225,7 +2531,8 @@
           'Tidier Settings: the group names are centred between lines, and the theme list opens when you tap the chosen theme.',
           'Winter is now real winter: snow-capped boulders among the pines and a little snowman to eat instead of the Christmas bauble.',
           'Holiday themes: 17 of them, for Christmas, Halloween, Easter, Diwali and more. They open by themselves around the date.',
-          'New theme: Birthday, level 48. Balloons to eat, a layer cake as the big prize and cupcakes with little flags as walls.'
+          'New theme: Birthday, level 48. Balloons to eat, a layer cake as the big prize and cupcakes with little flags as walls.',
+          'New "Did you know?" page after a level: a short fact about the theme, five for every theme. Tick "Disable learning" to skip it.'
         ],
         da: [
           'Når du dør, popper en gravsten op, hvor du faldt, og et spøgelse svæver op fra den. Tryk på en tast for at springe over.',
@@ -2242,7 +2549,8 @@
           'Ryddeligere indstillinger: gruppenavnene står midtstillet mellem streger, og temalisten åbner, når du trykker på det valgte tema.',
           'Vinter er nu rigtig vinter: snedækkede sten blandt grantræerne og en lille snemand at spise i stedet for julekuglen.',
           'Højtidstemaer: 17 til jul, halloween, påske, diwali og flere. De åbner af sig selv omkring datoen.',
-          'Nyt tema: Fødselsdag, bane 48. Balloner at spise, en lagkage som den store præmie og cupcakes med flag som vægge.'
+          'Nyt tema: Fødselsdag, bane 48. Balloner at spise, en lagkage som den store præmie og cupcakes med flag som vægge.',
+          'Ny "Vidste du?"-side efter en bane: et kort faktum om temaet, fem til hvert tema. Sæt flueben i "Slå læring fra" for at slippe.'
         ] },
       { id: 3,
         en: [
@@ -2503,7 +2811,8 @@
       return release.en;
     }
     // ===== Stats (#12): numbers over every recorded run, shown in the same panel as "What's new" =====
-    let panelMode = 'news'; // what the panel shows: 'news' (the changelog) or 'stats'
+    let panelMode = 'news'; // what the panel shows: 'news' (the changelog), 'stats' or 'trivia' (a fact, #158)
+    let triviaFact = null;  // the fact the trivia panel shows ({ theme, idx }); a new one is picked each time the panel opens
     function computeStats(list) {
       const s = { games: list.length, best: 0, avg: 0, bestLevel: Math.max(0, (stats && stats.bestLevel) || 0), foods: 0, gems: 0, moves: 0, ms: 0, longest: 0, detailed: 0, causes: { wall: 0, obstacle: 0, body: 0 } };
       let sum = 0;
@@ -2538,9 +2847,38 @@
       newsBody.appendChild(dl);
       if (s.detailed < s.games) { const p = document.createElement('p'); p.className = 'stat-note'; p.textContent = t('statsNote', { n: s.detailed, m: s.games }); newsBody.appendChild(p); }
     }
+    // The facts panel (#158, playtest: "it should be possible to turn it back on"): a fact about the theme on the board, whether or not
+    // learning is switched off, with "Another fact" and the Disable learning checkbox (the same setting as in the drawer and on the level screen).
+    function renderTrivia(next = false) {
+      if (next || !triviaFact) {
+        const theme = themeFacts(look.theme).length ? look.theme : 'classic';
+        triviaFact = { theme, idx: pickFact(theme) };
+      }
+      const f = themeFacts(triviaFact.theme)[triviaFact.idx];
+      newsBody.textContent = '';
+      const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+      const card = mk('div', 'fact-card trivia-card');
+      const head = mk('div', 'fact-head');
+      head.appendChild(mk('span', 'fact-theme', t('theme_' + triviaFact.theme)));
+      const badge = mk('span', 'ai-badge', 'AI'); badge.title = t('factAiTip'); badge.setAttribute('aria-label', t('factAiTip')); head.appendChild(badge);
+      card.appendChild(head);
+      if (f) card.appendChild(mk('p', 'fact-text', f[lang === 'da' ? 1 : 0] + (lang === 'pseudo' ? ' ' + '·'.repeat(Math.ceil(f[0].length * 0.45)) : '')));
+      newsBody.appendChild(card);
+      const row = mk('div', 'trivia-row');
+      const more = mk('button', 'toggle-btn', t('triviaNext')); more.type = 'button';
+      more.addEventListener('click', () => renderTrivia(true));
+      row.appendChild(more);
+      const label = mk('label', 'fact-off');
+      const box = document.createElement('input'); box.type = 'checkbox'; box.id = 'factOffPanel'; box.checked = factsOff;
+      box.addEventListener('change', () => setFactsOff(box.checked));
+      label.appendChild(box); label.appendChild(mk('span', '', t('factOff')));
+      row.appendChild(label);
+      newsBody.appendChild(row);
+    }
     function renderNews() {
-      newsTitleEl.textContent = t(panelMode === 'stats' ? 'statsTitle' : 'newsTitle');
+      newsTitleEl.textContent = t(panelMode === 'stats' ? 'statsTitle' : panelMode === 'trivia' ? 'factHead' : 'newsTitle');
       if (panelMode === 'stats') { renderStats(); return; }
+      if (panelMode === 'trivia') { renderTrivia(); return; }
       newsBody.textContent = '';
       for (const r of CHANGELOG) {
         const box = document.createElement('div'); box.className = 'news-release';
@@ -2743,6 +3081,8 @@
     const allRandomSwitch = document.getElementById('allRandomSwitch');
     const themeToggle = document.getElementById('themeToggle');
     const levelUnlocks = document.getElementById('levelUnlocks');
+    const levelFactEl = document.getElementById('levelFact'), factThemeEl = document.getElementById('factTheme'), factTextEl = document.getElementById('factText'); // #158
+    const factOffBox = document.getElementById('factOffBox'), factOffDrawer = document.getElementById('factOffDrawer');
     const levelDoneMsg = document.getElementById('levelDoneMsg');
     const finalScoreEl = document.getElementById('finalScore');
     const startOverlay = document.getElementById('startOverlay');
@@ -2784,6 +3124,7 @@
     const newsBody = document.getElementById('newsBody');
     const newsTitleEl = document.getElementById('newsTitle');
     const statsBtn = document.getElementById('statsBtn');
+    const triviaBtn = document.getElementById('triviaBtn'); // #158: opens the facts panel
     const newsClose = document.getElementById('newsClose');
     const newsBtn = document.getElementById('newsBtn');
     const newsDot = document.getElementById('newsDot');
@@ -3292,6 +3633,8 @@
     let runFoods = 0, runMs = 0;               // regular foods eaten and play time (ms, moves x step length) in this run (#12)
     let foodPar = 0, levelPar = 0, levelFoodPts = 0, levelEff = 1; // par = shortest path to each food when it appeared (#103)
     let levelGemList = [];   // per gem eaten this level: { worth, fresh, streak, eff }, for the receipt on the level screen (#109)
+    let levelFact = null; // the fact on this level screen (#158): { theme, idx, isNew }, picked when its page opens
+    let factsOff = false; try { factsOff = store.getItem('snake_facts_off') === '1'; } catch (e) { /* ignore */ } // "Disable learning" (#158; key = FACTS_OFF_KEY)
     let levelPage = 'invoice', invoiceShown = 99, invoiceRows = 0, invoiceTimer = null; // which page of the level screen, and the receipt's line-by-line reveal
     let levelGems = 0, levelGemPts = 0, runGems = 0, runGemPts = 0; // bonus gems eaten this level / this run, and what they paid (#99)
     let levelGoal = 0;
@@ -3396,7 +3739,7 @@
       resolveLook(); // settings set to Random get a fresh roll on every new level
       level = lv;
       levelFoods = 0;
-      levelGems = 0; levelGemPts = 0; levelGemList = []; levelPage = 'invoice'; clearInvoiceTimer();
+      levelGems = 0; levelGemPts = 0; levelGemList = []; levelPage = 'invoice'; levelFact = null; clearInvoiceTimer();
       levelMoves = 0; levelPar = 0; levelFoodPts = 0; levelEff = 1;
       if (lv === 1) { runGems = 0; runGemPts = 0; runMoves = 0; runFoods = 0; runMs = 0; } // (a debug jump to level 1 also starts the gem tally afresh)
       levelGoal = targetFor(lv);
@@ -3446,21 +3789,90 @@
       pauseHintEl.textContent = t(touch ? 'pauseHintTouch' : 'pauseHint'); // the pause box too: tapping it resumes
     }
 
-    // The level screen has up to two pages: the receipt (always), and when the level unlocked something, the announcement. Enter or the button moves on.
+    // ===== "Did you know?" facts (#158) =====
+    // After the receipt and the unlock (if any), the level screen shows one fact about a theme: the theme the level just unlocked (a welcome),
+    // else the theme of the level just played. Five facts per theme live in THEME_TEXT[theme].facts. Every fact of a theme is shown before one
+    // repeats (remembered in FACTS_SEEN_KEY, survives a reload), and a new round never starts with the fact shown last. "Disable learning" (a
+    // checkbox in the drawer and on the fact page, one setting) turns the page off.
+    const FACTS_OFF_KEY = 'snake_facts_off', FACTS_SEEN_KEY = 'snake_facts_seen';
+    function themeFacts(theme) { const tt = THEME_TEXT[theme]; return (tt && Array.isArray(tt.facts)) ? tt.facts : []; }
+    function loadFactsSeen() {
+      let seen = {};
+      try { seen = JSON.parse(store.getItem(FACTS_SEEN_KEY) || '{}'); } catch (e) { seen = {}; }
+      return (seen && typeof seen === 'object' && !Array.isArray(seen)) ? seen : {};
+    }
+    // Which theme the fact after this level is about, or null when there will be no fact page (switched off, or no facts for that theme).
+    function factThemeFor(unlocks = lastUnlocks, played = look.theme) {
+      if (factsOff) return null;
+      const fresh = unlocks.map(id => id.split(':')).find(([s, v]) => s === 'theme' && themeFacts(v).length);
+      if (fresh) return { theme: fresh[1], isNew: true };
+      return themeFacts(played).length ? { theme: played, isNew: false } : null;
+    }
+    // Pick the next fact of a theme (and remember it as seen). Returns its index.
+    function pickFact(theme) {
+      const n = themeFacts(theme).length;
+      if (!n) return -1;
+      const seen = loadFactsSeen();
+      let list = Array.isArray(seen[theme]) ? seen[theme].filter(i => Number.isInteger(i) && i >= 0 && i < n) : [];
+      let pool = [];
+      for (let i = 0; i < n; i++) if (!list.includes(i)) pool.push(i);
+      if (!pool.length) { // all seen: a new round, but not starting with the one just shown
+        const last = list[list.length - 1];
+        list = [];
+        for (let i = 0; i < n; i++) if (i !== last || n === 1) pool.push(i);
+      }
+      const idx = pool[Math.floor(Math.random() * pool.length)];
+      list.push(idx);
+      seen[theme] = list;
+      try { store.setItem(FACTS_SEEN_KEY, JSON.stringify(seen)); } catch (e) { /* ignore */ }
+      return idx;
+    }
+    function setFactsOff(off) {
+      factsOff = !!off;
+      try { store.setItem(FACTS_OFF_KEY, factsOff ? '1' : '0'); } catch (e) { /* ignore */ }
+      updateFactsUi();
+    }
+    function updateFactsUi() { // both checkboxes show the one setting
+      if (factOffBox) factOffBox.checked = factsOff;
+      if (factOffDrawer) factOffDrawer.checked = factsOff;
+    }
+    function renderFact() {
+      if (!levelFact) return;
+      const f = themeFacts(levelFact.theme)[levelFact.idx];
+      if (!f) return;
+      const name = t('theme_' + levelFact.theme);
+      factThemeEl.textContent = levelFact.isNew ? t('factNewTheme', { name }) : name;
+      factTextEl.textContent = f[lang === 'da' ? 1 : 0] + (lang === 'pseudo' ? ' ' + '·'.repeat(Math.ceil(f[0].length * 0.45)) : '');
+      updateFactsUi();
+    }
+    // What comes after the current page of the level screen: 'unlock', 'fact' or null (the next level).
+    function nextLevelPage() {
+      if (levelPage === 'invoice' && lastUnlocks.length) return 'unlock';
+      if (levelPage !== 'fact' && factThemeFor()) return 'fact';
+      return null;
+    }
+
+    // The level screen has up to three pages: the receipt (always), the announcement (when the level unlocked something) and a fact (#158).
+    // Enter or the button moves on.
     function updateLevelOverlay() { // draws the CURRENT page (also used when the language changes)
       levelDoneTitle.textContent = t('levelDone', { n: level });
       updateLevelNames();
       const unlockPage = levelPage === 'unlock' && lastUnlocks.length > 0;
-      levelInvoiceEl.style.display = unlockPage ? 'none' : '';
-      if (unlockPage) renderUnlockCards(); else { renderInvoice(); levelUnlocks.style.display = 'none'; }
+      const factPage = levelPage === 'fact' && !!levelFact;
+      levelInvoiceEl.style.display = (unlockPage || factPage) ? 'none' : '';
+      levelFactEl.style.display = factPage ? '' : 'none';
+      if (unlockPage) renderUnlockCards();
+      else { levelUnlocks.style.display = 'none'; if (factPage) renderFact(); else renderInvoice(); }
       levelDoneMsg.style.display = 'none'; // (the receipt and the announcement take the room of the old "next level is harder" line)
-      levelNextBtn.textContent = (!unlockPage && lastUnlocks.length) ? t('levelContinue') : t('levelStart', { n: level + 1 });
+      levelNextBtn.textContent = nextLevelPage() ? t('levelContinue') : t('levelStart', { n: level + 1 });
       fitInvoice();
     }
     function showLevelPage(page) { levelPage = page; updateLevelOverlay(); }
     function levelAdvance() { // Enter / Space / the button on the level screen
       if (invoiceTimer !== null) { finishInvoice(); return; }                              // still counting up: show it all first
-      if (levelPage === 'invoice' && lastUnlocks.length) { showLevelPage('unlock'); return; } // then the announcement, if there is one
+      const next = nextLevelPage();
+      if (next === 'fact') { const ft = factThemeFor(); levelFact = { theme: ft.theme, isNew: ft.isNew, idx: pickFact(ft.theme) }; }
+      if (next) { showLevelPage(next); return; }                                          // then the announcement, then the fact
       nextLevel();
     }
     const GEM_ICON = '<svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 L14 7 L8 15 L2 7 Z" fill="#6cf0ff" stroke="#e8ffff" stroke-width="1"/></svg>';
@@ -3508,9 +3920,12 @@
       if (st && typeof st.setProperty === 'function') st.setProperty('--shown', String(k));
     }
     function clearInvoiceTimer() { if (invoiceTimer !== null) { clearTimeout(invoiceTimer); invoiceTimer = null; } }
-    function finishInvoice() { clearInvoiceTimer(); setInvoiceShown(99); } // show every line now (a key press or a click on the receipt)
+    function setInvoiceFade(on) { const st = levelInvoiceEl.style; if (st && typeof st.setProperty === 'function') st.setProperty('--inv-fade', on ? '0.25s' : '0s'); }
+    // Show every line now (Enter, Space or a click on the receipt). A skip shows them instantly, with no fade (#159: the fade still looked like waiting).
+    function finishInvoice() { const skipping = invoiceTimer !== null; clearInvoiceTimer(); if (skipping) setInvoiceFade(false); setInvoiceShown(99); }
     function startInvoiceReveal() { // the lines appear one by one with a soft tick, like a till printing the receipt
       clearInvoiceTimer();
+      setInvoiceFade(true); // (a skip on the previous level switched the fade off)
       if (REDUCED_MOTION || invoiceRows <= 1) { setInvoiceShown(99); return; }
       setInvoiceShown(0);
       const step = () => {
@@ -3609,7 +4024,7 @@
       updateNewsDot();
       sfx.levelUp();
       if (lastUnlocks.length) { sfx.unlock(); unlockFx(); } // the kapow: a fanfare after the level jingle, gold rings and confetti
-      levelPage = 'invoice';
+      levelPage = 'invoice'; levelFact = null;
       updateLevelOverlay();
       levelOverlay.style.display = 'flex';
       fitInvoice();         // (now that the screen is visible it has a width to measure)
@@ -6219,10 +6634,19 @@
           if (id % 3 === 0) { ctx.strokeStyle = '#4b4f55'; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(ox + 10, oy + 12, 2.6, 0, 6.3); ctx.moveTo(ox + 10, oy + 9.4); ctx.lineTo(ox + 10, oy + 14.6); ctx.moveTo(ox + 7.4, oy + 12); ctx.lineTo(ox + 12.6, oy + 12); ctx.stroke(); }
         },
         food(cx, cy) { // a three-leaf shamrock
-          ctx.strokeStyle = '#1f7a2e'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(cx, cy + 1); ctx.quadraticCurveTo(cx + 1, cy + 6, cx + 3.4, cy + 8.4); ctx.stroke();
-          ctx.fillStyle = '#2faa44';
-          for (const [dx, dy] of [[0, -3.4], [-3.4, 0.6], [3.4, 0.6]]) { disc(cx + dx - 1.2, cy + dy - 1, 2.8, '#2faa44'); disc(cx + dx + 1.2, cy + dy - 1, 2.8, '#2faa44'); ctx.fillStyle = '#2faa44'; ctx.beginPath(); ctx.moveTo(cx + dx - 3.8, cy + dy - 0.6); ctx.lineTo(cx + dx + 3.8, cy + dy - 0.6); ctx.lineTo(cx + dx * 0.2, cy + dy + 3.4); ctx.closePath(); ctx.fill(); }
-          ctx.fillStyle = '#1f7a2e'; disc(cx, cy, 1.5, '#1f7a2e'); gloss(cx - 1.6, cy - 4.4, 0.9);
+          // (playtest: the shamrock blended into the green meadow. It now has a pale outline with a faint golden glow behind brighter leaves.)
+          const stem = (col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(cx, cy + 1); ctx.quadraticCurveTo(cx + 1, cy + 6, cx + 3.4, cy + 8.4); ctx.stroke(); ctx.lineCap = 'butt'; };
+          const leaves = (col, grow) => {
+            for (const [dx, dy] of [[0, -3.4], [-3.4, 0.6], [3.4, 0.6]]) {
+              disc(cx + dx - 1.2, cy + dy - 1, 2.8 + grow, col); disc(cx + dx + 1.2, cy + dy - 1, 2.8 + grow, col);
+              ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(cx + dx - 3.8 - grow, cy + dy - 0.6); ctx.lineTo(cx + dx + 3.8 + grow, cy + dy - 0.6); ctx.lineTo(cx + dx * 0.2, cy + dy + 3.4 + grow * 1.4); ctx.closePath(); ctx.fill();
+            }
+          };
+          ctx.shadowColor = 'rgba(255, 214, 80, 0.85)'; ctx.shadowBlur = 7;
+          stem('#f4ffe6', 3.4); leaves('#f4ffe6', 1.1); // the pale outline, with the glow
+          ctx.shadowBlur = 0;
+          stem('#1f7a2e', 1.6); leaves('#3ccf55', 0);
+          disc(cx, cy, 1.5, '#1f7a2e'); gloss(cx - 1.6, cy - 4.4, 0.9);
         },
         bonus(cx, cy) { // a pot of gold
           ctx.shadowColor = '#ffd23f'; ctx.shadowBlur = 12;
@@ -6818,6 +7242,8 @@
 
     function buildSnakeCustomizer() {
       allRandomSwitch.addEventListener('click', () => { setAllRandom(!isAllRandom()); });
+      for (const box of [factOffBox, factOffDrawer]) if (box) box.addEventListener('change', () => setFactsOff(box.checked)); // "Disable learning" (#158)
+      updateFactsUi();
       const colorBox = document.getElementById('colorOptions');
       for (const [id, theme] of Object.entries(SNAKE_COLORS)) {
         const b = document.createElement('button');
@@ -8047,6 +8473,7 @@
 
       // Level-complete screen: Enter / Space continues
       if (levelOverlay.style.display === 'flex') {
+        if (key === ' ' && e.target && e.target.tagName === 'INPUT') return; // Space on the "Disable learning" checkbox ticks it (#158)
         if (key === 'Enter' || key === ' ') { e.preventDefault(); levelAdvance(); }
         return;
       }
@@ -9571,7 +9998,8 @@
     function setNews(open, mode) {
       newsOpen = open;
       newsEl.hidden = !open;
-      if (open) panelMode = mode === 'stats' ? 'stats' : 'news';
+      if (open) panelMode = (mode === 'stats' || mode === 'trivia') ? mode : 'news';
+      if (open && panelMode === 'trivia') triviaFact = null; // a fresh fact each time it opens
       if (open) {
         if (drawerOpen) setDrawer(false);
         autoPause(); // like the drawer: a running game pauses while the player reads
@@ -9581,11 +10009,12 @@
         refitAll();
         newsClose.focus();
       } else {
-        newsBtn.blur(); statsBtn.blur();
+        newsBtn.blur(); statsBtn.blur(); triviaBtn.blur();
       }
     }
     newsBtn.addEventListener('click', () => setNews(true));
     statsBtn.addEventListener('click', () => setNews(true, 'stats'));
+    triviaBtn.addEventListener('click', () => setNews(true, 'trivia'));
     newsClose.addEventListener('click', () => setNews(false));
     newsEl.addEventListener('click', (e) => { if (e.target === newsEl) setNews(false); }); // a click on the dark area closes it
 
