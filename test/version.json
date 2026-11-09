@@ -2,10 +2,10 @@
     "env":  "test",
     "ref":  "HEAD",
     "tag":  "",
-    "sha":  "b924f4452ddd13e8b5b3bedf0d0f58674279e9f5",
-    "short":  "b924f44",
-    "subject":  "Draw the level\u0027s obstacles from a cached layer (about 2.5x faster frames)",
-    "published":  "2026-11-08T22:50:24Z",
+    "sha":  "642b19d26b57281ad194578f9e2747e43665ab7f",
+    "short":  "642b19d",
+    "subject":  "Docs: baseline is check-all, drop the stale #33 note, gotchas in order, #99 under gameplay",
+    "published":  "2026-11-09T15:11:39Z",
     "issues":  [
                    12,
                    21,
@@ -16,6 +16,7 @@
                    77,
                    81,
                    124,
+                   125,
                    127,
                    128,
                    129,
@@ -43,6 +44,7 @@
                    157,
                    158,
                    159,
-                   160
+                   160,
+                   162
                ]
 }
